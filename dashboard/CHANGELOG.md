@@ -223,3 +223,23 @@ Testing status:
 - `npm run lint`: lulus.
 - `npx tsc --noEmit`: lulus.
 - `npm run build`: lulus.
+
+### Phase 2 Extension - Dashboard Anggota
+
+- Menambahkan dashboard anggota operasional:
+  - action agregasi baru `getAnggotaDashboard` di `src/actions/dashboard.ts`,
+  - halaman baru `src/app/(dashboard)/laporan/dashboard-anggota/page.tsx`.
+- Ringkasan yang ditampilkan:
+  - total anggota, anggota aktif, total simpanan,
+  - outstanding pinjaman, total tunggakan,
+  - tabel per anggota + skor kesehatan (`SEHAT/WASPADA/RISIKO`).
+- Menambahkan menu laporan:
+  - `Dashboard Anggota` di `src/components/app-sidebar.tsx`.
+- Menambahkan smoke test halaman:
+  - `src/app/(dashboard)/laporan/dashboard-anggota/__tests__/page.test.tsx`.
+
+Testing status:
+- `npm run test`: lulus.
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run build`: lulus.

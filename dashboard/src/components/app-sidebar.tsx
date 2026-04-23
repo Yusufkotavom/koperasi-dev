@@ -82,6 +82,7 @@ const baseNavMain = [
     icon: <FileBarChart />,
     items: [
       { title: "Transaksi User", url: "/laporan/transaksi-per-user" },
+      { title: "Dashboard Anggota", url: "/laporan/dashboard-anggota" },
       { title: "Buku Besar", url: "/laporan/buku-besar" },
       { title: "Neraca", url: "/laporan/neraca" },
       { title: "Rekonsiliasi", url: "/laporan/rekonsiliasi" },
