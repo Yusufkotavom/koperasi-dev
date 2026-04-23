@@ -87,6 +87,7 @@ const baseNavMain = [
       { title: "Rekonsiliasi", url: "/laporan/rekonsiliasi" },
       { title: "Arus Kas", url: "/laporan/arus-kas" },
       { title: "Laba Rugi", url: "/laporan/laba-rugi" },
+      { title: "Distribusi SHU", url: "/laporan/shu" },
     ],
   },
   {

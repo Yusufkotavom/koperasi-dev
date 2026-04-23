@@ -202,3 +202,24 @@ Testing status:
 - `npm run lint`: lulus.
 - `npx tsc --noEmit`: lulus.
 - `npm run build`: lulus.
+
+### Phase 2 Extension - Distribusi SHU Dasar
+
+- Menambahkan kalkulasi SHU dasar berbasis jurnal periode:
+  - action baru `src/actions/shu.ts` untuk hitung:
+    - `shuBersih = pendapatan - beban`,
+    - pool distribusi (`anggota/cadangan/sosial`),
+    - distribusi anggota berbasis partisipasi modal (simpanan) dan partisipasi usaha (pembayaran).
+- Menambahkan halaman laporan SHU:
+  - `src/app/(dashboard)/laporan/shu/page.tsx`
+  - mendukung filter periode + porsi distribusi.
+- Menambahkan akses menu laporan:
+  - `Distribusi SHU` di `src/components/app-sidebar.tsx`.
+- Menambahkan unit test action SHU:
+  - `src/actions/__tests__/shu.actions.test.ts`.
+
+Testing status:
+- `npm run test`: lulus (24 tests).
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run build`: lulus.
