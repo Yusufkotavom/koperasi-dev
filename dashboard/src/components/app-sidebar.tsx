@@ -54,6 +54,7 @@ const baseNavMain = [
       { title: "Pengajuan Pinjaman", url: "/pengajuan" },
       { title: "Pencairan", url: "/pencairan" },
       { title: "Pembayaran Angsuran", url: "/pembayaran" },
+      { title: "Simpanan", url: "/simpanan" },
       { title: "Arus Kas", url: "/kas" },
     ],
   },

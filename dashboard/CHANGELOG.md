@@ -183,3 +183,22 @@ Testing status:
 - `npm run test`: lulus (20 tests).
 - `npm run test:smoke`: lulus (3 tests).
 - `npm run build`: lulus.
+
+### Phase 2 Extension - Modul Simpanan Anggota
+
+- Menambahkan modul transaksi simpanan end-to-end:
+  - action baru `src/actions/simpanan.ts` (list/filter/create + posting jurnal `SIMPANAN`),
+  - validasi input `src/lib/validations/simpanan.ts`,
+  - UI halaman baru `src/app/(dashboard)/simpanan/page.tsx`,
+  - form input `src/app/(dashboard)/simpanan/simpanan-form.tsx`.
+- Menambahkan akses menu/guard:
+  - sidebar item `Simpanan` pada `src/components/app-sidebar.tsx`,
+  - role guard route `/simpanan` di `middleware.ts`.
+- Menambahkan test coverage action simpanan:
+  - `src/actions/__tests__/simpanan.actions.test.ts`.
+
+Testing status:
+- `npm run test`: lulus (22 tests).
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run build`: lulus.

@@ -6,6 +6,7 @@ const routePermissions: Record<string, string[]> = {
   "/laporan": ["SUPER_ADMIN", "OWNER", "MANAGER", "PIMPINAN", "AKUNTANSI", "ADMIN"],
   "/settings": ["SUPER_ADMIN", "OWNER", "ADMIN", "PIMPINAN"],
   "/kas": ["SUPER_ADMIN", "OWNER", "TELLER", "ADMIN", "MANAGER", "PIMPINAN"],
+  "/simpanan": ["SUPER_ADMIN", "OWNER", "TELLER", "ADMIN", "MANAGER", "PIMPINAN"],
   "/pencairan": ["SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "PIMPINAN", "TELLER"],
   "/platform": ["SUPER_ADMIN"],
 }
