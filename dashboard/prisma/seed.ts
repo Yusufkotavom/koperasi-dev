@@ -8,6 +8,18 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
+async function safeDelete(label: string, run: () => Promise<unknown>) {
+  try {
+    await run()
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("does not exist in the current database")) {
+      console.warn(`Skipping cleanup for ${label}: table not found`)
+      return
+    }
+    throw error
+  }
+}
+
 async function createUser(params: {
   email: string
   name: string
@@ -35,6 +47,9 @@ async function cleanDatabase() {
   // Delete children first (FK safety)
   await prisma.auditLog.deleteMany()
   await prisma.approvalLog.deleteMany()
+  await safeDelete("nasabahSurveyNote", () => prisma.nasabahSurveyNote.deleteMany())
+  await safeDelete("journalLine", () => prisma.journalLine.deleteMany())
+  await safeDelete("journalEntry", () => prisma.journalEntry.deleteMany())
   await prisma.kolektorTarget.deleteMany()
   await prisma.notifikasi.deleteMany()
   await prisma.rekonsiliasiKas.deleteMany()
@@ -48,6 +63,8 @@ async function cleanDatabase() {
   await prisma.nasabah.deleteMany()
   await prisma.kelompok.deleteMany()
   await prisma.kasKategori.deleteMany()
+  await safeDelete("companySetting", () => prisma.companySetting.deleteMany())
+  await safeDelete("memberCounter", () => prisma.memberCounter.deleteMany())
   await prisma.account.deleteMany()
   await prisma.appSetting.deleteMany()
   await prisma.userRole.deleteMany()

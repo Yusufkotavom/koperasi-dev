@@ -156,3 +156,30 @@ Testing status:
 - `npx tsc --noEmit`: lulus.
 - `npm run test`: lulus (10 tests).
 - `npm run build`: lulus.
+
+### Phase 1+2 Final Closure - UAT, Role Matrix, and Repo Hygiene
+
+- Menuntaskan closure plan yang tersisa:
+  - menutup `P1.7` dan checklist UAT membership berbasis evidence run terbaru,
+  - menutup `P2.1/P2.2/P2.6/P2.8/P2.9` untuk scope eksekusi membership hardening.
+- Menambahkan validasi lintas-role otomatis:
+  - `src/lib/__tests__/tenant.test.ts`
+  - `src/__tests__/middleware.test.ts`
+- Menstabilkan smoke E2E:
+  - perbaikan selector login password (`exact label`),
+  - update Playwright base URL default ke `http://localhost:3000`.
+- Menormalkan runbook DB dev:
+  - `prisma/seed.ts` diperkuat (cleanup lebih aman + skip tabel opsional jika belum ada),
+  - verifikasi `db:push` + `db:seed` untuk sinkronisasi schema sebelum smoke test.
+- Repo hygiene:
+  - menghapus tracking embedded repo `koperasi-dev` dari index,
+  - menambahkan ignore `koperasi-dev/` di `.gitignore`.
+
+Testing status:
+- `npm run db:push`: lulus.
+- `npm run db:seed`: lulus.
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run test`: lulus (20 tests).
+- `npm run test:smoke`: lulus (3 tests).
+- `npm run build`: lulus.

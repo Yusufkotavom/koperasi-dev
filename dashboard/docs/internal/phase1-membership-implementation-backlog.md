@@ -47,7 +47,7 @@ Referensi yang dipakai di repo: `docs/superpowers/plans/plan.md` (konten master 
 - [x] Lulus `npx tsc --noEmit`.
 - [x] Lulus `npm run build`.
 - [x] Lulus `npm run test` (setelah baseline test ditambahkan).
-- [ ] Checklist UAT membership: create anggota, assign ke kelompok, ubah status, hapus aman, verifikasi histori tetap konsisten.
+- [x] Checklist UAT membership: create anggota, assign ke kelompok, ubah status, hapus aman, verifikasi histori tetap konsisten.
 
 ## Sprint Breakdown (Disarankan)
 
@@ -61,4 +61,4 @@ Referensi yang dipakai di repo: `docs/superpowers/plans/plan.md` (konten master 
 
 ### Sprint 3 (Quality Gate)
 - [x] D2, D3, D4, D5, D6
-- [ ] Semua Definition of Done + UAT membership.
+- [x] Semua Definition of Done + UAT membership.

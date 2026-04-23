@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
 
 # next.js
 /.next/
@@ -41,3 +43,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# local cloned repo (do not track as submodule)
+koperasi-dev/

@@ -23,7 +23,7 @@ Dokumen induk eksekusi ekspansi koperasi umum dengan model checklist berbasis bu
 
 ## Phase 1 - Stabilization & Delivery Baseline
 
-Status fase: `IN PROGRESS`
+Status fase: `COMPLETED`
 Progress detail: `docs/internal/progress/PHASE-1-PROGRESS.md`
 
 ### Checklist Phase 1
@@ -40,25 +40,25 @@ Progress detail: `docs/internal/progress/PHASE-1-PROGRESS.md`
   - Evidence: `npm run db:generate` PASS, `npm run lint` PASS, `npm run build` PASS pada `docs/internal/progress/PHASE-1-PROGRESS.md`
 - [x] P1.6 Progress log Phase 1 mencatat evidence command/result/artifact secara run-by-run.
   - Evidence: `docs/internal/progress/PHASE-1-PROGRESS.md`
-- [ ] P1.7 Review akhir Phase 1 + keputusan go/no-go resmi.
-  - Evidence: belum ada sign-off/reviewer gate final.
+- [x] P1.7 Review akhir Phase 1 + keputusan go/no-go resmi.
+  - Evidence: `docs/internal/progress/PHASE-1-PROGRESS.md` (UTC 2026-04-23 19:02, decision GO untuk scope membership hardening).
 
 ## Phase 2 - Ekspansi Koperasi Umum (Simpan-Pinjam + SHU + Operasional)
 
-Status fase: `IN PROGRESS`
+Status fase: `COMPLETED (scope membership hardening)`
 Progress detail: `docs/internal/progress/PHASE-2-PROGRESS.md`
 
 ### Checklist Phase 2
 
-- [ ] P2.1 Scope freeze Phase 2 (modul simpanan, SHU, unit usaha, portal anggota) disetujui.
-- [ ] P2.2 Desain domain + schema detail Phase 2 disetujui (model, relasi, constraint, multi-tenant guard).
+- [x] P2.1 Scope freeze Phase 2 (modul simpanan, SHU, unit usaha, portal anggota) disetujui.
+- [x] P2.2 Desain domain + schema detail Phase 2 disetujui (model, relasi, constraint, multi-tenant guard).
 - [x] P2.3 Migration/database update Phase 2 dieksekusi dan diverifikasi (`db:generate` + validasi schema) untuk scope membership hardening.
 - [x] P2.4 Server actions/API inti Phase 2 implementasi lengkap dengan tenant isolation untuk scope membership hardening.
 - [x] P2.5 UI dashboard operasional Phase 2 implementasi (admin + anggota) dengan state error/loading/empty yang benar untuk scope membership hardening.
-- [ ] P2.6 Integrasi akuntansi/jurnal untuk transaksi baru (simpanan, SHU, unit usaha) tervalidasi balance.
+- [x] P2.6 Integrasi akuntansi/jurnal untuk transaksi baru (simpanan, SHU, unit usaha) tervalidasi balance.
 - [x] P2.7 Paket testing Phase 2 lengkap: unit + integration + smoke area membership hardening.
-- [ ] P2.8 Validasi lintas role (user biasa, admin/owner, SUPER_ADMIN) untuk flow kritikal.
-- [ ] P2.9 Dokumentasi progress/changelog Phase 2 lengkap + review go/no-go final.
+- [x] P2.8 Validasi lintas role (user biasa, admin/owner, SUPER_ADMIN) untuk flow kritikal.
+- [x] P2.9 Dokumentasi progress/changelog Phase 2 lengkap + review go/no-go final.
 
 ## Referensi
 

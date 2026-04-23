@@ -8,7 +8,7 @@ async function login(page: import("@playwright/test").Page) {
   await expect(page).toHaveURL(/\/login$/)
 
   await page.getByLabel("Email").fill(E2E_EMAIL)
-  await page.getByLabel("Password").fill(E2E_PASSWORD)
+  await page.getByLabel("Password", { exact: true }).fill(E2E_PASSWORD)
   await page.getByRole("button", { name: "Masuk" }).click()
 
   await expect(page).toHaveURL(/\/dashboard\/?$/)
