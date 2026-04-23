@@ -260,3 +260,35 @@ Testing status:
 - `npm run lint`: lulus.
 - `npx tsc --noEmit`: lulus.
 - `npm run build`: lulus.
+
+### Phase 3 Kickoff - Unit Usaha Penjualan Dasar
+
+- Menambahkan modul transaksi `Unit Usaha Penjualan` end-to-end:
+  - schema + migration baru `UnitUsahaSale`:
+    - `prisma/schema.prisma`
+    - `prisma/migrations/20260423202000_unit_usaha_penjualan_dasar/migration.sql`
+  - action dan tenant-aware business logic:
+    - `src/actions/unit-usaha-penjualan.ts`
+    - mencakup create/list/filter, posting jurnal otomatis, audit log.
+  - validasi input:
+    - `src/lib/validations/unit-usaha-penjualan.ts`
+  - UI halaman + form:
+    - `src/app/(dashboard)/unit-usaha/penjualan/page.tsx`
+    - `src/app/(dashboard)/unit-usaha/penjualan/penjualan-form.tsx`
+  - wiring akses:
+    - menu sidebar `Unit Usaha (Penjualan)` di `src/components/app-sidebar.tsx`,
+    - guard route `/unit-usaha` di `middleware.ts`.
+- Menambahkan test coverage awal:
+  - action tests: `src/actions/__tests__/unit-usaha-penjualan.actions.test.ts`
+  - page smoke test: `src/app/(dashboard)/unit-usaha/penjualan/__tests__/page.test.tsx`
+- Menambahkan inisiasi Phase 3 documentation:
+  - `docs/internal/progress/PHASE-3-PROGRESS.md`
+  - update checklist phase pada `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`.
+
+Testing status:
+- `npm run db:generate`: lulus.
+- `npm run db:push`: lulus.
+- `npm run test`: lulus (29 tests).
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run build`: lulus.

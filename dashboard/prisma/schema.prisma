@@ -52,6 +52,7 @@ model Company {
   rekonsiliasi    RekonsiliasiKas[]
   simpanan        Simpanan[]
   surveyNotes     NasabahSurveyNote[]
+  unitUsahaSales  UnitUsahaSale[]
   users           User[]            @relation("UserCompany")
 
   @@index([ownerId])
@@ -82,6 +83,7 @@ model User {
   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
   rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
   nasabahSurveyNotes     NasabahSurveyNote[]
+  unitUsahaSalesCreated  UnitUsahaSale[]     @relation("UnitUsahaSaleCreatedBy")
   roles                  UserRole[]
   company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
 
@@ -131,6 +133,7 @@ model Nasabah {
   penjamin      Penjamin[]
   surveyNotes   NasabahSurveyNote[]
   simpanan      Simpanan[]
+  unitUsahaSales UnitUsahaSale[]
 
   @@unique([companyId, nomorAnggota])
   @@unique([companyId, nik])
@@ -317,6 +320,31 @@ model Simpanan {
 
   @@index([companyId])
   @@map("simpanan")
+}
+
+model UnitUsahaSale {
+  id           String      @id @default(cuid())
+  invoiceNo    String
+  tanggal      DateTime    @default(now())
+  customerName String
+  nasabahId    String?
+  channel      String      @default("TOKO")
+  metodeBayar  MetodeBayar @default(TUNAI)
+  kasJenis     String      @default("TUNAI")
+  total        Decimal     @db.Decimal(15, 2)
+  catatan      String?
+  createdById  String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  companyId    String
+  company      Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy    User        @relation("UnitUsahaSaleCreatedBy", fields: [createdById], references: [id])
+  nasabah      Nasabah?    @relation(fields: [nasabahId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, invoiceNo])
+  @@index([companyId, tanggal])
+  @@index([companyId, nasabahId])
+  @@map("unit_usaha_sales")
 }
 
 model Account {

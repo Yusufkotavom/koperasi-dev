@@ -55,6 +55,7 @@ const baseNavMain = [
       { title: "Pencairan", url: "/pencairan" },
       { title: "Pembayaran Angsuran", url: "/pembayaran" },
       { title: "Simpanan", url: "/simpanan" },
+      { title: "Unit Usaha (Penjualan)", url: "/unit-usaha/penjualan" },
       { title: "Arus Kas", url: "/kas" },
     ],
   },

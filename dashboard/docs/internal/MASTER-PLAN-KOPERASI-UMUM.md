@@ -60,9 +60,24 @@ Progress detail: `docs/internal/progress/PHASE-2-PROGRESS.md`
 - [x] P2.8 Validasi lintas role (user biasa, admin/owner, SUPER_ADMIN) untuk flow kritikal.
 - [x] P2.9 Dokumentasi progress/changelog Phase 2 lengkap + review go/no-go final.
 
+## Phase 3 - Ekspansi Unit Usaha & Portal Anggota
+
+Status fase: `IN_PROGRESS`
+Progress detail: `docs/internal/progress/PHASE-3-PROGRESS.md`
+
+### Checklist Phase 3
+
+- [x] P3.1 Modul transaksi Unit Usaha Penjualan (input, listing, filter, jurnal, audit log) siap pakai.
+- [ ] P3.2 Laporan performa Unit Usaha (omzet periodik, komposisi channel, kontribusi ke pendapatan) tersedia.
+- [ ] P3.3 Portal Anggota MVP (profil anggota, histori simpanan, histori pinjaman, histori pembayaran) tersedia.
+- [ ] P3.4 Validasi role matrix untuk modul baru (`TELLER/ADMIN/OWNER/MANAGER/PIMPINAN/SUPER_ADMIN`) tervalidasi.
+- [ ] P3.5 Paket testing Phase 3 lengkap (unit + integration + smoke) dijalankan dan tercatat evidence.
+- [ ] P3.6 Dokumentasi progress/changelog Phase 3 lengkap + review go/no-go batch.
+
 ## Referensi
 
 - `docs/internal/progress/PHASE-1-PROGRESS.md`
 - `docs/internal/progress/PHASE-2-PROGRESS.md`
+- `docs/internal/progress/PHASE-3-PROGRESS.md`
 - `docs/internal/progress/ORCHESTRATOR-RUN-LOG-TEMPLATE.md`
 - `docs/internal/testing-baseline.md`
