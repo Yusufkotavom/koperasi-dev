@@ -243,3 +243,20 @@ Testing status:
 - `npm run lint`: lulus.
 - `npx tsc --noEmit`: lulus.
 - `npm run build`: lulus.
+
+### Phase 2 Extension - Dashboard Anggota Detail Drill-down
+
+- Menambahkan detail anggota drill-down dari tabel dashboard anggota:
+  - action `getAnggotaDashboardDetail` di `src/actions/dashboard.ts`,
+  - halaman detail baru `src/app/(dashboard)/laporan/dashboard-anggota/[id]/page.tsx`,
+  - tabel summary pada `src/app/(dashboard)/laporan/dashboard-anggota/page.tsx` sekarang klik nama anggota menuju detail.
+- Menambahkan smoke test halaman detail:
+  - `src/app/(dashboard)/laporan/dashboard-anggota/[id]/page.test.tsx`.
+- Memperbarui smoke test halaman summary:
+  - `src/app/(dashboard)/laporan/dashboard-anggota/__tests__/page.test.tsx` untuk verifikasi link drill-down.
+
+Testing status:
+- `npm run test`: lulus.
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run build`: lulus.

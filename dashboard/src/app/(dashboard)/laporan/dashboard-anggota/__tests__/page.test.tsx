@@ -39,8 +39,8 @@ describe("dashboard anggota page smoke", () => {
 
     expect(html).toContain("Dashboard Anggota")
     expect(html).toContain("Andi Saputra")
+    expect(html).toContain("href=\"/laporan/dashboard-anggota/n1\"")
     expect(html).toContain("value=\"andi\"")
     expect(html).toContain("<option value=\"AKTIF\" selected=\"\">Aktif</option>")
   })
 })
-

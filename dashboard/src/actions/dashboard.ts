@@ -659,3 +659,112 @@ export async function getAnggotaDashboard(params?: { search?: string; status?: s
 
   return serializeData({ summary, data })
 }
+
+export async function getAnggotaDashboardDetail(nasabahId: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(
+    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+  )
+
+  const today = new Date()
+  const nasabah = await prisma.nasabah.findFirst({
+    where: { id: nasabahId, companyId },
+    select: {
+      id: true,
+      nomorAnggota: true,
+      namaLengkap: true,
+      status: true,
+      noHp: true,
+      alamat: true,
+      kelompok: { select: { nama: true, wilayah: true } },
+      simpanan: {
+        select: { id: true, jenis: true, jumlah: true, tanggal: true },
+        orderBy: [{ tanggal: "desc" }, { id: "desc" }],
+        take: 20,
+      },
+      pengajuan: {
+        select: {
+          pinjaman: {
+            select: {
+              id: true,
+              nomorKontrak: true,
+              status: true,
+              pokokPinjaman: true,
+              sisaPinjaman: true,
+              tanggalCair: true,
+              jadwalAngsuran: {
+                where: { sudahDibayar: false, tanggalJatuhTempo: { lt: today } },
+                select: { id: true, total: true, tanggalJatuhTempo: true },
+              },
+              pembayaran: {
+                where: { isBatalkan: false },
+                select: { id: true, tanggalBayar: true, totalBayar: true },
+                orderBy: { tanggalBayar: "desc" },
+                take: 10,
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!nasabah) throw new Error("Anggota tidak ditemukan.")
+
+  const pinjamanRows = nasabah.pengajuan.map((p) => p.pinjaman).filter((x): x is NonNullable<typeof x> => Boolean(x))
+  const summary = {
+    totalSimpanan: nasabah.simpanan.reduce((sum, row) => sum + Number(row.jumlah), 0),
+    totalPinjamanPokok: pinjamanRows.reduce((sum, row) => sum + Number(row.pokokPinjaman), 0),
+    totalOutstanding: pinjamanRows
+      .filter((row) => row.status === "AKTIF" || row.status === "MENUNGGAK")
+      .reduce((sum, row) => sum + Number(row.sisaPinjaman), 0),
+    totalTunggakan: pinjamanRows.reduce(
+      (sum, row) => sum + row.jadwalAngsuran.reduce((inner, j) => inner + Number(j.total), 0),
+      0,
+    ),
+    pinjamanAktif: pinjamanRows.filter((row) => row.status === "AKTIF" || row.status === "MENUNGGAK").length,
+  }
+
+  const pembayaranTerbaru = pinjamanRows
+    .flatMap((row) =>
+      row.pembayaran.map((p) => ({
+        id: p.id,
+        tanggalBayar: p.tanggalBayar,
+        totalBayar: Number(p.totalBayar),
+        nomorKontrak: row.nomorKontrak,
+      })),
+    )
+    .sort((a, b) => new Date(b.tanggalBayar).getTime() - new Date(a.tanggalBayar).getTime())
+    .slice(0, 15)
+
+  return serializeData({
+    anggota: {
+      id: nasabah.id,
+      nomorAnggota: nasabah.nomorAnggota,
+      namaLengkap: nasabah.namaLengkap,
+      status: nasabah.status,
+      noHp: nasabah.noHp,
+      alamat: nasabah.alamat,
+      kelompok: nasabah.kelompok,
+    },
+    summary,
+    simpananTerbaru: nasabah.simpanan.map((row) => ({
+      id: row.id,
+      jenis: row.jenis,
+      jumlah: Number(row.jumlah),
+      tanggal: row.tanggal,
+    })),
+    pinjaman: pinjamanRows.map((row) => ({
+      id: row.id,
+      nomorKontrak: row.nomorKontrak,
+      status: row.status,
+      pokokPinjaman: Number(row.pokokPinjaman),
+      sisaPinjaman: Number(row.sisaPinjaman),
+      tanggalCair: row.tanggalCair,
+      totalTunggakan: row.jadwalAngsuran.reduce((sum, j) => sum + Number(j.total), 0),
+      overdueCount: row.jadwalAngsuran.length,
+    })),
+    pembayaranTerbaru,
+  })
+}

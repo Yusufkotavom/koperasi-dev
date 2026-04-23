@@ -1,6 +1,7 @@
 import { getAnggotaDashboard } from "@/actions/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 
 function fmtCurrency(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -91,7 +92,11 @@ export default async function DashboardAnggotaPage({
                 result.data.map((row) => (
                   <tr key={row.id} className="border-t">
                     <td className="p-3 font-mono text-xs">{row.nomorAnggota}</td>
-                    <td className="p-3 font-medium">{row.namaLengkap}</td>
+                    <td className="p-3 font-medium">
+                      <Link href={`/laporan/dashboard-anggota/${row.id}`} className="hover:underline">
+                        {row.namaLengkap}
+                      </Link>
+                    </td>
                     <td className="p-3">{row.kelompok}</td>
                     <td className="p-3">{row.status.replace("_", " ")}</td>
                     <td className="p-3 text-right">{fmtCurrency(row.totalSimpanan)}</td>
@@ -112,4 +117,3 @@ export default async function DashboardAnggotaPage({
     </div>
   )
 }
-
