@@ -36,6 +36,14 @@ export default async function middleware(req: NextRequest) {
   const userRoles: string[] = Array.isArray((token as any)?.roles) ? (token as any).roles : []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tokenCompanyId: string | null | undefined = (token as any)?.companyId as string | null | undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tokenCompanyStatus: string | null | undefined = (token as any)?.companyStatus as string | null | undefined
+
+  // Block suspended/deleted company access at middleware level.
+  // SUPER_ADMIN without company context is exempt and handled below.
+  if (tokenCompanyId && tokenCompanyStatus && tokenCompanyStatus !== "ACTIVE") {
+    return NextResponse.redirect(new URL("/login", req.url))
+  }
 
   // SUPER_ADMIN can exist without a company context. In that case, keep them inside /platform.
   if (userRoles.includes("SUPER_ADMIN") && !tokenCompanyId) {

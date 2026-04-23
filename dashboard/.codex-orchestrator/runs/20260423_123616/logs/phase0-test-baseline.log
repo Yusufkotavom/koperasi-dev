@@ -1,0 +1,1462 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR, /home/kotacom/.codex/memories]
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba57-5023-7d41-b120-393fc403e87c
+--------
+user
+You are worker 3. Focus ONLY on creating a practical testing baseline document and scripts references aligned with docs/internal/MASTER-PLAN-KOPERASI-UMUM.md. Do not push. Produce docs/internal/testing-baseline.md and commit. Include README_WORKER.md summary.
+warning: Codex could not find bubblewrap on PATH. Install bubblewrap with your OS package manager. See the sandbox prerequisites: https://developers.openai.com/codex/concepts/sandboxing#prerequisites. Codex will use the vendored bubblewrap in the meantime.
+2026-04-23T12:36:18.229833Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll create a focused testing baseline package for worker 3 by mapping requirements from `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`, then drafting `docs/internal/testing-baseline.md`, adding script references, and finishing with `README_WORKER.md` plus a local commit (no push). I’m starting by reading the master plan and current repo scripts/docs structure.
+exec
+/bin/bash -lc 'ls -la docs/internal' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ exited 2 in 0ms:
+ls: cannot access 'docs/internal': No such file or directory
+
+exec
+/bin/bash -lc 'rg --files' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+dashboard/skills-lock.json
+dashboard/fix-inputs.js
+dashboard/README.md
+dashboard/postcss.config.mjs
+dashboard/package-lock.json
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/AGENTS.md
+dashboard/USING-SUPERPOWERS.md
+dashboard/eslint.config.mjs
+dashboard/PANDUAN-PENGGUNA.md
+dashboard/middleware.ts
+dashboard/307
+dashboard/package.json
+dashboard/next.config.ts
+dashboard/CLAUDE.md
+dashboard/src/actions/company-users.ts
+dashboard/docs/superpowers/using-superpowers.md
+dashboard/src/actions/kelompok.ts
+dashboard/src/actions/nasabah.ts
+dashboard/src/actions/akuntansi.ts
+dashboard/src/actions/maintenance.ts
+dashboard/src/actions/auth-registration.ts
+dashboard/src/actions/pengajuan.ts
+dashboard/src/actions/settings.ts
+dashboard/src/actions/kas.ts
+dashboard/src/actions/platform-admin.ts
+dashboard/src/actions/dashboard.ts
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+dashboard/docs/superpowers/plans/plan.md
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+dashboard/docs/superpowers/plans/accounting-scoring-plan.md
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+dashboard/src/actions/pembayaran.ts
+dashboard/src/actions/kolektor.ts
+dashboard/src/components/print-button.tsx
+dashboard/src/components/page-view-transition.tsx
+dashboard/src/components/nav-main.tsx
+dashboard/src/components/theme-provider.tsx
+dashboard/src/components/nav-user.tsx
+dashboard/src/hooks/use-mobile.ts
+dashboard/src/components/app-link.tsx
+dashboard/src/components/navigation-indicator.tsx
+dashboard/docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+dashboard/src/components/markdown.tsx
+dashboard/src/components/app-sidebar.tsx
+dashboard/src/components/nav-secondary.tsx
+dashboard/src/components/ui/dialog.tsx
+dashboard/src/lib/ranking.ts
+dashboard/src/lib/audit.ts
+dashboard/src/lib/utils.ts
+dashboard/src/lib/datetime.ts
+dashboard/src/lib/accounting-mode.ts
+dashboard/src/components/ui/breadcrumb.tsx
+dashboard/src/lib/auth.ts
+dashboard/src/components/ui/sheet.tsx
+dashboard/src/lib/pembayaran.ts
+dashboard/src/components/ui/card.tsx
+dashboard/src/components/ui/tabs.tsx
+dashboard/src/components/ui/field.tsx
+dashboard/src/lib/roles.ts
+dashboard/src/lib/tenant.ts
+dashboard/src/app/favicon.ico
+dashboard/src/app/layout.tsx
+dashboard/src/components/ui/avatar.tsx
+dashboard/src/lib/validations/kelompok.ts
+dashboard/src/app/api/auth/[...nextauth]/route.ts
+dashboard/src/lib/prisma.ts
+dashboard/src/lib/validations/nasabah.ts
+dashboard/src/lib/report-period.ts
+dashboard/src/lib/accounting.ts
+dashboard/src/lib/validations/pengajuan.ts
+dashboard/src/lib/validations/pembayaran.ts
+dashboard/src/lib/blob-upload.ts
+dashboard/src/lib/pembayaran-notes.ts
+dashboard/src/components/ui/dropdown-menu.tsx
+dashboard/src/components/ui/separator.tsx
+dashboard/src/app/api/upload/kas/route.ts
+dashboard/src/app/(marketing)/home/page.tsx
+dashboard/src/app/(marketing)/_components/marketing-shell.tsx
+dashboard/src/app/(marketing)/product/page.tsx
+dashboard/src/app/(marketing)/penawaran/page.tsx
+dashboard/src/app/(marketing)/_components/marketing-data.ts
+dashboard/src/app/api/upload/pengajuan/route.ts
+dashboard/src/app/(marketing)/penawaran/_lib/screenshots.ts
+dashboard/src/app/(marketing)/contact/page.tsx
+dashboard/src/app/(marketing)/blog/page.tsx
+dashboard/src/app/(marketing)/page.tsx
+dashboard/src/app/(auth)/layout.tsx
+dashboard/src/app/(auth)/loading.tsx
+dashboard/src/app/(marketing)/about/page.tsx
+dashboard/src/app/api/upload/nasabah/route.ts
+dashboard/src/app/(auth)/register/page.tsx
+dashboard/src/app/api/upload/pembayaran/route.ts
+dashboard/src/app/(auth)/login/page.tsx
+dashboard/src/components/ui/alert.tsx
+dashboard/src/components/ui/skeleton.tsx
+dashboard/src/components/ui/table.tsx
+dashboard/src/app/globals.css
+dashboard/src/components/ui/input.tsx
+dashboard/src/components/ui/label.tsx
+dashboard/src/components/ui/textarea.tsx
+dashboard/src/components/print/company-document-header.tsx
+dashboard/src/components/ui/collapsible.tsx
+dashboard/src/components/ui/sidebar.tsx
+dashboard/src/components/ui/select.tsx
+dashboard/src/components/ui/badge.tsx
+dashboard/src/components/ui/tooltip.tsx
+dashboard/src/components/ui/button.tsx
+dashboard/src/components/ui/sonner.tsx
+dashboard/prisma.config.ts
+dashboard/tsconfig.json
+dashboard/components.json
+dashboard/SUPER-ADMIN-PLAN.md
+dashboard/src/app/(dashboard)/pembayaran/edit-button.tsx
+dashboard/src/app/(dashboard)/pengajuan/page.tsx
+dashboard/public/snitch/project/cooperative_manager_dashboard/screen.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/dashboard.png
+dashboard/src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/screen.png
+dashboard/src/app/(dashboard)/pengajuan/baru/page.tsx
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/bayar-button.tsx
+dashboard/public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+dashboard/src/app/(dashboard)/pembayaran/manual-input.tsx
+dashboard/public/snitch/project/login_cooperative_management_dashboard/screen.png
+dashboard/public/snitch/project/vault_cooperative_management_landing_page/screen.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/screen.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/laporan.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/screen.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/screen.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/nasabah.png
+dashboard/public/snitch/project/settings_user_role_management/settings.png
+dashboard/src/app/(dashboard)/roadmap/page.tsx
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/screen.png
+dashboard/src/app/(dashboard)/roadmap/roadmap-client.tsx
+dashboard/public/snitch/project/settings_user_role_management/screen.png
+dashboard/public/window.svg
+dashboard/src/app/(dashboard)/layout.tsx
+dashboard/public/next.svg
+dashboard/public/uploads/nasabah/1776851508256-de1ba137-c597-44e0-8d9c-5a24a8578751.pdf
+dashboard/public/uploads/nasabah/1776618214801-f5c7641f-ee89-4e0d-ade6-672c31aef520.jpeg
+dashboard/src/app/(dashboard)/platform/page.tsx
+dashboard/src/app/(dashboard)/nasabah/page.tsx
+dashboard/public/uploads/nasabah/1776613912086-44c59630-5991-4c7d-b064-c8e9a6096319.jpeg
+dashboard/src/app/(dashboard)/platform/users/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+dashboard/src/app/(dashboard)/platform/companies/page.tsx
+dashboard/src/app/(dashboard)/platform/users/user-admin-table.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+dashboard/src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/page.tsx
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+dashboard/src/app/(dashboard)/docs/using-superpowers/page.tsx
+dashboard/src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+dashboard/public/globe.svg
+dashboard/public/uploads/pembayaran/1776700680512-a635469f-803c-4b6c-b940-9e710a4fa1bb.jpeg
+dashboard/src/app/(dashboard)/_components/top-bar.tsx
+dashboard/src/app/(dashboard)/kelompok/baru/page.tsx
+dashboard/src/app/(dashboard)/monitoring/tunggakan/page.tsx
+dashboard/src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/kelompok/page.tsx
+dashboard/src/app/(dashboard)/_components/dashboard-header.tsx
+dashboard/src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+dashboard/src/app/(dashboard)/monitoring/kolektor/page.tsx
+dashboard/public/file.svg
+dashboard/src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+dashboard/src/app/(dashboard)/loading.tsx
+dashboard/src/app/(dashboard)/kas/page.tsx
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx
+dashboard/src/app/(dashboard)/kas/kas-client.tsx
+dashboard/src/app/(dashboard)/laporan/buku-besar/page.tsx
+dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+dashboard/src/app/(dashboard)/settings/db-maintenance-card.tsx
+dashboard/src/app/(dashboard)/settings/page.tsx
+dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx
+dashboard/src/app/(dashboard)/settings/ranking-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/ranking/page.tsx
+dashboard/src/app/(dashboard)/settings/company/page.tsx
+dashboard/src/app/(dashboard)/settings/user-management-card.tsx
+dashboard/src/app/(dashboard)/settings/accounting-mode-card.tsx
+dashboard/src/app/(dashboard)/settings/settings-profile-card.tsx
+dashboard/src/app/(dashboard)/settings/maintenance/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+dashboard/src/app/(dashboard)/settings/accounting/page.tsx
+dashboard/public/docs/screenshots/error-login.png
+dashboard/src/app/(dashboard)/settings/users/page.tsx
+dashboard/src/app/(dashboard)/laporan/laba-rugi/page.tsx
+dashboard/src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+dashboard/src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+dashboard/public/docs/screenshots/debug-login-page.png
+dashboard/public/vercel.svg
+dashboard/src/app/(dashboard)/laporan/neraca/page.tsx
+dashboard/src/app/api/upload/logo/route.ts
+dashboard/src/app/(dashboard)/settings/profile/page.tsx
+dashboard/src/app/(dashboard)/laporan/arus-kas/page.tsx
+dashboard/src/app/(dashboard)/pencairan/pencairan-form.tsx
+dashboard/src/app/(dashboard)/pencairan/page.tsx
+dashboard/src/app/(dashboard)/dashboard/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+dashboard/src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+dashboard/public/static/sw.js
+dashboard/prisma/seed.ts
+dashboard/prisma/seed.cjs
+dashboard/prisma/schema.prisma
+dashboard/proposal_premium.html
+dashboard/capture-screenshots.mjs
+dashboard/src/app/(dashboard)/kolektor/page.tsx
+dashboard/prisma/migrations/20260418204642_init/migration.sql
+dashboard/prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+dashboard/prisma/migrations/20260422103000_company_user_scope/migration.sql
+dashboard/prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+dashboard/prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+dashboard/prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+dashboard/prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+dashboard/prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+dashboard/prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+dashboard/prisma/migrations/20260421110000_journal_entries/migration.sql
+dashboard/src/app/(dashboard)/kolektor/kolektor-management.tsx
+dashboard/prisma/migrations/migration_lock.toml
+dashboard/src/app/(dashboard)/akuntansi/akun/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+dashboard/prisma/migrations/20260422120000_company_status_fields/migration.sql
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+dashboard/prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+
+codex
+The workspace root is a container folder with the actual project in `dashboard/`. I found the docs tree there, so next I’ll read `dashboard/docs/internal/MASTER-PLAN-KOPERASI-UMUM.md` and align the testing baseline document to it.
+exec
+/bin/bash -lc 'ls -la dashboard/docs/internal && rg -n "MASTER-PLAN-KOPERASI-UMUM|testing|test|baseline|qa|quality" dashboard/docs/internal/MASTER-PLAN-KOPERASI-UMUM.md' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ exited 2 in 0ms:
+total 20
+drwxr-xr-x 2 kotacom kotacom 4096 Apr 23 12:36 .
+drwxr-xr-x 4 kotacom kotacom 4096 Apr 23 12:36 ..
+-rw-r--r-- 1 kotacom kotacom 4514 Apr 23 12:36 accounting-extension-plan.md
+-rw-r--r-- 1 kotacom kotacom  153 Apr 23 12:36 panduan-pengguna.md
+dashboard/docs/internal/MASTER-PLAN-KOPERASI-UMUM.md: No such file or directory (os error 2)
+
+exec
+/bin/bash -lc "rg -n \"\\b(test|testing|vitest|jest|playwright|cypress|lint|typecheck|qa)\\b\" dashboard/package.json dashboard/README.md dashboard/docs/internal/*.md" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+dashboard/package.json:9:    "lint": "eslint",
+dashboard/package.json:57:    "@playwright/test": "^1.59.1",
+dashboard/package.json:64:    "playwright": "^1.59.1",
+
+exec
+/bin/bash -lc "rg --files dashboard | rg \"MASTER-PLAN-KOPERASI-UMUM\\.md|MASTER-PLAN|testing-baseline\\.md|README_WORKER\\.md\"" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ exited 1 in 0ms:
+exec
+/bin/bash -lc 'find . -maxdepth 4 -type f | rg "MASTER-PLAN|KOPERASI|README_WORKER|testing-baseline"' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ exited 1 in 0ms:
+codex
+I hit a blocker: `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md` is not present anywhere in this workspace (including `dashboard/docs/internal`). I’ll quickly scan for any equivalent planning doc and, if none exists, I’ll proceed with a practical baseline tied to the current `dashboard` app modules and clearly note this assumption in `README_WORKER.md`.
+exec
+/bin/bash -lc 'rg -n "koperasi|master plan|roadmap|plan" dashboard/docs dashboard/*.md' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+dashboard/USING-SUPERPOWERS.md:36:Tolong bikin page baru /roadmap …
+dashboard/USING-SUPERPOWERS.md:51:- Tambah page /roadmap untuk cek semua fitur
+dashboard/USING-SUPERPOWERS.md:60:- Route yang harus bisa diakses (contoh: `/roadmap`)
+dashboard/USING-SUPERPOWERS.md:68:- Route: /roadmap
+dashboard/USING-SUPERPOWERS.md:135:- Tambah page /roadmap berisi checklist fitur + filter status
+dashboard/USING-SUPERPOWERS.md:138:- Route: /roadmap
+dashboard/PANDUAN-PENGGUNA.md:3:Panduan ini ditujukan untuk user operasional koperasi untuk menjalankan aplikasi dari awal sampai laporan. Fokusnya adalah langkah kerja dan penjelasan field sesuai yang tampil di aplikasi (berdasarkan form dan validasi).
+dashboard/PANDUAN-PENGGUNA.md:18:3. Buat `Kelompok` jika koperasi menggunakan sistem kelompok.
+dashboard/docs/internal/accounting-extension-plan.md:14:Bangun akuntansi koperasi berbasis double-entry agar laporan utama berasal dari sumber yang sama:
+dashboard/docs/internal/accounting-extension-plan.md:161:2. Seed COA koperasi yang lebih lengkap.
+dashboard/docs/superpowers/using-superpowers.md:52:Buat page baru /roadmap berisi checklist semua fitur (yang sudah ada dicentang).
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:3:> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:5:**Goal:** Menutup gap fitur utama berdasarkan `../plan.md` sampai operasional Tahap 1 + fondasi Tahap 2 berjalan stabil di production.
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:3:> **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
+dashboard/docs/superpowers/plans/plan.md:1:Berikut breakdown fitur sistem untuk **koperasi simpan pinjam** berdasarkan kebutuhan yang  sebutkan.
+dashboard/docs/superpowers/plans/plan.md:35:Kalau sistem koperasi berjalan per kelompok.
+dashboard/docs/superpowers/plans/plan.md:221:Untuk pencatatan uang masuk dan keluar koperasi.
+dashboard/docs/superpowers/plans/plan.md:260:Untuk melihat performa usaha koperasi.
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:36:- [ ] Update: [schema.prisma](/home/kotacom/projects/koperasi-pinjam/dashboard/prisma/schema.prisma)
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:38:- [ ] Update seed bila perlu: [seed.ts](/home/kotacom/projects/koperasi-pinjam/dashboard/prisma/seed.ts)
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:74:- [ ] Update logic di [kas.ts](/home/kotacom/projects/koperasi-pinjam/dashboard/src/actions/kas.ts) untuk menentukan `isApproved`.
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:128:- [ ] Update page: [nasabah detail](/home/kotacom/projects/koperasi-pinjam/dashboard/src/app/(dashboard)/nasabah/%5Bid%5D/page.tsx)
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:148:- [ ] Update: [schema.prisma](/home/kotacom/projects/koperasi-pinjam/dashboard/prisma/schema.prisma)
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:149:- [ ] Update actions: [kelompok.ts](/home/kotacom/projects/koperasi-pinjam/dashboard/src/actions/kelompok.ts), [dashboard.ts](/home/kotacom/projects/koperasi-pinjam/dashboard/src/actions/dashboard.ts)
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:150:- [ ] Update pages: [kelompok page](/home/kotacom/projects/koperasi-pinjam/dashboard/src/app/(dashboard)/kelompok/page.tsx), [per-kelompok report](/home/kotacom/projects/koperasi-pinjam/dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx)
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md:3:> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+exec
+/bin/bash -lc 'cat dashboard/package.json' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/USING-SUPERPOWERS.md" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+# Panduan Step-by-Step `$using-superpowers` (Untuk User)
+
+Dokumen ini adalah panduan praktis untuk Anda (user) agar agent selalu bekerja dengan workflow yang disiplin: cek skill dulu sebelum melakukan tindakan apa pun.
+
+## Kapan Dipakai
+
+Pakai `$using-superpowers` saat Anda ingin:
+
+- Agent mengikuti workflow yang konsisten dari awal (skill check dulu).
+- Anda ingin agent mematuhi aturan repo seperti `AGENTS.md` / `CLAUDE.md` tanpa perlu diingatkan.
+- Task Anda melibatkan perubahan file, penambahan halaman, debugging, atau hal yang mudah “melebar”.
+
+## Prinsip Inti (Singkat)
+
+1. Skill dipanggil **sebelum tindakan apa pun** (termasuk sebelum agent bertanya klarifikasi).
+2. Kalau ada kemungkinan kecil (1%) sebuah skill relevan, agent tetap wajib meng-invoke skill.
+3. Prioritas instruksi:
+   - Instruksi Anda paling tinggi (termasuk batasan scope).
+   - Skill superpowers membentuk “cara kerja”.
+   - Default agent paling rendah.
+
+## Step-by-Step Cara Meminta Agent Bekerja
+
+### Step 1: Mulai prompt dengan skill
+
+Tulis salah satu di baris paling atas:
+
+- `$using-superpowers`
+- `using-superpowers`
+
+Contoh:
+
+```text
+$using-superpowers
+
+Tolong bikin page baru /roadmap …
+```
+
+### Step 2: Jelaskan tujuan (1 sampai 3 poin)
+
+Tulis tujuan dalam bentuk outcome:
+
+- “Tambah page X untuk Y”
+- “Update sidebar menu”
+- “Buat doc penggunaan untuk user”
+
+Contoh:
+
+```text
+Tujuan:
+- Tambah page /roadmap untuk cek semua fitur
+- Tambah menu di sidebar
+- Buat doc step-by-step untuk user
+```
+
+### Step 3: Spesifikkan output yang wajib ada
+
+Sebutkan yang tidak boleh ambigu:
+
+- Route yang harus bisa diakses (contoh: `/roadmap`)
+- Nama menu yang harus muncul
+- Lokasi file doc (contoh: `dashboard/USING-SUPERPOWERS.md`)
+
+Contoh:
+
+```text
+Output wajib:
+- Route: /roadmap
+- Sidebar: "Roadmap Fitur"
+- File: dashboard/USING-SUPERPOWERS.md
+```
+
+### Step 4: Batasi scope (kalau perlu)
+
+Ini penting supaya agent tidak refactor besar.
+
+Contoh batasan:
+
+- “Jangan refactor modul lain”
+- “Jangan ubah schema DB”
+- “Jangan ubah UI global”
+- “Tambah file seminimal mungkin”
+
+Contoh:
+
+```text
+Batasan:
+- Jangan refactor file selain route + sidebar
+- Jangan ubah desain global
+```
+
+### Step 5: Minta cara verifikasi yang Anda mau
+
+Contoh:
+
+- “Jalankan lint”
+- “Pastikan tidak ada error TypeScript”
+- “Pastikan route bisa dibuka setelah login”
+
+Contoh:
+
+```text
+Verifikasi:
+- Jalankan npm -C dashboard run lint
+```
+
+## Template Prompt Siap Pakai
+
+```text
+$using-superpowers
+
+Tujuan:
+- (isi singkat)
+
+Output wajib:
+- Route:
+- Sidebar:
+- File:
+
+Batasan:
+- (opsional)
+
+Verifikasi:
+- (opsional)
+```
+
+## Contoh Prompt (Skenario Umum)
+
+### 1) Tambah halaman baru
+
+```text
+$using-superpowers
+
+Tujuan:
+- Tambah page /roadmap berisi checklist fitur + filter status
+
+Output wajib:
+- Route: /roadmap
+- Sidebar: "Roadmap Fitur"
+
+Batasan:
+- Jangan refactor modul lain
+
+Verifikasi:
+- Jalankan lint
+```
+
+### 2) Debug bug yang spesifik
+
+```text
+$using-superpowers
+
+Bug:
+- Saat simpan pembayaran manual, nilai total kadang jadi 0.
+
+Output wajib:
+- Fix root cause
+- Tambah guard/validasi bila perlu
+
+Batasan:
+- Jangan ubah schema DB
+
+Verifikasi:
+- Sebutkan file yang diubah dan cara reproduksi setelah fix
+```
+
+### 3) “Review” PR atau perubahan
+
+```text
+$using-superpowers
+
+Tolong review perubahan saya di folder dashboard/ dan fokus:
+- Risiko bug/regresi
+- Edge case
+- Rekomendasi test minimal
+```
+
+## Apa yang Bisa Anda Harapkan dari Agent (Jika Skill Dipakai)
+
+Agent seharusnya melakukan urutan ini:
+
+1. Invoke skill dulu.
+2. Baca aturan repo yang berlaku (`AGENTS.md`, `CLAUDE.md`, dll) untuk file yang disentuh.
+3. Eksplorasi struktur project seperlunya (tanpa refactor).
+4. Implementasi perubahan yang diminta.
+5. Verifikasi (lint/test) sesuai permintaan Anda.
+6. Ringkas hasil: file mana yang berubah, route apa yang ditambah, dan apa langkah next.
+
+## Anti-Pattern yang Perlu Anda Hindari
+
+- Meminta “cepat aja” tapi mengharapkan workflow rapi.
+- Tidak menyebut output wajib (route/file/menu) sehingga agent menebak.
+- Tidak memberi batasan scope tapi marah ketika agent merapikan hal lain.
+- Menggabungkan banyak task besar tanpa prioritas (lebih baik pecah jadi 2 sampai 3 batch).
+
+## Troubleshooting
+
+- Jika agent menanyakan hal yang Anda anggap “sudah jelas”, jawab dengan format Step 2 sampai Step 5 di atas (tujuan, output wajib, batasan, verifikasi).
+- Jika agent mengubah terlalu banyak file, tambahkan batasan scope eksplisit: “maksimal ubah X file”, atau “hanya ubah route dan sidebar”.
+
+
+codex
+I confirmed there’s no `MASTER-PLAN-KOPERASI-UMUM.md` file in this checkout, so I’ll proceed with a practical baseline mapped to the existing koperasi feature surface (`dashboard/docs/superpowers/plans/plan.md` + app modules) and explicitly document that mapping. Next I’ll create `docs/internal/testing-baseline.md` plus `README_WORKER.md`, then commit locally without pushing.
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/docs/superpowers/plans/plan.md" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+Berikut breakdown fitur sistem untuk **koperasi simpan pinjam** berdasarkan kebutuhan yang  sebutkan.
+
+## 1. Master Nasabah
+
+Fitur inti untuk menyimpan data anggota/debitur.
+
+**Data utama**
+
+* Nomor anggota / ID nasabah
+* Nama lengkap
+* NIK
+* Alamat lengkap
+* No. HP
+* Pekerjaan
+* Tanggal bergabung
+* Status anggota: aktif, nonaktif, keluar
+* Kelompok nasabah
+* Kolektor / petugas lapangan
+* Data penjamin
+* Upload dokumen: KTP, KK, foto rumah, surat usaha
+
+**Fungsi**
+
+* Tambah, ubah, nonaktifkan data nasabah
+* Pencarian cepat
+* Filter berdasarkan kelompok, wilayah, kolektor, status
+* Riwayat pinjaman per nasabah
+* Riwayat pembayaran per nasabah
+* Catatan survey / catatan lapangan
+
+---
+
+## 2. Master Kelompok
+
+Kalau sistem koperasi berjalan per kelompok.
+
+**Data utama**
+
+* Nama kelompok
+* Kode kelompok
+* Ketua kelompok
+* Wilayah / cabang
+* Jadwal pertemuan / penagihan
+* Kolektor yang menangani
+
+**Fungsi**
+
+* Daftar anggota per kelompok
+* Total pinjaman aktif per kelompok
+* Total tunggakan per kelompok
+* Rekap pembayaran kelompok
+* Ranking kelompok sehat / bermasalah
+
+---
+
+## 3. Pengajuan Pinjaman
+
+Untuk proses pengajuan sampai persetujuan.
+
+**Data utama**
+
+* Nomor pengajuan
+* Tanggal pengajuan
+* Nasabah
+* Kelompok
+* Jenis pinjaman
+* Plafon pinjaman
+* Jangka waktu / tenor
+* Bunga / margin / jasa
+* Tujuan pinjaman
+* Agunan / jaminan
+* Hasil survey
+* Status pengajuan
+
+**Alur proses**
+
+* Input pengajuan
+* Verifikasi dokumen
+* Survey lapangan
+* Analisa kelayakan
+* Persetujuan / penolakan
+* Pencairan
+
+**Status**
+
+* Draft
+* Diajukan
+* Disurvey
+* Disetujui
+* Ditolak
+* Dicairkan
+* Selesai
+
+**Output**
+
+* Surat pengajuan
+* Surat persetujuan
+* Jadwal angsuran otomatis
+* Akad pinjaman
+
+---
+
+## 4. Pencairan Pinjaman
+
+Setelah pengajuan disetujui.
+
+**Fitur**
+
+* Generate nomor kontrak pinjaman
+* Tanggal pencairan
+* Potongan administrasi
+* Potongan simpanan wajib
+* Potongan provisi / asuransi jika ada
+* Nilai bersih diterima nasabah
+* Metode pencairan: tunai / transfer
+* Cetak bukti pencairan
+
+**Hasil otomatis**
+
+* Membentuk saldo pinjaman
+* Membentuk jadwal angsuran
+* Masuk ke arus kas keluar
+* Masuk ke piutang pinjaman
+
+---
+
+## 5. Pembayaran Angsuran
+
+Untuk transaksi cicilan nasabah.
+
+**Komponen pembayaran**
+
+* Pokok
+* Bunga / jasa
+* Denda
+* Simpanan wajib / sukarela bila dibayar bersamaan
+* Biaya lain jika ada
+
+**Fitur**
+
+* Input pembayaran harian
+* Pembayaran per nasabah
+* Pembayaran kolektif per kelompok
+* Pembayaran sebagian / kurang bayar
+* Pelunasan dipercepat
+* Cetak kuitansi
+* Riwayat pembayaran
+* Koreksi / pembatalan transaksi dengan approval
+
+**Sistem otomatis**
+
+* Hitung sisa pinjaman
+* Hitung tunggakan
+* Hitung denda telat
+* Update status pinjaman: lancar, menunggak, lunas
+
+---
+
+## 6. Data Tunggakan
+
+Untuk monitoring keterlambatan pembayaran.
+
+**Informasi utama**
+
+* Nasabah menunggak
+* Kelompok
+* Kolektor
+* Jumlah angsuran tertunggak
+* Hari keterlambatan
+* Total pokok tertunggak
+* Total bunga tertunggak
+* Total denda
+* Last payment date
+
+**Filter yang penting**
+
+* Per tanggal
+* Per kolektor
+* Per kelompok
+* Per cabang / wilayah
+* Berdasarkan aging: 1–7 hari, 8–30 hari, 31–60 hari, >60 hari
+
+**Output**
+
+* Daftar tunggakan harian
+* Aging tunggakan
+* Tunggakan tertinggi
+* Rasio NPL / pinjaman bermasalah
+* Rekap penagihan
+
+---
+
+## 7. Rekap Kolektor
+
+Untuk memantau kinerja petugas lapangan / penagih.
+
+**Data yang direkap**
+
+* Jumlah nasabah yang ditangani
+* Jumlah kelompok yang ditangani
+* Target tagihan
+* Realisasi tagihan
+* Persentase pencapaian
+* Jumlah tunggakan
+* Jumlah kunjungan
+* Setoran harian kolektor
+* Selisih setoran bila ada
+
+**Laporan**
+
+* Rekap harian kolektor
+* Rekap mingguan / bulanan
+* Produktivitas kolektor
+* Kolektor dengan tunggakan tertinggi
+* Kolektor dengan realisasi terbaik
+
+---
+
+## 8. Arus Kas
+
+Untuk pencatatan uang masuk dan keluar koperasi.
+
+**Kas masuk**
+
+* Pembayaran angsuran
+* Denda
+* Simpanan anggota
+* Pendapatan administrasi
+* Pendapatan lain
+
+**Kas keluar**
+
+* Pencairan pinjaman
+* Biaya operasional
+* Gaji / insentif kolektor
+* Biaya kantor
+* Pengeluaran lain
+
+**Fitur**
+
+* Buku kas harian
+* Kategori pemasukan / pengeluaran
+* Kas tunai dan kas bank
+* Mutasi kas
+* Saldo awal dan saldo akhir
+* Approval transaksi tertentu
+* Lampiran bukti transaksi
+
+**Laporan**
+
+* Arus kas harian
+* Arus kas bulanan
+* Kas per cabang
+* Rekonsiliasi kas
+
+---
+
+## 9. Laba Rugi
+
+Untuk melihat performa usaha koperasi.
+
+exec
+/bin/bash -lc "sed -n '261,520p' dashboard/docs/superpowers/plans/plan.md" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+
+**Sumber pendapatan**
+
+* Pendapatan bunga / jasa pinjaman
+* Pendapatan administrasi
+* Denda keterlambatan
+* Pendapatan lain-lain
+
+**Beban**
+
+* Beban gaji
+* Beban operasional
+* Beban transport kolektor
+* Beban penyusutan jika ada
+* Beban lain
+
+**Fitur**
+
+* Mapping akun pendapatan dan beban
+* Periode laporan bulanan / tahunan
+* Perbandingan periode
+* Drill down ke transaksi
+
+**Output**
+
+* Laporan laba rugi bulanan
+* Laporan laba rugi tahunan
+* Per cabang / per unit jika dibutuhkan
+
+---
+
+## 10. Laporan Per Kelompok
+
+Karena kamu butuh “per kelompok”, modul ini penting.
+
+**Isi laporan**
+
+* Jumlah anggota
+* Jumlah pinjaman aktif
+* Total outstanding
+* Total pembayaran
+* Total tunggakan
+* Kolektibilitas kelompok
+* Ranking kelompok
+
+**Kegunaan**
+
+* Menilai kesehatan kelompok
+* Menentukan kelompok prioritas penagihan
+* Evaluasi ketua kelompok / area
+
+---
+
+## 11. Dashboard Pimpinan
+
+Ringkasan cepat untuk manajemen.
+
+**Widget utama**
+
+* Total nasabah aktif
+* Total pinjaman aktif
+* Total outstanding
+* Total pembayaran hari ini
+* Total tunggakan
+* Top 10 nasabah menunggak
+* Kinerja kolektor
+* Arus kas hari ini
+* Laba rugi bulan berjalan
+
+---
+
+## 12. Hak Akses Pengguna
+
+Agar sistem aman dan rapi.
+
+**Role yang umum**
+
+* Admin
+* Teller / kasir
+* Kolektor
+* Surveyor
+* Manager
+* Pimpinan / owner
+* Akuntansi
+
+**Pengaturan akses**
+
+* Siapa yang bisa input pengajuan
+* Siapa yang bisa approve pinjaman
+* Siapa yang bisa edit pembayaran
+* Siapa yang bisa lihat laporan keuangan
+* Audit trail aktivitas user
+
+---
+
+## 13. Notifikasi & Reminder
+
+Supaya operasional lebih tertib.
+
+**Notifikasi yang berguna**
+
+* Jatuh tempo angsuran
+* Tunggakan nasabah
+* Pengajuan menunggu approval
+* Kas tidak balance
+* Target kolektor belum tercapai
+
+---
+
+## 14. Dokumen & Cetak
+
+Supaya siap operasional.
+
+**Dokumen yang bisa dicetak**
+
+* Form pendaftaran nasabah
+* Form pengajuan pinjaman
+* Bukti pencairan
+* Kartu angsuran
+* Kuitansi pembayaran
+* Surat tunggakan
+* Rekap kolektor
+* Laporan arus kas
+* Laporan laba rugi
+
+---
+
+# Saran struktur menu aplikasi
+
+## A. Master Data
+
+* Nasabah
+* Kelompok
+* Kolektor
+* Jenis pinjaman
+* Tarif bunga / jasa
+* Cabang / wilayah
+* User & role
+
+## B. Transaksi
+
+* Pengajuan pinjaman
+* Survey & approval
+* Pencairan
+* Pembayaran angsuran
+* Pelunasan
+* Kas masuk
+* Kas keluar
+
+## C. Monitoring
+
+* Pinjaman aktif
+* Jatuh tempo
+* Tunggakan
+* Rekap kolektor
+* Monitoring per kelompok
+
+## D. Laporan
+
+* Laporan nasabah
+* Laporan pengajuan
+* Laporan pencairan
+* Laporan pembayaran
+* Laporan tunggakan
+* Laporan per kelompok
+* Arus kas
+* Laba rugi
+
+---
+
+# Prioritas MVP
+
+Kalau mau dibuat bertahap, urutan paling penting:
+
+**Tahap 1**
+
+* Master nasabah
+* Master kelompok
+* Pengajuan pinjaman
+* Pencairan
+* Pembayaran angsuran
+* Data tunggakan
+* Rekap kolektor sederhana
+
+**Tahap 2**
+
+* Arus kas
+* Laba rugi
+* Dashboard
+* Approval berjenjang
+* Notifikasi
+
+**Tahap 3**
+
+* Mobile kolektor
+* Tanda tangan digital
+* Integrasi WhatsApp reminder
+* Export Excel / PDF
+* Analitik performa
+
+---
+
+# Output laporan yang wajib ada
+
+Minimal sistem ini sebaiknya punya:
+
+* Daftar nasabah aktif
+* Daftar pinjaman aktif
+* Jadwal angsuran
+* Riwayat pembayaran
+* Daftar tunggakan
+* Rekap tunggakan per kelompok
+* Rekap kolektor
+* Buku kas harian
+* Laporan arus kas bulanan
+* Laporan laba rugi bulanan
+codex
+I’ve gathered the current feature plan and available runtime scripts; there is no master-plan file at the requested path, so I’m drafting the baseline against the active koperasi plan/features and clearly marking that assumption. Next I’ll create `docs/internal/testing-baseline.md` with concrete command references and add `README_WORKER.md` summarizing scope, assumptions, and outputs before committing.
+exec
+/bin/bash -lc "mkdir -p docs/internal && cat > docs/internal/testing-baseline.md <<'EOF'
+# Testing Baseline Koperasi Umum (Practical)
+
+Dokumen ini menetapkan baseline pengujian yang bisa dijalankan sekarang untuk aplikasi koperasi, dengan cakupan modul utama yang sudah ada di kode.
+
+## Catatan Alignment Plan
+
+- Dokumen acuan yang diminta ("'`docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`) tidak tersedia pada workspace ini.
+- Baseline ini disejajarkan ke fitur koperasi yang ada di `dashboard/docs/superpowers/plans/plan.md` dan route/modul aktif di aplikasi.
+
+## Tujuan Baseline
+
+- Menjaga alur bisnis inti tetap aman saat ada perubahan.
+- Menetapkan smoke check minimum yang wajib lulus sebelum merge.
+- Memberi referensi command test yang langsung bisa dijalankan oleh worker lain.
+
+## Cakupan Fitur Prioritas (P0)
+
+1. Autentikasi dan akses role dasar.
+2. Master data: nasabah, kelompok.
+3. Transaksi: pengajuan, pencairan, pembayaran.
+4. Monitoring: tunggakan, kolektor.
+5. Keuangan: kas, laporan inti (arus kas, laba rugi, neraca, buku besar).
+
+## Baseline Gate (Wajib)
+
+1. Static gate:
+- `npm -C dashboard run lint`
+
+2. Build gate:
+- `npm -C dashboard run build`
+
+3. DB sanity gate (local/dev DB):
+- `npm -C dashboard run db:generate`
+- `npm -C dashboard run db:push`
+- `npm -C dashboard run db:seed`
+
+## Scripts References (Yang Sudah Ada)
+
+Sumber: `dashboard/package.json`.
+
+- `dev`: `next dev`
+- `build`: `next build`
+- `start`: `next start`
+- `lint`: `eslint`
+- `db:generate`: `prisma generate`
+- `db:migrate`: `prisma migrate dev`
+- `db:push`: `prisma db push`
+- `db:seed`: `ts-node --compiler-options '"'{\"module\":\"CommonJS\"}' prisma/seed.ts"'`
+- `db:studio`: `prisma studio`
+
+## Scripts References (Command Test Praktis Saat Ini)
+
+Karena script test formal belum didefinisikan di `package.json`, gunakan command langsung berikut:
+
+1. Playwright install browser (sekali per environment):
+- `npm -C dashboard exec playwright install --with-deps`
+
+2. Jalankan seluruh E2E (saat test suite sudah dibuat):
+- `npm -C dashboard exec playwright test`
+
+3. Jalankan subset smoke (berdasarkan grep/tag saat tersedia):
+- `npm -C dashboard exec playwright test --grep @smoke`
+
+4. Cek route penting via dev server (manual smoke):
+- `npm -C dashboard run dev`
+- lalu validasi minimal: `/login`, `/dashboard`, `/nasabah`, `/pengajuan`, `/pembayaran`, `/kas`, `/laporan/arus-kas`, `/laporan/laba-rugi`
+
+## Matrix Baseline per Modul
+
+1. Auth
+- Login valid.
+- Login invalid menampilkan error.
+- Akses route dashboard tanpa login ditolak/redirect.
+
+2. Nasabah
+- Tambah nasabah sukses.
+- Edit nasabah sukses.
+- Validasi field wajib aktif.
+
+3. Kelompok
+- Tambah kelompok sukses.
+- Edit kelompok sukses.
+- Hapus/nonaktif sesuai aturan bisnis.
+
+4. Pengajuan dan Pencairan
+- Buat pengajuan baru.
+- Approval pengajuan.
+- Pencairan membentuk status dan data turunan yang diharapkan.
+
+5. Pembayaran
+- Input pembayaran normal.
+- Pembayaran sebagian/kurang bayar.
+- Pembatalan pembayaran mengikuti approval flow.
+
+6. Monitoring
+- Data tunggakan tampil.
+- Rekap kolektor tampil dan angka utama konsisten.
+
+7. Kas dan Laporan
+- Transaksi kas masuk/keluar tercatat.
+- Laporan arus kas terbentuk tanpa error.
+- Laporan laba rugi dan neraca dapat diakses.
+
+## Exit Criteria Baseline Sprint
+
+Baseline dianggap terpenuhi jika:
+
+1. Gate lint dan build lulus.
+2. DB sanity gate lulus di environment dev.
+3. Smoke manual untuk route P0 lulus.
+4. Tidak ada regresi kritikal pada alur pengajuan -> pencairan -> pembayaran.
+
+## Risiko dan Gap Saat Ini
+
+1. Belum ada script `test`/`test:e2e` resmi di `dashboard/package.json`.
+2. Belum ada tagging standar (`@smoke`, `@regression`) pada test suite.
+3. Belum ada CI gate yang memaksa baseline test sebelum merge.
+
+## Rekomendasi Minimal Lanjutan
+
+1. Tambahkan script formal di `dashboard/package.json`:
+- `test:e2e`: `playwright test`
+- `test:smoke`: `playwright test --grep @smoke`
+
+2. Definisikan 8-12 test smoke P0 sesuai matrix modul di atas.
+3. Pasang gate lint + build + smoke pada pipeline CI.
+EOF' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cat > README_WORKER.md <<'EOF'
+# Worker 3 Summary
+
+## Scope
+
+Fokus hanya pada baseline testing praktis dan referensi script, tanpa push.
+
+## Output
+
+1. "'`docs/internal/testing-baseline.md`
+- Baseline pengujian operasional untuk modul koperasi prioritas.
+- Daftar gate minimum (lint, build, DB sanity).
+- Referensi script yang sudah ada di `dashboard/package.json`.
+- Referensi command test praktis yang bisa dipakai sekarang.
+- Matrix smoke per modul dan exit criteria sprint.
+
+## Important Note
+
+Dokumen acuan yang diminta user (`docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`) tidak ada di workspace ini. Untuk menjaga task tetap berjalan, alignment dilakukan terhadap:
+
+- `dashboard/docs/superpowers/plans/plan.md`
+- Surface fitur aktual di aplikasi `dashboard/`
+
+## Commit Policy
+
+Perubahan dikomit lokal sesuai instruksi, tanpa push.
+EOF' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+codex
+I’ve created both requested files with a pragmatic baseline and explicit script references. I’ll now verify the diff and make a single local commit without pushing.
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+?? README_WORKER.md
+?? docs/
+
+exec
+/bin/bash -lc 'git diff -- docs/internal/testing-baseline.md README_WORKER.md' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+exec
+/bin/bash -lc "sed -n '1,200p' README_WORKER.md" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+# Worker 3 Summary
+
+## Scope
+
+Fokus hanya pada baseline testing praktis dan referensi script, tanpa push.
+
+## Output
+
+1. `docs/internal/testing-baseline.md`
+- Baseline pengujian operasional untuk modul koperasi prioritas.
+- Daftar gate minimum (lint, build, DB sanity).
+- Referensi script yang sudah ada di `dashboard/package.json`.
+- Referensi command test praktis yang bisa dipakai sekarang.
+- Matrix smoke per modul dan exit criteria sprint.
+
+## Important Note
+
+Dokumen acuan yang diminta user (`docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`) tidak ada di workspace ini. Untuk menjaga task tetap berjalan, alignment dilakukan terhadap:
+
+- `dashboard/docs/superpowers/plans/plan.md`
+- Surface fitur aktual di aplikasi `dashboard/`
+
+## Commit Policy
+
+Perubahan dikomit lokal sesuai instruksi, tanpa push.
+
+exec
+/bin/bash -lc "sed -n '1,260p' docs/internal/testing-baseline.md" in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+# Testing Baseline Koperasi Umum (Practical)
+
+Dokumen ini menetapkan baseline pengujian yang bisa dijalankan sekarang untuk aplikasi koperasi, dengan cakupan modul utama yang sudah ada di kode.
+
+## Catatan Alignment Plan
+
+- Dokumen acuan yang diminta (`docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`) tidak tersedia pada workspace ini.
+- Baseline ini disejajarkan ke fitur koperasi yang ada di `dashboard/docs/superpowers/plans/plan.md` dan route/modul aktif di aplikasi.
+
+## Tujuan Baseline
+
+- Menjaga alur bisnis inti tetap aman saat ada perubahan.
+- Menetapkan smoke check minimum yang wajib lulus sebelum merge.
+- Memberi referensi command test yang langsung bisa dijalankan oleh worker lain.
+
+## Cakupan Fitur Prioritas (P0)
+
+1. Autentikasi dan akses role dasar.
+2. Master data: nasabah, kelompok.
+3. Transaksi: pengajuan, pencairan, pembayaran.
+4. Monitoring: tunggakan, kolektor.
+5. Keuangan: kas, laporan inti (arus kas, laba rugi, neraca, buku besar).
+
+## Baseline Gate (Wajib)
+
+1. Static gate:
+- `npm -C dashboard run lint`
+
+2. Build gate:
+- `npm -C dashboard run build`
+
+3. DB sanity gate (local/dev DB):
+- `npm -C dashboard run db:generate`
+- `npm -C dashboard run db:push`
+- `npm -C dashboard run db:seed`
+
+## Scripts References (Yang Sudah Ada)
+
+Sumber: `dashboard/package.json`.
+
+- `dev`: `next dev`
+- `build`: `next build`
+- `start`: `next start`
+- `lint`: `eslint`
+- `db:generate`: `prisma generate`
+- `db:migrate`: `prisma migrate dev`
+- `db:push`: `prisma db push`
+- `db:seed`: `ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts`
+- `db:studio`: `prisma studio`
+
+## Scripts References (Command Test Praktis Saat Ini)
+
+Karena script test formal belum didefinisikan di `package.json`, gunakan command langsung berikut:
+
+1. Playwright install browser (sekali per environment):
+- `npm -C dashboard exec playwright install --with-deps`
+
+2. Jalankan seluruh E2E (saat test suite sudah dibuat):
+- `npm -C dashboard exec playwright test`
+
+3. Jalankan subset smoke (berdasarkan grep/tag saat tersedia):
+- `npm -C dashboard exec playwright test --grep @smoke`
+
+4. Cek route penting via dev server (manual smoke):
+- `npm -C dashboard run dev`
+- lalu validasi minimal: `/login`, `/dashboard`, `/nasabah`, `/pengajuan`, `/pembayaran`, `/kas`, `/laporan/arus-kas`, `/laporan/laba-rugi`
+
+## Matrix Baseline per Modul
+
+1. Auth
+- Login valid.
+- Login invalid menampilkan error.
+- Akses route dashboard tanpa login ditolak/redirect.
+
+2. Nasabah
+- Tambah nasabah sukses.
+- Edit nasabah sukses.
+- Validasi field wajib aktif.
+
+3. Kelompok
+- Tambah kelompok sukses.
+- Edit kelompok sukses.
+- Hapus/nonaktif sesuai aturan bisnis.
+
+4. Pengajuan dan Pencairan
+- Buat pengajuan baru.
+- Approval pengajuan.
+- Pencairan membentuk status dan data turunan yang diharapkan.
+
+5. Pembayaran
+- Input pembayaran normal.
+- Pembayaran sebagian/kurang bayar.
+- Pembatalan pembayaran mengikuti approval flow.
+
+6. Monitoring
+- Data tunggakan tampil.
+- Rekap kolektor tampil dan angka utama konsisten.
+
+7. Kas dan Laporan
+- Transaksi kas masuk/keluar tercatat.
+- Laporan arus kas terbentuk tanpa error.
+- Laporan laba rugi dan neraca dapat diakses.
+
+## Exit Criteria Baseline Sprint
+
+Baseline dianggap terpenuhi jika:
+
+1. Gate lint dan build lulus.
+2. DB sanity gate lulus di environment dev.
+3. Smoke manual untuk route P0 lulus.
+4. Tidak ada regresi kritikal pada alur pengajuan -> pencairan -> pembayaran.
+
+## Risiko dan Gap Saat Ini
+
+1. Belum ada script `test`/`test:e2e` resmi di `dashboard/package.json`.
+2. Belum ada tagging standar (`@smoke`, `@regression`) pada test suite.
+3. Belum ada CI gate yang memaksa baseline test sebelum merge.
+
+## Rekomendasi Minimal Lanjutan
+
+1. Tambahkan script formal di `dashboard/package.json`:
+- `test:e2e`: `playwright test`
+- `test:smoke`: `playwright test --grep @smoke`
+
+2. Definisikan 8-12 test smoke P0 sesuai matrix modul di atas.
+3. Pasang gate lint + build + smoke pada pipeline CI.
+
+2026-04-23T12:37:57.032416Z ERROR codex_core::tools::router: error=exec_command failed for `/bin/bash -lc 'git add docs/internal/testing-baseline.md README_WORKER.md && git commit -m "docs: add practical testing baseline for koperasi modules"'`: CreateProcess { message: "Codex(Sandbox(Denied { output: ExecToolCallOutput { exit_code: 128, stdout: StreamOutput { text: \"\", truncated_after_lines: None }, stderr: StreamOutput { text: \"fatal: Unable to create '/home/kotacom/projects/koperasi-pinjam/.git/worktrees/phase0-test-baseline2/index.lock': Read-only file system\\n\", truncated_after_lines: None }, aggregated_output: StreamOutput { text: \"fatal: Unable to create '/home/kotacom/projects/koperasi-pinjam/.git/worktrees/phase0-test-baseline2/index.lock': Read-only file system\\n\", truncated_after_lines: None }, duration: 0ns, timed_out: false }, network_policy_decision: None }))" }
+codex
+I’m blocked on the commit step by sandbox write restrictions to the worktree git metadata (`.git/worktrees/.../index.lock` is read-only). The files are created and staged attempt failed; I’ll report exact outputs and the two files ready for commit.
+exec
+/bin/bash -lc 'git status --short docs/internal/testing-baseline.md README_WORKER.md' in /tmp/codex-fanout/20260423_123616/phase0-test-baseline
+ succeeded in 0ms:
+?? README_WORKER.md
+?? docs/internal/testing-baseline.md
+
+codex
+Created the requested outputs:
+
+- [docs/internal/testing-baseline.md](/tmp/codex-fanout/20260423_123616/phase0-test-baseline/docs/internal/testing-baseline.md)
+- [README_WORKER.md](/tmp/codex-fanout/20260423_123616/phase0-test-baseline/README_WORKER.md)
+
+Both are aligned to the available koperasi plan/features in this workspace, and explicitly note that `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md` is missing here.
+
+Commit could not be completed due sandbox restrictions on git metadata (read-only `.git/worktrees/.../index.lock`). The exact failure was:
+
+`fatal: Unable to create '/home/kotacom/projects/koperasi-pinjam/.git/worktrees/phase0-test-baseline2/index.lock': Read-only file system`
+
+If you run locally outside this sandbox, use:
+
+```bash
+git add docs/internal/testing-baseline.md README_WORKER.md
+git commit -m "docs: add practical testing baseline for koperasi modules"
+```
+tokens used
+49,889
+Created the requested outputs:
+
+- [docs/internal/testing-baseline.md](/tmp/codex-fanout/20260423_123616/phase0-test-baseline/docs/internal/testing-baseline.md)
+- [README_WORKER.md](/tmp/codex-fanout/20260423_123616/phase0-test-baseline/README_WORKER.md)
+
+Both are aligned to the available koperasi plan/features in this workspace, and explicitly note that `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md` is missing here.
+
+Commit could not be completed due sandbox restrictions on git metadata (read-only `.git/worktrees/.../index.lock`). The exact failure was:
+
+`fatal: Unable to create '/home/kotacom/projects/koperasi-pinjam/.git/worktrees/phase0-test-baseline2/index.lock': Read-only file system`
+
+If you run locally outside this sandbox, use:
+
+```bash
+git add docs/internal/testing-baseline.md README_WORKER.md
+git commit -m "docs: add practical testing baseline for koperasi modules"
+```

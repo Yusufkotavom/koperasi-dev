@@ -8,6 +8,7 @@ export const kelompokSchema = z.object({
   ketua: z.string().optional(),
   wilayah: z.string().optional(),
   jadwalPertemuan: z.string().optional(),
+  kolektorId: z.string().optional(),
 })
 
 export type KelompokInput = z.infer<typeof kelompokSchema>

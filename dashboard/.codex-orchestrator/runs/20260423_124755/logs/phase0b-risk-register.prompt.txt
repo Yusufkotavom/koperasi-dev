@@ -1,0 +1,1 @@
+You are worker A. Complete Phase 0 documentation readiness: create docs/internal/phase0-risk-register.md and docs/internal/phase0-scope-boundaries.md aligned to MASTER-PLAN-KOPERASI-UMUM.md. Update checkboxes in master plan only for items that are truly completed in this repo. Add changelog entry with testing status. Run lint/build if you changed runtime code. Commit your branch.

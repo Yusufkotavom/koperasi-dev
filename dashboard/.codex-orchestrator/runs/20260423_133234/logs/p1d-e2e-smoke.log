@@ -1,0 +1,2386 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba8a-f6ae-7d42-9ad4-99003da759bb
+--------
+user
+You are Worker p1d-e2e-smoke. Ownership: tests/e2e/smoke.spec.ts and playwright.config.ts if necessary only. Task: strengthen smoke tests for login page render consistency, dashboard auth redirect/access, nasabah list load, dokumen routes basic availability. Keep tests low-flake and fast. Run smoke tests if feasible and commit. You are not alone; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+2026-04-23T13:32:43.356680Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+Saya akan memperkuat `tests/e2e/smoke.spec.ts` (dan `playwright.config.ts` hanya jika benar-benar perlu), fokus pada login render consistency, auth redirect/access dashboard, load daftar nasabah, dan ketersediaan route dokumen. Langkah pertama saya cek kondisi test yang ada sekarang lalu patch bertahap dengan commit per scope.
+exec
+/bin/bash -lc "pwd && rg --files tests/e2e playwright.config.ts && sed -n '1,260p' tests/e2e/smoke.spec.ts && sed -n '1,260p' playwright.config.ts" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ exited 2 in 0ms:
+/tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+tests/e2e: No such file or directory (os error 2)
+playwright.config.ts: No such file or directory (os error 2)
+
+codex
+Saya menemukan path yang disebutkan belum ada di lokasi saat ini, jadi saya lanjut mencari struktur Playwright yang aktual dulu sebelum mengedit.
+exec
+/bin/bash -lc "rg --files | rg 'playwright|e2e|smoke\\.spec\\.ts|spec\\.ts"'$'"' | head -n 200" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 13:32 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:32 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 13:32 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:32 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 13:32 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 13:32 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 13:32 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 13:32 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 13:32 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 13:32 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 13:32 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 13:32 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 13:32 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 13:32 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 13:32 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 13:32 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 13:32 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 13:32 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 13:32 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 13:32 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 13:32 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 13:32 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 13:32 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 13:32 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 13:32 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 13:32 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 13:32 tsconfig.json
+
+exec
+/bin/bash -lc 'cat package.json && rg -n "playwright|e2e|smoke|test" -S .' in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+./docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:237:## 7) Test & Verification Command Set
+./docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:133:## Task 6: Test and verify end-to-end
+./docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:138:- Add or update tests if the project already has a pattern for them.
+./docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:143:- Any targeted lint/test command already used in this repo for touched files
+./docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:144:- Manual smoke test:
+./docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:165:5. Verify with build and smoke tests.
+./USING-SUPERPOWERS.md:175:- Rekomendasi test minimal
+./USING-SUPERPOWERS.md:186:5. Verifikasi (lint/test) sesuai permintaan Anda.
+./package.json:57:    "@playwright/test": "^1.59.1",
+./package.json:64:    "playwright": "^1.59.1",
+./src/actions/kas.ts:332:    d.toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+./src/components/markdown.tsx:132:          const isExternal = /^https?:\/\//.test(n.href)
+./src/components/markdown.tsx:247:      if (/^[-*]\s+/.test(l)) break
+./src/components/markdown.tsx:248:      if (/^\d+\.\s+/.test(l)) break
+./src/lib/report-period.ts:45:  return date.toLocaleDateString("id-ID", {
+./src/lib/report-period.ts:98:        ? new Date(year, month - 1, 1).toLocaleDateString("id-ID", {
+./src/app/(marketing)/home/page.tsx:6:import { metrics, processSteps, productFeatures, testimonials, trustPoints } from "../_components/marketing-data"
+./src/app/(marketing)/home/page.tsx:191:              {testimonials.map((item) => (
+./src/app/(dashboard)/pengajuan/page.tsx:126:                        {new Date(row.tanggalPengajuan).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+./src/app/(dashboard)/docs/using-superpowers/page.tsx:82:            Jika Anda ingin tanpa test dulu, tulis: “jangan jalankan build/test”.
+./src/app/(dashboard)/pembayaran/edit-button.tsx:37:  const defaultDateStr = data.tanggalBayar instanceof Date 
+./src/app/(dashboard)/pembayaran/edit-button.tsx:41:  const [tanggalBayar, setTanggalBayar] = useState(defaultDateStr)
+./src/app/(dashboard)/pembayaran/page.tsx:150:                            {p.jadwal?.tanggalJatuhTempo ? ` · Due ${new Date(p.jadwal.tanggalJatuhTempo).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}` : ""}
+./src/app/(dashboard)/pembayaran/page.tsx:159:                          {new Date(p.tanggalBayar).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })}
+./src/app/(dashboard)/pembayaran/manual-input.tsx:113:                    const dueLabel = dueDate.toLocaleDateString("id-ID", {
+./src/app/(dashboard)/nasabah/[id]/page.tsx:166:    { icon: CalendarDays, label: "Tempat/Tgl. Lahir", value: nasabah.tanggalLahir ? `${nasabah.tempatLahir ?? "—"}, ${new Date(nasabah.tanggalLahir).toLocaleDateString("id-ID")}` : (nasabah.tempatLahir ?? "—") },
+./src/app/(dashboard)/nasabah/[id]/page.tsx:258:                <p>{new Date(nasabah.tanggalGabung).toLocaleDateString("id-ID")}</p>
+./src/app/(dashboard)/nasabah/[id]/page.tsx:421:                      {new Date(p.tanggalPengajuan).toLocaleDateString("id-ID")}
+./src/app/(dashboard)/nasabah/[id]/page.tsx:471:                      {new Date(row.tanggal).toLocaleDateString("id-ID")}
+./src/app/(dashboard)/nasabah/[id]/page.tsx:511:                      {new Date(row.tanggalJatuhTempo).toLocaleDateString("id-ID")}
+./src/app/(dashboard)/laporan/buku-besar/page.tsx:116:                    <TableCell className="text-xs text-muted-foreground">{new Date(r.tanggal).toLocaleDateString("id-ID")}</TableCell>
+./src/app/(dashboard)/laporan/transaksi-per-user/page.tsx:263:                            Telat {r.overdue.count} ({new Date(r.overdue.oldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}) {r.overdue.daysLate} hari
+./src/app/(dashboard)/laporan/arus-kas/page.tsx:32:    d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+./src/app/(dashboard)/kas/kas-row-actions.tsx:45:  const defaultDateStr = getLocalDateInputValue(data.tanggal instanceof Date ? data.tanggal : new Date(data.tanggal))
+./src/app/(dashboard)/kas/kas-row-actions.tsx:47:  const [tanggal, setTanggal] = useState(defaultDateStr)
+./src/app/(dashboard)/kas/kas-client.tsx:326:                          {new Date(row.tanggal).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })}
+./src/app/(dashboard)/kas/kas-client.tsx:412:                            {new Date(row.tanggal).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })}
+./src/app/(dashboard)/nasabah/page.tsx:155:                                {new Date(row.indikator.overdueOldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+./src/app/(dashboard)/nasabah/page.tsx:211:                                ? new Date(row.indikator.nextDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+./src/app/(dashboard)/nasabah/page.tsx:221:                        {new Date(row.tanggalGabung).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+./src/app/(marketing)/_components/marketing-data.ts:57:export const testimonials = [
+./package-lock.json:48:        "@playwright/test": "^1.59.1",
+./package-lock.json:55:        "playwright": "^1.59.1",
+./package-lock.json:2097:    "node_modules/@playwright/test": {
+./package-lock.json:2099:      "resolved": "https://registry.npmjs.org/@playwright/test/-/test-1.59.1.tgz",
+./package-lock.json:2104:        "playwright": "1.59.1"
+./package-lock.json:2107:        "playwright": "cli.js"
+./package-lock.json:6533:        "safe-regex-test": "^1.1.0",
+./package-lock.json:6935:        "safe-regex-test": "^1.0.3",
+./package-lock.json:8215:        "safe-regex-test": "^1.1.0"
+./package-lock.json:8427:        "safe-regex-test": "^1.1.0"
+./package-lock.json:8682:        "safe-regex-test": "^1.1.0"
+./package-lock.json:9712:        "@playwright/test": "^1.51.1",
+./package-lock.json:9722:        "@playwright/test": {
+./package-lock.json:10478:    "node_modules/playwright": {
+./package-lock.json:10480:      "resolved": "https://registry.npmjs.org/playwright/-/playwright-1.59.1.tgz",
+./package-lock.json:10485:        "playwright-core": "1.59.1"
+./package-lock.json:10488:        "playwright": "cli.js"
+./package-lock.json:10497:    "node_modules/playwright-core": {
+./package-lock.json:10499:      "resolved": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.59.1.tgz",
+./package-lock.json:10504:        "playwright-core": "cli.js"
+./package-lock.json:11087:      "integrity": "sha512-YTUo+Flmw4ZXiWfQKGcwwc11KnoRAYgzAE2E7mXKCjSviTKShtxBsN6YUUBB2gtaBzKzeKunxhUwNHQuRryhWA==",
+./package-lock.json:11376:    "node_modules/safe-regex-test": {
+./package-lock.json:11378:      "resolved": "https://registry.npmjs.org/safe-regex-test/-/safe-regex-test-1.1.0.tgz",
+./capture-screenshots.mjs:1:import { chromium } from 'playwright';
+
+codex
+Sekarang saya petakan selector yang stabil dari halaman login, dashboard, nasabah, dan dokumen supaya assertion tidak brittle. Setelah itu saya buat test smoke minimal-dependensi dan cepat.
+exec
+/bin/bash -lc "sed -n '1,260p' src/app/(auth)/login/page.tsx" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' src/app/(auth)/login/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/app/(dashboard)/docs/page.tsx" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' src/app/(dashboard)/docs/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/lib/auth.ts" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+exec
+/bin/bash -lc "sed -n '1,260p' src/app/(dashboard)/nasabah/page.tsx" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
+  logger: {
+    error(error) {
+      // Invalid credentials are expected during login attempts; avoid noisy server error logs.
+      const raw = String(error)
+      if (raw.includes("CredentialsSignin")) return
+      console.error("[auth][error]", error)
+    },
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(6),
+        }).safeParse({
+          email: typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "",
+          password: typeof credentials?.password === "string" ? credentials.password : "",
+        })
+
+        if (!parsed.success) return null
+
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+          },
+        })
+
+        if (!user || !user.isActive) return null
+        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password)
+        if (!passwordMatch) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles.map((r: { role: string }) => r.role),
+          companyId: user.companyId,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      const t = token as typeof token & {
+        id?: string
+        roles?: string[]
+        companyId?: string | null
+        companyName?: string | null
+        companySlug?: string | null
+      }
+
+      if (user) {
+        // @ts-expect-error custom field
+        t.roles = user.roles
+        t.id = user.id
+        // @ts-expect-error custom field
+        t.companyId = user.companyId
+        // @ts-expect-error custom field
+        t.companyName = user.companyName
+        // @ts-expect-error custom field
+        t.companySlug = user.companySlug
+      }
+
+      if (!t.id && token.sub) {
+        t.id = token.sub
+      }
+
+      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+        const next = session as { actingCompanyId?: unknown; clearActingCompany?: unknown } | undefined
+        const clearActing = next?.clearActingCompany === true || next?.actingCompanyId === null || next?.actingCompanyId === ""
+        if (clearActing) {
+          t.companyId = null
+          t.companyName = null
+          t.companySlug = null
+        } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
+          const company = await prisma.company.findUnique({
+            where: { id: next.actingCompanyId },
+            select: { id: true, name: true, slug: true },
+          })
+          if (company) {
+            t.companyId = company.id
+            t.companyName = company.name
+            t.companySlug = company.slug
+          }
+        }
+      }
+
+      const needsHydration =
+        !Array.isArray(t.roles) ||
+        typeof t.id !== "string" ||
+        t.id.length === 0 ||
+        t.companyId === undefined
+
+      if (needsHydration && typeof token.email === "string" && token.email.length > 0) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email.toLowerCase() },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true } },
+          },
+        })
+
+        if (dbUser) {
+          t.id = dbUser.id
+          t.roles = dbUser.roles.map((r) => r.role)
+          t.companyId = dbUser.companyId
+          t.companyName = dbUser.company?.name ?? null
+          t.companySlug = dbUser.company?.slug ?? null
+        }
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        const t = token as typeof token & {
+          id?: string
+          roles?: string[]
+          companyId?: string | null
+          companyName?: string | null
+          companySlug?: string | null
+        }
+        // @ts-expect-error custom field
+        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+        session.user.id = (t.id ?? token.sub ?? "") as string
+        // @ts-expect-error custom field
+        session.user.companyId = (t.companyId ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyName = (t.companyName ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companySlug = (t.companySlug ?? null) as string | null
+      }
+      return session
+    },
+  },
+})
+
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' src/app/(dashboard)/nasabah/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' middleware.ts" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+import { NextRequest, NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
+
+// Route protection map: path prefix → allowed roles
+const routePermissions: Record<string, string[]> = {
+  "/laporan": ["SUPER_ADMIN", "OWNER", "MANAGER", "PIMPINAN", "AKUNTANSI", "ADMIN"],
+  "/settings": ["SUPER_ADMIN", "OWNER", "ADMIN", "PIMPINAN"],
+  "/kas": ["SUPER_ADMIN", "OWNER", "TELLER", "ADMIN", "MANAGER", "PIMPINAN"],
+  "/pencairan": ["SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "PIMPINAN", "TELLER"],
+  "/platform": ["SUPER_ADMIN"],
+}
+
+// Helper: cek apakah user minimal punya 1 role yang diizinkan
+function hasAccess(userRoles: string[], requiredRoles: string[]): boolean {
+  return userRoles.some((r) => requiredRoles.includes(r))
+}
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  const publicPaths = new Set(["/", "/home", "/about", "/product", "/blog", "/contact", "/penawaran", "/login", "/register"])
+  const isPublicPath = pathname.startsWith("/api") || publicPaths.has(pathname)
+  if (isPublicPath) {
+    return NextResponse.next()
+  }
+
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+  const token =
+    (await getToken({ req, secret })) ??
+    (await getToken({ req, secret, cookieName: "__Secure-authjs.session-token" })) ??
+    (await getToken({ req, secret, cookieName: "authjs.session-token" }))
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url))
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userRoles: string[] = Array.isArray((token as any)?.roles) ? (token as any).roles : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tokenCompanyId: string | null | undefined = (token as any)?.companyId as string | null | undefined
+
+  // SUPER_ADMIN can exist without a company context. In that case, keep them inside /platform.
+  if (userRoles.includes("SUPER_ADMIN") && !tokenCompanyId) {
+    const allowed =
+      pathname.startsWith("/platform") ||
+      pathname === "/settings" ||
+      pathname.startsWith("/settings/profile") ||
+      pathname.startsWith("/docs")
+    if (!allowed) {
+      return NextResponse.redirect(new URL("/platform", req.url))
+    }
+  }
+
+  // Cek permission per route
+  for (const [routePrefix, allowedRoles] of Object.entries(routePermissions)) {
+    if (pathname.startsWith(routePrefix)) {
+      if (!hasAccess(userRoles, allowedRoles)) {
+        return NextResponse.redirect(new URL("/dashboard?unauthorized=true", req.url))
+      }
+    }
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+}
+
+codex
+Saya sudah dapat middleware/auth, dan sekarang lanjut baca file route dengan path yang mengandung tanda kurung (perlu di-quote) agar bisa ambil selector UI yang stabil untuk test.
+exec
+/bin/bash -lc "sed -n '1,260p' 'src/app/(auth)/login/page.tsx'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+"use client"
+
+import { useState, useSyncExternalStore, useTransition, addTransitionType } from "react"
+import Link from "next/link"
+import { getSession, signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Building2, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+
+const loginSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
+const subscribeNoop = () => () => {}
+const getDemoTextSnapshot = () => "admin@koperasi.id / admin123"
+// Keep server + client snapshot identical to avoid hydration mismatch.
+const getEmptySnapshot = getDemoTextSnapshot
+
+async function waitForSession(maxRetry = 6, delayMs = 150) {
+  for (let i = 0; i < maxRetry; i += 1) {
+    const session = await getSession()
+    if (session?.user?.id) return true
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+  return false
+}
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const demoText = useSyncExternalStore(subscribeNoop, getDemoTextSnapshot, getEmptySnapshot)
+  const [, startTransition] = useTransition()
+
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  async function onSubmit(data: LoginForm) {
+    setIsLoading(true)
+    setError("")
+    const res = await signIn("credentials", {
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      redirect: false,
+      callbackUrl: "/dashboard",
+    })
+
+    if (res?.error) {
+      setIsLoading(false)
+      setError("Email atau password salah.")
+      return
+    }
+
+    const hasSession = await waitForSession()
+    setIsLoading(false)
+    if (!hasSession) {
+      setError("Login berhasil, tetapi sesi belum aktif. Silakan klik masuk sekali lagi.")
+      return
+    } else {
+      startTransition(() => {
+        addTransitionType("nav-forward")
+        router.push("/dashboard")
+        router.refresh()
+      })
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.14),transparent_24rem),linear-gradient(135deg,hsl(var(--background)),hsl(var(--muted)/0.55))]">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 p-12 text-white">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-white/15 bg-white/20 p-2 backdrop-blur">
+            <Building2 className="size-7" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight">KoperasiApp</span>
+        </div>
+        <div className="flex flex-col gap-6">
+          <h1 className="text-4xl font-bold leading-tight">
+            Sistem Informasi<br />Koperasi Simpan Pinjam
+          </h1>
+          <p className="text-emerald-100 text-lg leading-relaxed">
+            Kelola nasabah, pinjaman, angsuran, dan laporan keuangan koperasi Anda dengan mudah, aman, dan terpercaya.
+          </p>
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            {[
+              { label: "Nasabah Aktif", value: "1.2K+" },
+              { label: "Pinjaman", value: "840+" },
+              { label: "Akurasi Data", value: "99.9%" },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-emerald-200 text-sm">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-emerald-200 text-sm">© 2024 KoperasiApp. All rights reserved.</p>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+        <div className="flex w-full max-w-md flex-col gap-8">
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="bg-emerald-600 rounded-xl p-2 text-white">
+              <Building2 className="size-6" />
+            </div>
+            <span className="text-xl font-bold">KoperasiApp</span>
+          </div>
+
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Selamat Datang</h2>
+            <p className="text-muted-foreground mt-2">Masuk ke akun Anda untuk melanjutkan</p>
+          </div>
+
+          <Card>
+            <CardContent>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <FieldGroup className="gap-5">
+                  {error && (
+                    <div role="alert" aria-live="polite" className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                      {error}
+                    </div>
+                  )}
+                  <Field data-invalid={!!errors.email}>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@koperasi.id…"
+                      autoComplete="email"
+                      spellCheck={false}
+                      aria-invalid={!!errors.email}
+                      {...register("email")}
+                    />
+                    <FieldError>{errors.email?.message}</FieldError>
+                  </Field>
+                  <Field data-invalid={!!errors.password}>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Masukkan password…"
+                        autoComplete="current-password"
+                        aria-invalid={!!errors.password}
+                        {...register("password")}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                        onClick={() => setShowPassword((current) => !current)}
+                        className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
+                    <FieldError>{errors.password?.message}</FieldError>
+                  </Field>
+                  <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading} size="lg">
+                    {isLoading && <Loader2 className="animate-spin" data-icon="inline-start" />}
+                    {isLoading ? "Masuk…" : "Masuk"}
+                  </Button>
+                </FieldGroup>
+              </form>
+            </CardContent>
+          </Card>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Belum punya akun?{" "}
+            <Link href="/register" className="font-medium text-emerald-700 hover:text-emerald-800">
+              Daftar
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Demo:</span>{" "}
+            {demoText}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'src/app/(dashboard)/layout.tsx'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { TopBar } from "./_components/top-bar"
+import { getCompanyInfo, getAccountingMode } from "@/actions/settings"
+import { DEFAULT_ACCOUNTING_MODE } from "@/lib/accounting-mode"
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth()
+  if (!session) redirect("/login")
+  const userId = session.user?.id
+  if (!userId) redirect("/login")
+
+  // Company enforcement: block access for suspended/deleted companies.
+  // SUPER_ADMIN may not have a companyId and should still be able to access platform pages.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      isActive: true,
+      company: { select: { id: true, isActive: true, status: true } },
+    },
+  })
+  if (!dbUser || !dbUser.isActive) redirect("/login")
+  if (dbUser.company && (!dbUser.company.isActive || dbUser.company.status !== "ACTIVE")) {
+    redirect("/login")
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sessionCompanyId = (session.user as any)?.companyId as string | null | undefined
+  const [company, accountingMode] = sessionCompanyId
+    ? await Promise.all([getCompanyInfo(), getAccountingMode()])
+    : [undefined, DEFAULT_ACCOUNTING_MODE]
+  const user = {
+    name: session.user?.name ?? "User",
+    email: session.user?.email ?? "-",
+    avatar: undefined as string | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    roles: ((session.user as any)?.roles ?? []) as string[],
+    companyId: sessionCompanyId,
+  }
+
+  return (
+    <TooltipProvider>
+      <SidebarProvider>
+        <AppSidebar user={user} company={company} accountingMode={accountingMode} />
+        <SidebarInset className="bg-background">
+          <div className="flex flex-col min-h-screen relative">
+            <TopBar />
+            <div className="flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_26rem),linear-gradient(135deg,hsl(var(--background)),hsl(var(--muted)/0.55))] p-4 md:p-6 lg:p-8">
+              <div className="mx-auto max-w-7xl">
+                {children}
+              </div>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'src/app/(dashboard)/nasabah/page.tsx'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+import Link from "next/link"
+import { Plus, Search, Download, Eye, Pencil } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getKelompokList, getNasabahList } from "@/actions/nasabah"
+import { Input } from "@/components/ui/input"
+import { DeleteNasabahButton } from "./delete-nasabah-button"
+
+const statusBadge: Record<string, { label: string; cls: string }> = {
+  AKTIF: { label: "Aktif", cls: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
+  KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+}
+
+const rankBadge: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  B: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  D: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+export default async function NasabahPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string; page?: string; kelompokId?: string; status?: string }>
+}) {
+  const sp = await searchParams
+  const search = sp?.search ?? ""
+  const page = Number(sp?.page ?? 1)
+  const kelompokId = sp?.kelompokId ?? ""
+  const status = sp?.status ?? ""
+
+  const kelompokList = await getKelompokList()
+  const { data: nasabahList, total, totalPages } = await getNasabahList({
+    page,
+    search,
+    limit: 20,
+    kelompokId: kelompokId || undefined,
+    status: status || undefined,
+  })
+
+  return (
+    <div className="p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Master Nasabah</h1>
+          <p className="text-muted-foreground text-sm">
+            {total.toLocaleString("id-ID")} total nasabah terdaftar dalam sistem.
+          </p>
+        </div>
+        <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95">
+          <Link href="/nasabah/baru">
+            <Plus className="size-4" /> Tambah Nasabah
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <CardTitle className="text-base font-semibold">Daftar Nasabah</CardTitle>
+              <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="gap-2 border-slate-200/80 dark:border-slate-800/80">
+              <Download className="size-3.5" /> 
+              <span className="hidden sm:inline">Export Data</span>
+            </Button>
+          </div>
+          <form method="GET" className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input name="search" defaultValue={search} placeholder="Cari nama, NIK, atau nomor anggota..." className="pl-9 transition-all" />
+            </div>
+            <select
+              name="kelompokId"
+              defaultValue={kelompokId}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter kelompok"
+            >
+              <option value="">Semua kelompok</option>
+              {kelompokList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama}
+                </option>
+              ))}
+            </select>
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter status"
+            >
+              <option value="">Semua status</option>
+              <option value="AKTIF">Aktif</option>
+              <option value="NON_AKTIF">Non Aktif</option>
+              <option value="KELUAR">Keluar</option>
+            </select>
+            <Button type="submit" variant="secondary" className="px-6">Cari</Button>
+          </form>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[110px]">No. Anggota</TableHead>
+                <TableHead>Nama Lengkap</TableHead>
+                <TableHead className="hidden md:table-cell">NIK</TableHead>
+                <TableHead className="hidden lg:table-cell">Kelompok</TableHead>
+                <TableHead className="hidden lg:table-cell">Kolektor</TableHead>
+                <TableHead className="hidden xl:table-cell">Indikator</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Tgl. Gabung</TableHead>
+                <TableHead className="w-[50px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {nasabahList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-24 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Search className="size-8 opacity-20" />
+                      <p>{search ? `Tidak ada nasabah dengan kata kunci "${search}"` : "Belum ada data nasabah. Tambah nasabah pertama."}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                nasabahList.map((row) => {
+                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs font-semibold text-slate-500">{row.nomorAnggota}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold tracking-tight">{row.namaLengkap}</span>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge
+                              className={`${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} hover:${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} border-0 text-[10px] font-black h-5 uppercase tracking-wider`}
+                              title="Ranking risiko"
+                            >
+                              Rank {row.indikator.ranking}
+                            </Badge>
+                            {row.indikator.overdueCount > 0 && row.indikator.overdueOldestDueAt ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-black h-5 uppercase tracking-wider"
+                                title="Angsuran jatuh tempo belum lunas"
+                              >
+                                Telat {row.indikator.overdueCount} (
+                                {new Date(row.indikator.overdueOldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                ) {row.indikator.overdueOldestDaysLate} hari
+                              </Badge>
+                            ) : null}
+                            {row.indikator.tunggakanNominal > 0 ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tunggakan angsuran"
+                              >
+                                Tunggakan {fmt(Number(row.indikator.tunggakanNominal))}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tidak ada tunggakan angsuran"
+                              >
+                                Lancar
+                              </Badge>
+                            )}
+                            {row.indikator.aktifPinjaman > 0 ? (
+                              <Badge
+                                className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Jumlah pinjaman aktif"
+                              >
+                                Aktif {row.indikator.aktifPinjaman}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground md:hidden">{row.nik}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell font-mono text-[11px] text-slate-500 tracking-tight">{row.nik}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kelompok?.nama ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kolektor?.name ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Outstanding</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-200">
+                              {fmt(Number(row.indikator.outstanding))}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Telat</span>
+                            <span className={row.indikator.telat > 0 ? "font-bold text-rose-600" : "font-semibold"}>
+                              {row.indikator.telat}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Next Due</span>
+                            <span className="font-medium">
+                              {row.indikator.nextDueAt
+                                ? new Date(row.indikator.nextDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                                : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${badge.cls} hover:${badge.cls} border-0 text-[10px] font-bold px-2 py-0 h-5 uppercase tracking-wide`}>{badge.label}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-[11px] font-medium text-slate-500">
+                        {new Date(row.tanggalGabung).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Detail"
+                          >
+                            <Link href={`/nasabah/${row.id}`}>
+                              <Eye className="size-4" />
+                              <span className="sr-only">Detail</span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Edit"
+                          >
+                            <Link href={`/nasabah/${row.id}/edit`}>
+                              <Pencil className="size-4" />
+                              <span className="sr-only">Edit</span>
+                            </Link>
+                          </Button>
+                          <DeleteNasabahButton id={row.id} nama={row.namaLengkap} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+          <div className="px-6 py-4 flex items-center justify-between border-t border-slate-50 bg-slate-50/30 dark:border-slate-800/50 dark:bg-slate-900/10 text-xs font-medium text-slate-500 tracking-tight">
+            <span>
+              {nasabahList.length > 0
+
+exec
+/bin/bash -lc "ls -la 'src/app/(dashboard)/docs' && rg --files 'src/app/(dashboard)/docs'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+total 16
+drwxr-xr-x  4 kotacom kotacom 4096 Apr 23 13:32 .
+drwxr-xr-x 19 kotacom kotacom 4096 Apr 23 13:32 ..
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 13:32 panduan-pengguna
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 13:32 using-superpowers
+src/app/(dashboard)/docs/using-superpowers/page.tsx
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+
+exec
+/bin/bash -lc "find 'src/app/(dashboard)/docs' -maxdepth 3 -type f -name 'page.tsx' -print | sort && sed -n '1,260p' 'src/app/(dashboard)/docs/using-superpowers/page.tsx' && sed -n '1,260p' 'src/app/(dashboard)/docs/panduan-pengguna/page.tsx'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+src/app/(dashboard)/docs/using-superpowers/page.tsx
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+
+export const metadata = {
+  title: "Panduan Agent",
+}
+
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white/70 dark:bg-slate-950/40 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Step {n}</p>
+          <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
+        </div>
+        <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300 border-0">
+          using-superpowers
+        </Badge>
+      </div>
+      <Separator className="my-3 bg-slate-100 dark:bg-slate-800" />
+      <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export default function UsingSuperpowersDocPage() {
+  return (
+    <div className="p-6 space-y-6">
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">Panduan Penggunaan `$using-superpowers`</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground max-w-3xl">
+                Tujuannya: agent selalu cek skill dulu sebelum melakukan apa pun, supaya workflow konsisten dan tidak “langsung nembak” tanpa aturan repo.
+              </p>
+            </div>
+            <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              Untuk user
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white/70 dark:bg-slate-950/40 p-4 text-sm text-muted-foreground">
+            Versi markdown lengkap ada di `dashboard/USING-SUPERPOWERS.md` (lebih enak dibaca, bisa dipakai sebagai template prompt).
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Step n={1} title="Mulai dengan menyebut skill-nya">
+          <p>
+            Di awal prompt, tulis <span className="font-mono text-xs">`$using-superpowers`</span> atau <span className="font-mono text-xs">`using-superpowers`</span>.
+            Ini sinyal ke agent: “cek dan pakai skill sebelum tindakan apa pun”.
+          </p>
+          <p className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-muted/20 p-3 font-mono text-xs text-slate-700 dark:text-slate-300">
+            $using-superpowers{"\n\n"}
+            Tolong buat page baru /roadmap…
+          </p>
+        </Step>
+
+        <Step n={2} title="Tulis output yang diinginkan (jelas)">
+          <p>
+            Sebutkan: route, komponen/menu yang harus ditambah, dan file doc yang harus dibuat.
+            Kalau ada batasan: tulis eksplisit (contoh: “jangan refactor modul lain”).
+          </p>
+        </Step>
+
+        <Step n={3} title="Kirim konteks minimum yang membantu">
+          <p>
+            Jika ada contoh UI yang ingin ditiru, sebut route/file rujukan.
+            Jika ingin format tertentu (checklist, kategori, status), tulis kriterianya.
+          </p>
+        </Step>
+
+        <Step n={4} title="Minta verifikasi yang Anda butuhkan">
+          <p>
+            Contoh: “jalankan lint”, “pastikan route bisa diakses”, “tambahkan link di sidebar”.
+            Jika Anda ingin tanpa test dulu, tulis: “jangan jalankan build/test”.
+          </p>
+        </Step>
+      </div>
+
+      <Card className="border-none shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Template Prompt (copy)</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <pre className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 text-xs overflow-auto">
+{`$using-superpowers
+
+Tujuan:
+- (contoh) Tambah page /roadmap + checklist fitur
+- Tambah menu di sidebar
+- Buat doc step-by-step untuk user
+
+Output yang harus ada:
+- Route: /roadmap
+- Route: /docs/using-superpowers (bila perlu)
+- File doc: dashboard/USING-SUPERPOWERS.md
+
+Batasan:
+- Jangan refactor modul lain
+- Fokus hanya file yang diperlukan
+
+Verifikasi:
+- Jalankan lint setelah selesai`}
+          </pre>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+import { Building2, Users, FileText, Wallet, BarChart3, Settings, ShieldCheck, HelpCircle } from "lucide-react"
+import Image from "next/image"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+export default function PanduanPenggunaPage() {
+  return (
+    <div className="container max-w-5xl py-10 space-y-10">
+      <div className="space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight">Panduan Pengguna KoperasiApp</h1>
+        <p className="text-xl text-muted-foreground">
+          Panduan lengkap operasional sistem informasi koperasi dari pengaturan awal hingga pelaporan keuangan.
+        </p>
+      </div>
+
+      <Alert className="bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900">
+        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+        <AlertTitle className="text-emerald-800 dark:text-emerald-400">Keamanan Data</AlertTitle>
+        <AlertDescription className="text-emerald-700 dark:text-emerald-500">
+          Seluruh data transaksi dan informasi nasabah dienkripsi dan diproteksi sesuai hak akses masing-masing role (Admin, Manager, Teller, Kolektor).
+        </AlertDescription>
+      </Alert>
+
+      <Tabs defaultValue="overview" className="space-y-8">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 w-full h-auto gap-2 bg-transparent p-0">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Overview</TabsTrigger>
+          <TabsTrigger value="master" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Master Data</TabsTrigger>
+          <TabsTrigger value="pengajuan" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Pinjaman</TabsTrigger>
+          <TabsTrigger value="pembayaran" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Pembayaran</TabsTrigger>
+          <TabsTrigger value="kas" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Arus Kas</TabsTrigger>
+          <TabsTrigger value="laporan" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Laporan</TabsTrigger>
+          <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border">Settings & User</TabsTrigger>
+        </TabsList>
+
+        {/* --- OVERVIEW --- */}
+        <TabsContent value="overview" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-emerald-600" />
+                Dashboard Utama
+              </CardTitle>
+              <CardDescription>Pusat kontrol dan ringkasan aktivitas koperasi secara real-time.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-xl border overflow-hidden bg-muted">
+                <Image 
+                  src="/snitch/project/cooperative_manager_dashboard/dashboard.png" 
+                  alt="Dashboard KoperasiApp" 
+                  width={1200} 
+                  height={675}
+                  className="w-full object-cover"
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Statistik Utama</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                    <li>Total Nasabah Aktif</li>
+                    <li>Total Pinjaman (Outstanding)</li>
+                    <li>Arus Kas Hari Ini</li>
+                    <li>Status Tunggakan Terkini</li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Quick Access</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Gunakan sidebar kiri untuk navigasi cepat antar modul. Dashboard juga menampilkan notifikasi penting terkait pengajuan baru yang butuh approval.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- MASTER DATA --- */}
+        <TabsContent value="master" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                Manajemen Nasabah & Kelompok
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">1. Daftar Nasabah</h3>
+                <div className="rounded-xl border overflow-hidden bg-muted">
+                  <Image 
+                    src="/snitch/project/master_nasabah_client_data_management/nasabah.png" 
+                    alt="Manajemen Nasabah" 
+                    width={1200} 
+                    height={675}
+                    className="w-full object-cover"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Modul ini digunakan untuk mengelola data anggota koperasi. Pastikan NIK diinput dengan benar untuk validasi duplikasi. Dokumen pendukung seperti foto KTP dapat diupload langsung ke profil nasabah.
+                </p>
+              </div>
+
+              <div className="space-y-4 border-t pt-8">
+                <h3 className="text-lg font-semibold">2. Pengelompokan (Groups)</h3>
+                <p className="text-sm text-muted-foreground">
+                  Kelompok memudahkan manajemen penagihan massal. Nasabah dapat dikelompokkan berdasarkan wilayah atau jadwal pertemuan yang sama.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg text-sm flex gap-3 border border-blue-100 dark:border-blue-900">
+                  <HelpCircle className="h-5 w-5 text-blue-600 shrink-0" />
+                  <div>
+                    <span className="font-bold">Tips:</span> Gunakan fitur &quot;Ketua Kelompok&quot; untuk menentukan penanggung jawab komunikasi di tiap kelompok.
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- PINJAMAN --- */}
+        <TabsContent value="pengajuan" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-orange-600" />
+                Siklus Pinjaman: Pengajuan & Approval
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">1. Form Pengajuan Baru</h3>
+                <div className="rounded-xl border overflow-hidden bg-muted">
+                  <Image 
+                    src="/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png" 
+                    alt="Form Pengajuan Pinjaman" 
+                    width={1200} 
+                    height={675}
+                    className="w-full object-cover"
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div className="border p-3 rounded-lg">
+                    <span className="font-bold block mb-1">Simulasi Fleksibel</span>
+                    Angsuran Pokok, Bunga Flat, dan Total Angsuran dapat disesuaikan langsung pada kartu simulasi (maksimal 2 angka desimal).
+                  </div>
+                  <div className="border p-3 rounded-lg">
+                    <span className="font-bold block mb-1">Dokumen Jaminan</span>
+                    Lampirkan foto agunan atau surat perjanjian di bagian &quot;Dokumen Pendukung&quot;.
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 border-t pt-8">
+                <h3 className="text-lg font-semibold">2. Alur Approval</h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex gap-2">
+                    <span className="bg-orange-100 text-orange-700 size-5 flex items-center justify-center rounded-full font-bold shrink-0">1</span>
+                    <span>Admin/Teller menginput pengajuan nasabah.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="bg-orange-100 text-orange-700 size-5 flex items-center justify-center rounded-full font-bold shrink-0">2</span>
+                    <span>Manager/Pimpinan mereview melalui menu Approval.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="bg-orange-100 text-orange-700 size-5 flex items-center justify-center rounded-full font-bold shrink-0">3</span>
+                    <span>Jika disetujui, dana dapat dicairkan melalui modul Pencairan.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-4 border-t pt-8">
+                <h3 className="text-lg font-semibold">3. Pembatalan Pencairan (Jika Terjadi Kesalahan)</h3>
+                <p className="text-sm text-muted-foreground">
+                  Pembatalan pencairan dilakukan dari halaman detail pengajuan berstatus Dicairkan. Sistem tidak menghapus data, tetapi membuat reversal agar jejak audit tetap aman.
+                </p>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex gap-2">
+                    <span className="bg-amber-100 text-amber-700 size-5 flex items-center justify-center rounded-full font-bold shrink-0">1</span>
+                    <span>Isi alasan pembatalan minimal 10 karakter.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="bg-amber-100 text-amber-700 size-5 flex items-center justify-center rounded-full font-bold shrink-0">2</span>
+                    <span>Hanya role Admin/Manager/Pimpinan yang bisa mengeksekusi.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="bg-amber-100 text-amber-700 size-5 flex items-center justify-center rounded-full font-bold shrink-0">3</span>
+                    <span>Pembatalan otomatis ditolak bila sudah ada pembayaran angsuran pada pinjaman tersebut.</span>
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- PEMBAYARAN --- */}
+        <TabsContent value="pembayaran" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-emerald-600" />
+                Penerimaan Angsuran
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-xl border overflow-hidden bg-muted">
+                <Image 
+                  src="/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png" 
+                  alt="Modul Pembayaran" 
+                  width={1200} 
+                  height={675}
+                  className="w-full object-cover"
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Metode Pencarian</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Cari jadwal tagihan berdasarkan nama nasabah, NIK, atau nomor kontrak. Sistem akan menampilkan jadwal angsuran yang harus dibayar.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Tipe Bayar</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                    <li><strong>Full:</strong> Bayar tepat sesuai tagihan periode.</li>
+                    <li><strong>Parsial:</strong> Bayar sebagian (mencicil tagihan).</li>
+                    <li><strong>Pelunasan:</strong> Melunasi seluruh sisa pokok sekaligus.</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- ARUS KAS --- */}
+        <TabsContent value="kas" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-cyan-600" />
+                Manajemen Kas (Masuk & Keluar)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-xl border overflow-hidden bg-muted">
+                <Image 
+                  src="/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png" 
+                  alt="Manajemen Arus Kas" 
+                  width={1200} 
+                  height={675}
+                  className="w-full object-cover"
+                />
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border">
+                <h4 className="font-semibold mb-2">Workflow Approval Kas</h4>
+                <p className="text-sm text-muted-foreground">
+                  Setiap transaksi kas manual (seperti biaya operasional atau pendapatan lain-lain) memerlukan approval dari Manager sebelum masuk ke Buku Besar dan Laporan Laba Rugi.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+exec
+/bin/bash -lc "sed -n '1,240p' 'src/app/(dashboard)/dashboard/page.tsx'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+import { getDashboardStats } from "@/actions/dashboard"
+import Link from "next/link"
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { DashboardHeader } from "../_components/dashboard-header"
+import { ViewTransition } from "react"
+import { getCompanyInfo } from "@/actions/settings"
+import { formatTimeId, normalizeTimeZone } from "@/lib/datetime"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Users, Banknote, TrendingUp, AlertTriangle,
+  ArrowUpRight, ArrowDownRight, Clock, UserPlus, ClipboardList,
+  HandCoins, WalletCards, Layers3, BarChart3,
+} from "lucide-react"
+
+function fmt(n: number) {
+  if (n >= 1_000_000_000) return `Rp ${(n / 1_000_000_000).toFixed(1)}M`
+  if (n >= 1_000_000) return `Rp ${(n / 1_000_000).toFixed(1)}Jt`
+  if (n >= 1_000) return `Rp ${(n / 1_000).toFixed(0)}Rb`
+  return `Rp ${n.toLocaleString("id-ID")}`
+}
+
+function BarChart({ data }: { data: { bulan: string; masuk: number; keluar: number }[] }) {
+  const max = Math.max(...data.flatMap((d) => [d.masuk, d.keluar]), 1)
+  return (
+    <div className="flex items-end gap-3 h-40 pt-2">
+      {data.map((d) => (
+        <div key={d.bulan} className="flex-1 flex flex-col items-center gap-1">
+          <div className="flex items-end gap-0.5 w-full" style={{ height: "120px" }}>
+            <div className="flex-1 bg-emerald-500 rounded-t-sm opacity-90 transition-all hover:opacity-100" style={{ height: `${(d.masuk / max) * 100}%` }} />
+            <div className="flex-1 bg-rose-400 rounded-t-sm opacity-80 transition-all hover:opacity-100" style={{ height: `${(d.keluar / max) * 100}%` }} />
+          </div>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{d.bulan}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default async function DashboardPage() {
+  const stats = await getDashboardStats()
+  const company = await getCompanyInfo()
+  const timeZone = normalizeTimeZone(company.timeZone)
+
+  const today = new Intl.DateTimeFormat("id-ID", {
+    timeZone,
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date())
+  const currentTime = formatTimeId(new Date(), { timeZone })
+
+  const surplusBulanIni = stats.arusKas6Bulan.at(-1)
+  const surplusVal = (surplusBulanIni?.masuk ?? 0) - (surplusBulanIni?.keluar ?? 0)
+
+  const statCards = [
+    { title: "Total Nasabah Aktif", value: stats.totalNasabah.toLocaleString("id-ID"), change: "Nasabah aktif", trend: "up", icon: Users, color: "text-blue-600", bg: "bg-blue-50/80", id: "total-nasabah" },
+    { title: "Pinjaman Aktif", value: stats.pinjamanAktif.toLocaleString("id-ID"), change: "Kontrak berjalan", trend: "up", icon: Banknote, color: "text-emerald-600", bg: "bg-emerald-50/80", id: "pinjaman-aktif" },
+    { title: "Total Outstanding", value: fmt(stats.totalOutstanding), change: "Sisa pokok pinjaman", trend: "neutral", icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50/80", id: "total-outstanding" },
+    { title: "Total Tunggakan", value: fmt(stats.totalTunggakan), change: "Angsuran belum dibayar", trend: "down", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50/80", id: "total-tunggakan" },
+  ]
+
+  const quickMenus = [
+    {
+      title: "Tambah Nasabah",
+      description: "Input anggota baru",
+      href: "/nasabah/baru",
+      icon: UserPlus,
+      className: "from-sky-500 to-cyan-500",
+      id: "tambah-nasabah",
+    },
+    {
+      title: "Ajukan Pinjaman",
+      description: "Buat pengajuan baru",
+      href: "/pengajuan/baru",
+      icon: ClipboardList,
+      className: "from-emerald-500 to-teal-500",
+      id: "ajukan-pinjaman",
+    },
+    {
+      title: "Proses Pencairan",
+      description: "Tindak lanjut pengajuan",
+      href: "/pencairan",
+      icon: HandCoins,
+      className: "from-amber-500 to-orange-500",
+      id: "proses-pencairan",
+    },
+    {
+      title: "Catat Pembayaran",
+      description: "Input angsuran masuk",
+      href: "/pembayaran",
+      icon: WalletCards,
+      className: "from-violet-500 to-fuchsia-500",
+      id: "catat-pembayaran",
+    },
+    {
+      title: "Data Kelompok",
+      description: "Kelola kelompok nasabah",
+      href: "/kelompok",
+      icon: Layers3,
+      className: "from-slate-700 to-slate-900",
+      id: "data-kelompok",
+    },
+    {
+      title: "Laporan Kas",
+      description: "Pantau laporan utama",
+      href: "/laporan/arus-kas",
+      icon: BarChart3,
+      className: "from-rose-500 to-pink-500",
+      id: "laporan-kas",
+    },
+  ]
+
+  return (
+    <div className="p-6 space-y-8">
+      <DashboardHeader
+        title="Dashboard Overview"
+        description="Ringkasan cepat kondisi koperasi, arus kas, tunggakan, dan notifikasi penagihan hari ini."
+        dateLabel={today}
+        initialTimeLabel={currentTime}
+        notificationCount={stats.penagihanHariIni}
+      />
+
+      {/* Quick Menu */}
+      <Card className="border-none shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Quick Menu</CardTitle>
+              <CardDescription>Akses cepat ke modul yang paling sering dipakai</CardDescription>
+            </div>
+            <Badge variant="secondary" className="hidden sm:inline-flex bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              Fast access
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+            {quickMenus.map((menu) => (
+              <Button key={menu.href} asChild variant="outline" className="h-auto items-stretch justify-start p-0 border-slate-100 hover:border-primary/20 hover:bg-primary/5 transition-all">
+                <Link href={menu.href} className="w-full">
+                  <div className="flex h-full w-full flex-col gap-3 rounded-xl p-4 text-left transition-colors">
+                    <ViewTransition name={`quick-icon-${menu.id}`} share="morph">
+                      <div className={`inline-flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${menu.className} text-white shadow-md shadow-slate-200/50 dark:shadow-none`}>
+                        <menu.icon className="size-4.5" />
+                      </div>
+                    </ViewTransition>
+                    <div className="space-y-1">
+                      <ViewTransition name={`quick-text-${menu.id}`} share="text-morph">
+                        <p className="text-sm font-semibold leading-none tracking-tight">{menu.title}</p>
+                      </ViewTransition>
+                      <p className="text-[10px] text-muted-foreground/80 leading-relaxed">{menu.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat) => (
+          <Card key={stat.title} className="border-none shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">{stat.title}</p>
+                  <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
+                  <p className={`text-[11px] font-medium flex items-center gap-1 ${stat.trend === "up" ? "text-emerald-600" : stat.trend === "down" ? "text-red-500" : "text-slate-500"}`}>
+                    {stat.trend === "up" && <ArrowUpRight className="size-3" />}
+                    {stat.trend === "down" && <ArrowDownRight className="size-3" />}
+                    {stat.change}
+                  </p>
+                </div>
+                <ViewTransition name={`stat-icon-${stat.id}`} share="morph">
+                  <div className={`${stat.bg} ${stat.color} p-2.5 rounded-xl shadow-sm border border-current/5`}>
+                    <stat.icon className="size-5" />
+                  </div>
+                </ViewTransition>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Chart + Top Tunggakan */}
+      <div className="grid lg:grid-cols-5 gap-6">
+        <Card className="lg:col-span-3 border-none shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Arus Kas Bulanan</CardTitle>
+                <CardDescription>6 bulan terakhir</CardDescription>
+              </div>
+              <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="size-2.5 bg-emerald-500 rounded-full inline-block" /> Masuk</span>
+                <span className="flex items-center gap-1.5"><span className="size-2.5 bg-rose-400 rounded-full inline-block" /> Keluar</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <BarChart data={stats.arusKas6Bulan} />
+            {surplusVal !== 0 && (
+              <div className="mt-6 p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-center justify-between dark:bg-emerald-950/20 dark:border-emerald-900/30">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/80 dark:text-emerald-400/80">Surplus Bulan Ini</p>
+                  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{fmt(surplusVal)}</p>
+                </div>
+                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-400 rounded-lg font-bold">
+                  {surplusBulanIni?.bulan}
+                </Badge>
+              </div>
+            )}
+            {surplusVal === 0 && (
+              <div className="mt-6 p-4 bg-muted/40 rounded-xl text-xs text-muted-foreground text-center border border-dashed border-slate-200 dark:border-slate-800">
+                Belum ada data kas bulan ini. Mulai input transaksi di menu Arus Kas.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2 border-none shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Top 5 Tunggakan Kelompok</CardTitle>
+            <CardDescription>Outstanding tertinggi</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+
+codex
+Saya lanjut cek data seed supaya login di smoke test memakai kredensial yang valid dan stabil, lalu saya rancang fallback assertion jika data nasabah kosong agar tidak flaky.
+exec
+/bin/bash -lc "sed -n '1,320p' prisma/seed.ts && rg -n \"admin@koperasi.id|password|nasabah|company\" prisma/seed.ts" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+import "dotenv/config"
+import { Pool } from "pg"
+import { PrismaPg } from "@prisma/adapter-pg"
+import { PrismaClient, RoleType } from "@prisma/client"
+import bcrypt from "bcryptjs"
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
+
+async function createUser(params: {
+  email: string
+  name: string
+  password: string
+  roles: RoleType[]
+  companyId?: string
+}) {
+  const hashedPassword = await bcrypt.hash(params.password, 12)
+  return prisma.user.create({
+    data: {
+      email: params.email,
+      name: params.name,
+      password: hashedPassword,
+      companyId: params.companyId,
+      isActive: true,
+      roles: {
+        create: params.roles.map((role) => ({ role })),
+      },
+    },
+    select: { id: true, email: true, name: true },
+  })
+}
+
+async function cleanDatabase() {
+  // Delete children first (FK safety)
+  await prisma.auditLog.deleteMany()
+  await prisma.approvalLog.deleteMany()
+  await prisma.kolektorTarget.deleteMany()
+  await prisma.notifikasi.deleteMany()
+  await prisma.rekonsiliasiKas.deleteMany()
+  await prisma.kasTransaksi.deleteMany()
+  await prisma.pembayaran.deleteMany()
+  await prisma.jadwalAngsuran.deleteMany()
+  await prisma.pinjaman.deleteMany()
+  await prisma.pengajuan.deleteMany()
+  await prisma.simpanan.deleteMany()
+  await prisma.penjamin.deleteMany()
+  await prisma.nasabah.deleteMany()
+  await prisma.kelompok.deleteMany()
+  await prisma.kasKategori.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.appSetting.deleteMany()
+  await prisma.userRole.deleteMany()
+  await prisma.company.deleteMany()
+  await prisma.user.deleteMany()
+}
+
+async function main() {
+  console.log("Resetting database (basic seed: users + kelompok only)...")
+  await cleanDatabase()
+
+  await createUser({
+    email: "super@koperasi.id",
+    name: "Super Admin",
+    password: "super123",
+    roles: ["SUPER_ADMIN"],
+  })
+
+  const admin = await createUser({
+    email: "admin@koperasi.id",
+    name: "Administrator",
+    password: "admin123",
+    roles: ["OWNER", "ADMIN"],
+  })
+
+  const company = await prisma.company.create({
+    data: {
+      name: "Koperasi Demo Sejahtera",
+      slug: "koperasi-demo-sejahtera",
+      email: "admin@koperasi.id",
+      ownerId: admin.id,
+    },
+  })
+
+  await prisma.user.update({
+    where: { id: admin.id },
+    data: { companyId: company.id },
+  })
+
+  await createUser({
+    email: "teller@koperasi.id",
+    name: "Teller",
+    password: "teller123",
+    roles: ["TELLER"],
+    companyId: company.id,
+  })
+
+  await createUser({
+    email: "manager@koperasi.id",
+    name: "Manager",
+    password: "manager123",
+    roles: ["MANAGER"],
+    companyId: company.id,
+  })
+
+  await prisma.kelompok.createMany({
+    data: [
+      {
+        companyId: company.id,
+        kode: "KL-001",
+        nama: "Kelompok Mentari",
+        ketua: "Pak Suryo",
+        wilayah: "Wonosobo",
+        jadwalPertemuan: "Senin",
+      },
+      {
+        companyId: company.id,
+        kode: "KL-002",
+        nama: "Mitra Sejahtera",
+        ketua: "Bu Siti",
+        wilayah: "Kertek",
+        jadwalPertemuan: "Selasa",
+      },
+      {
+        companyId: company.id,
+        kode: "KL-003",
+        nama: "Guyub Rukun",
+        ketua: "Pak Slamet",
+        wilayah: "Garung",
+        jadwalPertemuan: "Rabu",
+      },
+    ],
+  })
+
+  console.log("✅ Basic seed done.")
+  console.log("Demo login:")
+  console.log("  - super@koperasi.id / super123")
+  console.log("  - admin@koperasi.id / admin123")
+  console.log("  - teller@koperasi.id / teller123")
+  console.log("  - manager@koperasi.id / manager123")
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect()
+    await pool.end()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    await pool.end()
+    process.exit(1)
+  })
+14:  password: string
+16:  companyId?: string
+18:  const hashedPassword = await bcrypt.hash(params.password, 12)
+23:      password: hashedPassword,
+24:      companyId: params.companyId,
+48:  await prisma.nasabah.deleteMany()
+54:  await prisma.company.deleteMany()
+65:    password: "super123",
+70:    email: "admin@koperasi.id",
+72:    password: "admin123",
+76:  const company = await prisma.company.create({
+80:      email: "admin@koperasi.id",
+87:    data: { companyId: company.id },
+93:    password: "teller123",
+95:    companyId: company.id,
+101:    password: "manager123",
+103:    companyId: company.id,
+109:        companyId: company.id,
+117:        companyId: company.id,
+125:        companyId: company.id,
+138:  console.log("  - admin@koperasi.id / admin123")
+
+exec
+/bin/bash -lc "find src/app -maxdepth 4 -type f -name 'page.tsx' | sed 's#"'^src/app##'"' | sort | head -n 200" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+/(auth)/login/page.tsx
+/(auth)/register/page.tsx
+/(dashboard)/akuntansi/akun/page.tsx
+/(dashboard)/akuntansi/mapping-kategori/page.tsx
+/(dashboard)/dashboard/page.tsx
+/(dashboard)/docs/panduan-pengguna/page.tsx
+/(dashboard)/docs/using-superpowers/page.tsx
+/(dashboard)/kas/page.tsx
+/(dashboard)/kelompok/baru/page.tsx
+/(dashboard)/kelompok/page.tsx
+/(dashboard)/kolektor/page.tsx
+/(dashboard)/laporan/arus-kas/page.tsx
+/(dashboard)/laporan/buku-besar/page.tsx
+/(dashboard)/laporan/history-pembayaran/page.tsx
+/(dashboard)/laporan/laba-rugi/page.tsx
+/(dashboard)/laporan/neraca/page.tsx
+/(dashboard)/laporan/per-kelompok/page.tsx
+/(dashboard)/laporan/rekonsiliasi/page.tsx
+/(dashboard)/laporan/transaksi-per-user/page.tsx
+/(dashboard)/monitoring/kolektor/page.tsx
+/(dashboard)/monitoring/tunggakan/page.tsx
+/(dashboard)/nasabah/[id]/page.tsx
+/(dashboard)/nasabah/baru/page.tsx
+/(dashboard)/nasabah/page.tsx
+/(dashboard)/pembayaran/page.tsx
+/(dashboard)/pencairan/page.tsx
+/(dashboard)/pengajuan/[id]/page.tsx
+/(dashboard)/pengajuan/baru/page.tsx
+/(dashboard)/pengajuan/page.tsx
+/(dashboard)/platform/companies/page.tsx
+/(dashboard)/platform/page.tsx
+/(dashboard)/platform/users/page.tsx
+/(dashboard)/roadmap/page.tsx
+/(dashboard)/settings/accounting/page.tsx
+/(dashboard)/settings/company/page.tsx
+/(dashboard)/settings/maintenance/page.tsx
+/(dashboard)/settings/page.tsx
+/(dashboard)/settings/profile/page.tsx
+/(dashboard)/settings/ranking/page.tsx
+/(dashboard)/settings/users/page.tsx
+/(marketing)/about/page.tsx
+/(marketing)/blog/page.tsx
+/(marketing)/contact/page.tsx
+/(marketing)/home/page.tsx
+/(marketing)/page.tsx
+/(marketing)/penawaran/page.tsx
+/(marketing)/product/page.tsx
+
+exec
+/bin/bash -lc "rg --files -g '*playwright*' && find . -maxdepth 3 -type f -name '*playwright*' -o -name '*.spec.ts' | sort" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ exited 1 in 100ms:
+codex
+Saya siap mulai implementasi test. Sebelum menulis kode, saya baca cepat panduan Next lokal yang relevan (App Router/testing behavior) sesuai aturan repo, lalu lanjut membuat config + smoke spec.
+exec
+/bin/bash -lc 'ls -la node_modules/next/dist/docs | head -n 80 && rg -n "App Router|Testing|redirect|middleware" node_modules/next/dist/docs -S | head -n 40' in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+ls: cannot access 'node_modules/next/dist/docs': No such file or directory
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+codex
+`node_modules` belum ada di workspace ini, jadi panduan Next lokal tidak bisa dibaca saat ini. Saya lanjut implementasi smoke test dulu dengan asumsi App Router standar di repo ini, lalu verifikasi lewat eksekusi Playwright.
+exec
+/bin/bash -lc "mkdir -p tests/e2e
+cat > tests/e2e/smoke.spec.ts <<'EOF'
+import { expect, test } from \"@playwright/test\"
+
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? \"admin@koperasi.id\"
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? \"admin123\"
+
+async function loginAsAdmin(page: Parameters<typeof test>[0][\"page\"]) {
+  await page.goto(\"/login\")
+
+  await expect(page.getByRole(\"heading\", { name: \"Selamat Datang\" })).toBeVisible()
+  await page.getByLabel(\"Email\").fill(ADMIN_EMAIL)
+  await page.getByLabel(\"Password\").fill(ADMIN_PASSWORD)
+  await page.getByRole(\"button\", { name: /"'^Masuk/ }).click()
+
+  await page.waitForURL("**/dashboard", { timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Dashboard Overview" })).toBeVisible()
+}
+
+test.describe("E2E smoke", () => {
+  test("login page renders consistently without hydration warnings", async ({ page }) => {
+    const hydrationSignals: string[] = []
+
+    page.on("console", (msg) => {
+      const text = msg.text()
+      if (/hydration|did not match|server rendered html/i.test(text)) {
+        hydrationSignals.push(text)
+      }
+    })
+
+    page.on("pageerror", (err) => {
+      const text = String(err)
+      if (/hydration|did not match|server rendered html/i.test(text)) {
+        hydrationSignals.push(text)
+      }
+    })
+
+    await page.goto("/login")
+
+    await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+    await expect(page.getByLabel("Email")).toBeVisible()
+    await expect(page.getByLabel("Password")).toBeVisible()
+    await expect(page.getByRole("button", { name: "Masuk" })).toBeVisible()
+    await expect(page.getByText("Demo:")).toBeVisible()
+    await expect(page.getByText("admin@koperasi.id / admin123")).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+    await expect(page.getByText("admin@koperasi.id / admin123")).toBeVisible()
+
+    expect(hydrationSignals).toEqual([])
+  })
+
+  test("dashboard requires auth and becomes accessible after login", async ({ page }) => {
+    await page.goto("/dashboard")
+    await page.waitForURL("**/login")
+    await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+
+    await loginAsAdmin(page)
+  })
+
+  test("nasabah list route loads for authenticated user", async ({ page }) => {
+    await loginAsAdmin(page)
+
+    await page.goto("/nasabah")
+    await expect(page.getByRole("heading", { name: "Master Nasabah" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Daftar Nasabah" })).toBeVisible()
+    await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+
+    const rows = page.locator("tbody tr")
+    const rowCount = await rows.count()
+
+    if (rowCount > 1) {
+      await expect(rows.first()).toBeVisible()
+    } else {
+      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
+    }
+  })
+
+  test("dokumen routes are available for authenticated user", async ({ page }) => {
+    await loginAsAdmin(page)
+
+    const docsRoutes = [
+      { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `'"\\"'$using-superpowers`/i },
+    ]
+
+    for (const route of docsRoutes) {
+      const response = await page.goto(route.path)
+      expect(response?.ok()).toBeTruthy()
+      await expect(page.getByText(route.title)).toBeVisible()
+    }
+  })
+})
+EOF
+
+cat > playwright.config.ts <<'"'EOF'
+import { defineConfig, devices } from \"@playwright/test\"
+
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3100)
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "'`http://127.0.0.1:${PORT}`
+
+export default defineConfig({
+  testDir: "./tests/e2e",
+  timeout: 30_000,
+  expect: {
+    timeout: 10_000,
+  },
+  fullyParallel: false,
+  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 1 : 0,
+  reporter: [["list"]],
+  use: {
+    baseURL: BASE_URL,
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "off",
+  },
+  webServer: {
+    command: `npm run dev -- --port ${PORT}`,
+    url: BASE_URL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+})
+EOF
+
+git status --short' in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 3028ms:
+?? playwright.config.ts
+?? tests/
+
+exec
+/bin/bash -lc "perl -0pi -e 's/import \\{ expect, test \\} from \"\\@playwright\\/test\"/import { expect, test, type Page } from \"\\@playwright\\/test\"/' tests/e2e/smoke.spec.ts
+perl -0pi -e 's/async function loginAsAdmin\\(page: Parameters<["'^'"\\)]*\\) \\{/async function loginAsAdmin(page: Page) {/' tests/e2e/smoke.spec.ts
+sed -n '1,240p' tests/e2e/smoke.spec.ts" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 780ms:
+import { expect, test, type Page } from "@playwright/test"
+
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@koperasi.id"
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123"
+
+async function loginAsAdmin(page: Page) {
+  await page.goto("/login")
+
+  await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+  await page.getByLabel("Email").fill(ADMIN_EMAIL)
+  await page.getByLabel("Password").fill(ADMIN_PASSWORD)
+  await page.getByRole("button", { name: /^Masuk/ }).click()
+
+  await page.waitForURL("**/dashboard", { timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Dashboard Overview" })).toBeVisible()
+}
+
+test.describe("E2E smoke", () => {
+  test("login page renders consistently without hydration warnings", async ({ page }) => {
+    const hydrationSignals: string[] = []
+
+    page.on("console", (msg) => {
+      const text = msg.text()
+      if (/hydration|did not match|server rendered html/i.test(text)) {
+        hydrationSignals.push(text)
+      }
+    })
+
+    page.on("pageerror", (err) => {
+      const text = String(err)
+      if (/hydration|did not match|server rendered html/i.test(text)) {
+        hydrationSignals.push(text)
+      }
+    })
+
+    await page.goto("/login")
+
+    await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+    await expect(page.getByLabel("Email")).toBeVisible()
+    await expect(page.getByLabel("Password")).toBeVisible()
+    await expect(page.getByRole("button", { name: "Masuk" })).toBeVisible()
+    await expect(page.getByText("Demo:")).toBeVisible()
+    await expect(page.getByText("admin@koperasi.id / admin123")).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+    await expect(page.getByText("admin@koperasi.id / admin123")).toBeVisible()
+
+    expect(hydrationSignals).toEqual([])
+  })
+
+  test("dashboard requires auth and becomes accessible after login", async ({ page }) => {
+    await page.goto("/dashboard")
+    await page.waitForURL("**/login")
+    await expect(page.getByRole("heading", { name: "Selamat Datang" })).toBeVisible()
+
+    await loginAsAdmin(page)
+  })
+
+  test("nasabah list route loads for authenticated user", async ({ page }) => {
+    await loginAsAdmin(page)
+
+    await page.goto("/nasabah")
+    await expect(page.getByRole("heading", { name: "Master Nasabah" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Daftar Nasabah" })).toBeVisible()
+    await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+
+    const rows = page.locator("tbody tr")
+    const rowCount = await rows.count()
+
+    if (rowCount > 1) {
+      await expect(rows.first()).toBeVisible()
+    } else {
+      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
+    }
+  })
+
+  test("dokumen routes are available for authenticated user", async ({ page }) => {
+    await loginAsAdmin(page)
+
+    const docsRoutes = [
+      { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
+    ]
+
+    for (const route of docsRoutes) {
+      const response = await page.goto(route.path)
+      expect(response?.ok()).toBeTruthy()
+      await expect(page.getByText(route.title)).toBeVisible()
+    }
+  })
+})
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts
+diff --git a/dashboard/tests/e2e/smoke.spec.ts b/dashboard/tests/e2e/smoke.spec.ts
+index 7e82adc58c37e294f94410c2d14525b24fdf250f..a8c6639f3cccd117529f64ab123bf671bfb1c4be
+--- a/dashboard/tests/e2e/smoke.spec.ts
++++ b/dashboard/tests/e2e/smoke.spec.ts
+@@ -66,13 +66,15 @@
+     await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+ 
+     const rows = page.locator("tbody tr")
+-    const rowCount = await rows.count()
++    const emptyState = page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)
++    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+ 
+-    if (rowCount > 1) {
+-      await expect(rows.first()).toBeVisible()
+-    } else {
+-      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
++    if (hasEmptyState) {
++      await expect(emptyState).toBeVisible()
++      return
+     }
++
++    await expect(rows.first()).toBeVisible()
+   })
+ 
+   test("dokumen routes are available for authenticated user", async ({ page }) => {
+@@ -80,13 +82,13 @@
+ 
+     const docsRoutes = [
+       { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+-      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
++      { path: "/docs/using-superpowers", title: /Panduan Penggunaan/i },
+     ]
+ 
+     for (const route of docsRoutes) {
+       const response = await page.goto(route.path)
+       expect(response?.ok()).toBeTruthy()
+-      await expect(page.getByText(route.title)).toBeVisible()
++      await expect(page.getByRole("heading", { name: route.title })).toBeVisible()
+     }
+   })
+ })
+
+diff --git a/dashboard/tests/e2e/smoke.spec.ts b/dashboard/tests/e2e/smoke.spec.ts
+index 7e82adc58c37e294f94410c2d14525b24fdf250f..a8c6639f3cccd117529f64ab123bf671bfb1c4be
+--- a/dashboard/tests/e2e/smoke.spec.ts
++++ b/dashboard/tests/e2e/smoke.spec.ts
+@@ -66,13 +66,15 @@
+     await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+ 
+     const rows = page.locator("tbody tr")
+-    const rowCount = await rows.count()
++    const emptyState = page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)
++    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+ 
+-    if (rowCount > 1) {
+-      await expect(rows.first()).toBeVisible()
+-    } else {
+-      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
++    if (hasEmptyState) {
++      await expect(emptyState).toBeVisible()
++      return
+     }
++
++    await expect(rows.first()).toBeVisible()
+   })
+ 
+   test("dokumen routes are available for authenticated user", async ({ page }) => {
+@@ -80,13 +82,13 @@
+ 
+     const docsRoutes = [
+       { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+-      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
++      { path: "/docs/using-superpowers", title: /Panduan Penggunaan/i },
+     ]
+ 
+     for (const route of docsRoutes) {
+       const response = await page.goto(route.path)
+       expect(response?.ok()).toBeTruthy()
+-      await expect(page.getByText(route.title)).toBeVisible()
++      await expect(page.getByRole("heading", { name: route.title })).toBeVisible()
+     }
+   })
+ })
+
+codex
+Saya sudah menyelesaikan scope pertama: membuat kerangka Playwright + smoke test untuk 4 alur inti dan memperbaiki assertion agar aman saat data nasabah kosong. Berikutnya saya commit dulu sesuai cadence, lalu jalankan eksekusi smoke test.
+exec
+/bin/bash -lc 'git add playwright.config.ts tests/e2e/smoke.spec.ts && git commit -m "test: add stable playwright smoke coverage for auth nasabah and docs routes" && git status --short' in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 2519ms:
+[codex_20260423_133120_p1d-e2e-smoke ffcb56d] test: add stable playwright smoke coverage for auth nasabah and docs routes
+ 2 files changed, 128 insertions(+)
+ create mode 100644 dashboard/playwright.config.ts
+ create mode 100644 dashboard/tests/e2e/smoke.spec.ts
+
+diff --git a/dashboard/tests/e2e/smoke.spec.ts b/dashboard/tests/e2e/smoke.spec.ts
+index 7e82adc58c37e294f94410c2d14525b24fdf250f..a8c6639f3cccd117529f64ab123bf671bfb1c4be
+--- a/dashboard/tests/e2e/smoke.spec.ts
++++ b/dashboard/tests/e2e/smoke.spec.ts
+@@ -66,13 +66,15 @@
+     await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+ 
+     const rows = page.locator("tbody tr")
+-    const rowCount = await rows.count()
++    const emptyState = page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)
++    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+ 
+-    if (rowCount > 1) {
+-      await expect(rows.first()).toBeVisible()
+-    } else {
+-      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
++    if (hasEmptyState) {
++      await expect(emptyState).toBeVisible()
++      return
+     }
++
++    await expect(rows.first()).toBeVisible()
+   })
+ 
+   test("dokumen routes are available for authenticated user", async ({ page }) => {
+@@ -80,13 +82,13 @@
+ 
+     const docsRoutes = [
+       { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+-      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
++      { path: "/docs/using-superpowers", title: /Panduan Penggunaan/i },
+     ]
+ 
+     for (const route of docsRoutes) {
+       const response = await page.goto(route.path)
+       expect(response?.ok()).toBeTruthy()
+-      await expect(page.getByText(route.title)).toBeVisible()
++      await expect(page.getByRole("heading", { name: route.title })).toBeVisible()
+     }
+   })
+ })
+
+exec
+/bin/bash -lc "[ -d node_modules ] && echo 'node_modules present' || echo 'node_modules missing'" in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+ succeeded in 0ms:
+node_modules missing
+
+diff --git a/dashboard/tests/e2e/smoke.spec.ts b/dashboard/tests/e2e/smoke.spec.ts
+index 7e82adc58c37e294f94410c2d14525b24fdf250f..a8c6639f3cccd117529f64ab123bf671bfb1c4be
+--- a/dashboard/tests/e2e/smoke.spec.ts
++++ b/dashboard/tests/e2e/smoke.spec.ts
+@@ -66,13 +66,15 @@
+     await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+ 
+     const rows = page.locator("tbody tr")
+-    const rowCount = await rows.count()
++    const emptyState = page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)
++    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+ 
+-    if (rowCount > 1) {
+-      await expect(rows.first()).toBeVisible()
+-    } else {
+-      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
++    if (hasEmptyState) {
++      await expect(emptyState).toBeVisible()
++      return
+     }
++
++    await expect(rows.first()).toBeVisible()
+   })
+ 
+   test("dokumen routes are available for authenticated user", async ({ page }) => {
+@@ -80,13 +82,13 @@
+ 
+     const docsRoutes = [
+       { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+-      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
++      { path: "/docs/using-superpowers", title: /Panduan Penggunaan/i },
+     ]
+ 
+     for (const route of docsRoutes) {
+       const response = await page.goto(route.path)
+       expect(response?.ok()).toBeTruthy()
+-      await expect(page.getByText(route.title)).toBeVisible()
++      await expect(page.getByRole("heading", { name: route.title })).toBeVisible()
+     }
+   })
+ })
+
+codex
+Saya lanjut verifikasi eksekusi: install dependency terlebih dulu (termasuk Playwright package), lalu jalankan `playwright test` untuk file smoke ini.
+exec
+/bin/bash -lc 'npm install' in /tmp/codex-fanout/20260423_133234/p1d-e2e-smoke/dashboard
+diff --git a/dashboard/tests/e2e/smoke.spec.ts b/dashboard/tests/e2e/smoke.spec.ts
+index 7e82adc58c37e294f94410c2d14525b24fdf250f..a8c6639f3cccd117529f64ab123bf671bfb1c4be
+--- a/dashboard/tests/e2e/smoke.spec.ts
++++ b/dashboard/tests/e2e/smoke.spec.ts
+@@ -66,13 +66,15 @@
+     await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+ 
+     const rows = page.locator("tbody tr")
+-    const rowCount = await rows.count()
++    const emptyState = page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)
++    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+ 
+-    if (rowCount > 1) {
+-      await expect(rows.first()).toBeVisible()
+-    } else {
+-      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
++    if (hasEmptyState) {
++      await expect(emptyState).toBeVisible()
++      return
+     }
++
++    await expect(rows.first()).toBeVisible()
+   })
+ 
+   test("dokumen routes are available for authenticated user", async ({ page }) => {
+@@ -80,13 +82,13 @@
+ 
+     const docsRoutes = [
+       { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+-      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
++      { path: "/docs/using-superpowers", title: /Panduan Penggunaan/i },
+     ]
+ 
+     for (const route of docsRoutes) {
+       const response = await page.goto(route.path)
+       expect(response?.ok()).toBeTruthy()
+-      await expect(page.getByText(route.title)).toBeVisible()
++      await expect(page.getByRole("heading", { name: route.title })).toBeVisible()
+     }
+   })
+ })
+
+codex
+Install dependency masih berjalan; setelah selesai saya langsung jalankan smoke test dan cek apakah perlu perbaikan kecil agar lolos stabil.
+diff --git a/dashboard/tests/e2e/smoke.spec.ts b/dashboard/tests/e2e/smoke.spec.ts
+index 7e82adc58c37e294f94410c2d14525b24fdf250f..a8c6639f3cccd117529f64ab123bf671bfb1c4be
+--- a/dashboard/tests/e2e/smoke.spec.ts
++++ b/dashboard/tests/e2e/smoke.spec.ts
+@@ -66,13 +66,15 @@
+     await expect(page.getByPlaceholder("Cari nama, NIK, atau nomor anggota...")).toBeVisible()
+ 
+     const rows = page.locator("tbody tr")
+-    const rowCount = await rows.count()
++    const emptyState = page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)
++    const hasEmptyState = await emptyState.isVisible().catch(() => false)
+ 
+-    if (rowCount > 1) {
+-      await expect(rows.first()).toBeVisible()
+-    } else {
+-      await expect(page.getByText(/Belum ada data nasabah|Tidak ada nasabah dengan kata kunci/i)).toBeVisible()
++    if (hasEmptyState) {
++      await expect(emptyState).toBeVisible()
++      return
+     }
++
++    await expect(rows.first()).toBeVisible()
+   })
+ 
+   test("dokumen routes are available for authenticated user", async ({ page }) => {
+@@ -80,13 +82,13 @@
+ 
+     const docsRoutes = [
+       { path: "/docs/panduan-pengguna", title: /Panduan Pengguna KoperasiApp/i },
+-      { path: "/docs/using-superpowers", title: /Panduan Penggunaan `\$using-superpowers`/i },
++      { path: "/docs/using-superpowers", title: /Panduan Penggunaan/i },
+     ]
+ 
+     for (const route of docsRoutes) {
+       const response = await page.goto(route.path)
+       expect(response?.ok()).toBeTruthy()
+-      await expect(page.getByText(route.title)).toBeVisible()
++      await expect(page.getByRole("heading", { name: route.title })).toBeVisible()
+     }
+   })
+ })
+

@@ -1,0 +1,1 @@
+You are worker 3. Focus ONLY on creating a practical testing baseline document and scripts references aligned with docs/internal/MASTER-PLAN-KOPERASI-UMUM.md. Do not push. Produce docs/internal/testing-baseline.md and commit. Include README_WORKER.md summary.

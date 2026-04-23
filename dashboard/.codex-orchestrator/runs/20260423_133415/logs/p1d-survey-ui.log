@@ -1,0 +1,1282 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba8c-881e-77d1-90df-e35f51f13888
+--------
+user
+You are Worker p1d-survey-ui. Ownership: src/app/(dashboard)/nasabah/[id]/page.tsx, src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx, plus optional new components under src/app/(dashboard)/nasabah/[id]/edit/. Task: add survey timeline UI on detail page and quick add survey note form on edit page integrated with /api/nasabah/[id]/survey. Keep hydration-safe for Next.js 16, avoid non-deterministic render, include loading/error states. Run build checks and commit. You are not alone in codebase; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+2026-04-23T13:34:26.991573Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+Memahami scope: saya akan menambahkan timeline survey di halaman detail nasabah dan form quick-add catatan survey di halaman edit, terhubung ke `/api/nasabah/[id]/survey` dengan state loading/error yang aman untuk hidrasi Next.js 16. Langkah pertama saya baca docs Next.js lokal yang relevan lalu audit file target agar perubahan tetap tenant-safe dan tidak mengganggu area lain.
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 13:34 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:34 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 13:34 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:34 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 13:34 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 13:34 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 13:34 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 13:34 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 13:34 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 13:34 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 13:34 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 13:34 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 13:34 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 13:34 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 13:34 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 13:34 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 13:34 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 13:34 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 13:34 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 13:34 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 13:34 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 13:34 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 13:34 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 13:34 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 13:34 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 13:34 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 13:34 tsconfig.json
+
+exec
+/bin/bash -lc 'rg --files node_modules/next/dist/docs | head -n 40' in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 128ms:
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+codex
+Saya cek dulu, dan ternyata path `node_modules/next/dist/docs/` belum ada di workspace ini (kemungkinan dependency belum di-install). Saya lanjut cari apakah docs Next.js lokal tersedia di lokasi lain; kalau tidak ada, saya akan lanjut implementasi dengan pola App Router yang sudah dipakai codebase dan tetap validasi lewat build.
+exec
+/bin/bash -lc 'find . -maxdepth 4 -type d -name docs | head -n 30' in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 594ms:
+./public/docs
+./src/app/(dashboard)/docs
+./docs
+
+exec
+/bin/bash -lc "rg --files src/app | rg 'nasabah/.*/(page\\.tsx|edit-form\\.tsx|survey|api.*survey)'" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+exec
+/bin/bash -lc "rg --files src | rg 'api/nasabah/.*/survey|nasabah/.*/survey|survey' | head -n 80" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 446ms:
+src/app/(dashboard)/nasabah/[id]/page.tsx
+src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+src/app/(dashboard)/nasabah/baru/page.tsx
+
+ succeeded in 333ms:
+exec
+/bin/bash -lc 'rg -n "survey|catatan survey|timeline|kunjungan" src/app src/actions src/lib | head -n 200' in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 266ms:
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:44:  const timeline = [
+src/app/(dashboard)/pengajuan/[id]/page.tsx:70:            {timeline.map((t, i) => (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:79:                {i < timeline.length - 1 && (
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+src/app/(dashboard)/dashboard/page.tsx:291:                Pastikan kolektor sudah mendapat jadwal kunjungan.
+
+codex
+Saya sudah audit cepat dan belum menemukan implementasi survey nasabah di folder API saat ini. Berikutnya saya buka file detail/edit nasabah untuk menambahkan UI yang memanggil endpoint `/api/nasabah/[id]/survey` secara defensif (tetap tampil aman jika endpoint error/belum siap).
+exec
+/bin/bash -lc "sed -n '1,260p' 'src/app/(dashboard)/nasabah/[id]/page.tsx'" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 0ms:
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { getNasabahById } from "@/actions/nasabah"
+import { getRankingConfig } from "@/actions/settings"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+import { computeRanking, explainRanking } from "@/lib/ranking"
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+const statusPinjaman: Record<string, string> = {
+  AKTIF: "bg-blue-100 text-blue-700",
+  MENUNGGAK: "bg-orange-100 text-orange-700",
+  MACET: "bg-red-100 text-red-700",
+  LUNAS: "bg-emerald-100 text-emerald-700",
+}
+
+const statusPengajuan: Record<string, string> = {
+  DRAFT: "bg-gray-100 text-gray-600",
+  DIAJUKAN: "bg-blue-100 text-blue-700",
+  DISURVEY: "bg-violet-100 text-violet-700",
+  DISETUJUI: "bg-emerald-100 text-emerald-700",
+  DITOLAK: "bg-red-100 text-red-700",
+  DICAIRKAN: "bg-teal-100 text-teal-700",
+  SELESAI: "bg-gray-100 text-gray-600",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+function rankingBadge(rank: string) {
+  if (rank === "A") return <Badge className="bg-emerald-100 text-emerald-700">A - Sangat Lancar</Badge>
+  if (rank === "B") return <Badge className="bg-blue-100 text-blue-700">B - Lancar</Badge>
+  if (rank === "C") return <Badge className="bg-amber-100 text-amber-700">C - Perlu Pantau</Badge>
+  return <Badge className="bg-red-100 text-red-700">D - Risiko</Badge>
+}
+
+export default async function NasabahDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const nasabah = await getNasabahById(id)
+  if (!nasabah) notFound()
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  // Indikator konsistensi dan ranking (mengikuti logika laporan).
+  const indikator = (() => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let anomaliPembayaran = 0
+    let anomaliNominal = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      const pembayaranTagMap = new Map<string, number>()
+
+      for (const p of pinjaman.pembayaran) {
+        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+        if (tags.length === 0) {
+          anomaliPembayaran += 1
+          anomaliNominal += Number(p.totalBayar)
+          continue
+        }
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+        }
+      }
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      tunggakanNominal,
+      telat,
+      belumJatuhTempo,
+      belumBayar,
+      outstanding,
+      ranking,
+      anomaliPembayaran,
+      anomaliNominal,
+    }
+  })()
+  const rankingExplain = explainRanking(
+    { telat: indikator.telat, tunggakanNominal: indikator.tunggakanNominal },
+    rankingConfig
+  )
+
+  const transaksiTerjadi = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.pembayaran ?? []).map((bayar) => ({
+        id: bayar.id,
+        tanggal: bayar.tanggalBayar,
+        kontrak: p.pinjaman?.nomorKontrak ?? "-",
+        total: Number(bayar.totalBayar),
+        pokok: Number(bayar.pokok),
+        bunga: Number(bayar.bunga),
+        denda: Number(bayar.denda),
+        metode: bayar.metode,
+        petugas: bayar.inputOleh.name,
+      }))
+    )
+    .sort((a, b) => b.tanggal.getTime() - a.tanggal.getTime())
+
+  const transaksiAkanDatang = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.jadwalAngsuran ?? [])
+        .filter((jadwal) => !jadwal.sudahDibayar)
+        .map((jadwal) => ({
+          id: jadwal.id,
+          tanggalJatuhTempo: jadwal.tanggalJatuhTempo,
+          kontrak: p.pinjaman?.nomorKontrak ?? "-",
+          angsuranKe: jadwal.angsuranKe,
+          total: Number(jadwal.total),
+          pokok: Number(jadwal.pokok),
+          bunga: Number(jadwal.bunga),
+          status: jadwal.tanggalJatuhTempo < now ? "TERLAMBAT" : "UPCOMING",
+        }))
+    )
+    .sort((a, b) => a.tanggalJatuhTempo.getTime() - b.tanggalJatuhTempo.getTime())
+
+  const infoItems = [
+    { icon: Phone, label: "No. HP", value: nasabah.noHp },
+    { icon: MapPin, label: "Alamat", value: `${nasabah.alamat}${nasabah.kecamatan ? `, Kec. ${nasabah.kecamatan}` : ""}${nasabah.kotaKab ? `, ${nasabah.kotaKab}` : ""}` },
+    { icon: CalendarDays, label: "Tempat/Tgl. Lahir", value: nasabah.tanggalLahir ? `${nasabah.tempatLahir ?? "—"}, ${new Date(nasabah.tanggalLahir).toLocaleDateString("id-ID")}` : (nasabah.tempatLahir ?? "—") },
+    { icon: Briefcase, label: "Pekerjaan", value: nasabah.pekerjaan ?? "—" },
+    { icon: Store, label: "Nama Usaha", value: nasabah.namaUsaha ?? "—" },
+    { icon: CreditCard, label: "NIK", value: nasabah.nik },
+  ]
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/nasabah"><ArrowLeft className="size-4" /></Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{nasabah.namaLengkap}</h1>
+            <p className="text-muted-foreground text-sm font-mono">{nasabah.nomorAnggota}</p>
+          </div>
+        </div>
+        <Button asChild variant="outline">
+          <Link href={`/nasabah/${id}/edit`}>
+            <Edit className="size-4" /> Edit
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" asChild>
+          <a href="#informasi">Informasi</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#penjamin">Penjamin ({nasabah.penjamin.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#dokumen">Dokumen ({nasabah.dokumenUrls.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#pengajuan">Pengajuan ({nasabah.pengajuan.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#transaksi">Transaksi ({transaksiTerjadi.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#jadwal">Jadwal ({transaksiAkanDatang.length})</a>
+        </Button>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Info Utama */}
+        <Card id="informasi" className="lg:col-span-2 scroll-mt-24">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Informasi Nasabah</CardTitle>
+              <Badge className={nasabah.status === "AKTIF" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}>
+                {nasabah.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {nasabah.fotoUrl ? (
+              <div className="flex items-center gap-3 rounded-md border bg-muted/20 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={nasabah.fotoUrl}
+                  alt="Foto nasabah"
+                  className="h-14 w-14 rounded-md border bg-white object-cover"
+                />
+                <div className="text-xs text-muted-foreground">
+                  Foto profil nasabah.
+                </div>
+              </div>
+            ) : null}
+            {infoItems.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <Icon className="size-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-sm">{value}</p>
+                </div>
+              </div>
+            ))}
+            <Separator />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Kelompok</p>
+                <p>{nasabah.kelompok?.nama ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Kolektor</p>
+                <p>{nasabah.kolektor?.name ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tgl. Gabung</p>
+                <p>{new Date(nasabah.tanggalGabung).toLocaleDateString("id-ID")}</p>
+              </div>
+            </div>
+
+exec
+/bin/bash -lc "sed -n '1,220p' 'src/app/(dashboard)/nasabah/[id]/edit/page.tsx'" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 0ms:
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
+import { getKolektorList, getKelompokList, getNasabahById } from "@/actions/nasabah"
+import { Button } from "@/components/ui/button"
+import { EditNasabahForm } from "./edit-form"
+
+export default async function EditNasabahPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const [nasabah, kelompokList, kolektorList] = await Promise.all([
+    getNasabahById(id),
+    getKelompokList(),
+    getKolektorList(),
+  ])
+
+  if (!nasabah) notFound()
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href={`/nasabah/${id}`}>
+            <ArrowLeft className="size-4" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Nasabah</h1>
+          <p className="text-muted-foreground text-sm font-mono">{nasabah.nomorAnggota}</p>
+        </div>
+      </div>
+
+      <EditNasabahForm nasabah={nasabah} kelompokList={kelompokList} kolektorList={kolektorList} />
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '1,320p' 'src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx'" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 0ms:
+"use client"
+
+import { useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Save, Upload, X } from "lucide-react"
+import { updateNasabah } from "@/actions/nasabah"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
+import { useState } from "react"
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+type FormNasabah = {
+  id: string
+  namaLengkap: string
+  nik: string
+  tempatLahir: string | null
+  tanggalLahir: Date | null
+  alamat: string
+  kelurahan: string | null
+  kecamatan: string | null
+  kotaKab: string | null
+  noHp: string
+  pekerjaan: string | null
+  namaUsaha: string | null
+  dokumenUrls: string[]
+  status: "AKTIF" | "NON_AKTIF" | "KELUAR"
+  kelompokId: string | null
+  kolektorId: string | null
+}
+
+export function EditNasabahForm({
+  nasabah,
+  kelompokList,
+  kolektorList,
+}: {
+  nasabah: FormNasabah
+  kelompokList: { id: string; nama: string }[]
+  kolektorList: { id: string; name: string }[]
+}) {
+  const [isPending, startTransition] = useTransition()
+  const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
+  const [dokumenText, setDokumenText] = useState("")
+  const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+  const router = useRouter()
+
+  const { register, handleSubmit, setError, setValue, formState: { errors } } = useForm<NasabahInput>({
+    resolver: zodResolver(nasabahSchema) as never,
+    defaultValues: {
+      namaLengkap: nasabah.namaLengkap,
+      nik: nasabah.nik,
+      tempatLahir: nasabah.tempatLahir ?? "",
+      tanggalLahir: nasabah.tanggalLahir ? new Date(nasabah.tanggalLahir).toISOString().slice(0, 10) : "",
+      alamat: nasabah.alamat,
+      kelurahan: nasabah.kelurahan ?? "",
+      kecamatan: nasabah.kecamatan ?? "",
+      kotaKab: nasabah.kotaKab ?? "",
+      noHp: nasabah.noHp,
+      pekerjaan: nasabah.pekerjaan ?? "",
+      namaUsaha: nasabah.namaUsaha ?? "",
+      dokumenUrls: nasabah.dokumenUrls ?? [],
+      status: nasabah.status,
+      kelompokId: nasabah.kelompokId ?? undefined,
+      kolektorId: nasabah.kolektorId ?? undefined,
+    },
+  })
+
+  function parseDokumen(raw: string): string[] {
+    return raw
+      .split(/\n|,/)
+      .map((v) => v.trim())
+      .filter(Boolean)
+  }
+
+  function syncDokumenValue(rawText: string, uploaded: string[]) {
+    const merged = Array.from(new Set([...parseDokumen(rawText), ...uploaded]))
+    setValue("dokumenUrls", merged, { shouldValidate: true })
+  }
+
+  async function handleUploadDokumen(files: FileList | null) {
+    if (!files || files.length === 0) return
+
+    setIsUploadingDokumen(true)
+    try {
+      const formData = new FormData()
+      Array.from(files).forEach((file) => formData.append("files", file))
+
+      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+      const json = (await res.json()) as { urls?: string[]; error?: string }
+
+      if (!res.ok || !json.urls?.length) {
+        throw new Error(json.error ?? "Upload dokumen gagal.")
+      }
+
+      const nextUploaded = Array.from(new Set([...uploadedDokumen, ...json.urls]))
+      setUploadedDokumen(nextUploaded)
+      syncDokumenValue(dokumenText, nextUploaded)
+      toast.success("Dokumen berhasil diupload.")
+    } catch {
+      toast.error("Upload dokumen gagal.")
+    } finally {
+      setIsUploadingDokumen(false)
+    }
+  }
+
+  const onSubmit = (data: NasabahInput) => {
+    startTransition(async () => {
+      const result = await updateNasabah(nasabah.id, data)
+      if ("error" in result) {
+        const nikError = result.error.nik?.[0]
+        if (nikError) setError("nik", { type: "server", message: nikError })
+        toast.error(nikError ?? "Gagal memperbarui data nasabah. Periksa kembali form.")
+        return
+      }
+      toast.success("Data nasabah berhasil diperbarui.")
+      router.push(`/nasabah/${nasabah.id}`)
+      router.refresh()
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Form Edit Nasabah</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="namaLengkap">Nama Lengkap</Label>
+              <Input id="namaLengkap" {...register("namaLengkap")} />
+              {errors.namaLengkap && <p className="text-xs text-red-500">{errors.namaLengkap.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nik">NIK</Label>
+              <Input id="nik" {...register("nik")} maxLength={16} />
+              {errors.nik && <p className="text-xs text-red-500">{errors.nik.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tempatLahir">Tempat Lahir</Label>
+              <Input id="tempatLahir" {...register("tempatLahir")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
+              <Input id="tanggalLahir" type="date" {...register("tanggalLahir")} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="alamat">Alamat</Label>
+            <Textarea id="alamat" rows={3} {...register("alamat")} />
+            {errors.alamat && <p className="text-xs text-red-500">{errors.alamat.message}</p>}
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="kelurahan">Kelurahan</Label>
+              <Input id="kelurahan" {...register("kelurahan")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="kecamatan">Kecamatan</Label>
+              <Input id="kecamatan" {...register("kecamatan")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="kotaKab">Kota/Kabupaten</Label>
+              <Input id="kotaKab" {...register("kotaKab")} />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="noHp">No. HP</Label>
+              <Input id="noHp" {...register("noHp")} />
+              {errors.noHp && <p className="text-xs text-red-500">{errors.noHp.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pekerjaan">Pekerjaan</Label>
+              <Input id="pekerjaan" {...register("pekerjaan")} />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="namaUsaha">Nama Usaha</Label>
+              <Input id="namaUsaha" {...register("namaUsaha")} />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AKTIF">Aktif</SelectItem>
+                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+                  <SelectItem value="KELUAR">Keluar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Kelompok</Label>
+              <Select
+                defaultValue={nasabah.kelompokId ?? "__NONE__"}
+                onValueChange={(v) => setValue("kelompokId", !v || v === "__NONE__" ? undefined : v)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__NONE__">Belum ditentukan</SelectItem>
+                  {kelompokList.map((k) => (
+                    <SelectItem key={k.id} value={k.id}>{k.nama}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Kolektor</Label>
+              <Select
+                defaultValue={nasabah.kolektorId ?? "__NONE__"}
+                onValueChange={(v) => setValue("kolektorId", !v || v === "__NONE__" ? undefined : v)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__NONE__">Belum ditentukan</SelectItem>
+                  {kolektorList.map((k) => (
+                    <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dokumenPendukung">Dokumen Pendukung</Label>
+            <Textarea
+              id="dokumenPendukung"
+              placeholder="Masukkan URL dokumen manual (1 baris 1 URL)"
+              rows={3}
+              value={dokumenText}
+              onChange={(e) => {
+                const nextText = e.target.value
+                setDokumenText(nextText)
+                syncDokumenValue(nextText, uploadedDokumen)
+              }}
+            />
+            <Input
+              id="dokumenFile"
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.webp,.pdf"
+              onChange={(e) => {
+                void handleUploadDokumen(e.target.files)
+                e.currentTarget.value = ""
+              }}
+              disabled={isUploadingDokumen}
+            />
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Upload className="size-3" /> {isUploadingDokumen ? "Sedang upload..." : "Upload file dokumen (max 5MB per file)."}
+            </p>
+            {uploadedDokumen.length > 0 && (
+              <div className="space-y-1">
+                {uploadedDokumen.map((url) => (
+                  <div key={url} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
+                    <div className="min-w-0 pr-2">
+                      <div className="truncate font-medium">{docTitle(url)}</div>
+                      <div className="truncate text-muted-foreground">{url}</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-600"
+                      onClick={() => {
+                        const nextUploaded = uploadedDokumen.filter((v) => v !== url)
+                        setUploadedDokumen(nextUploaded)
+                        syncDokumenValue(dokumenText, nextUploaded)
+                      }}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {errors.dokumenUrls && <p className="text-xs text-red-500">Dokumen pendukung tidak valid.</p>}
+          </div>
+
+          <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
+            <Save className="size-4" />
+            {isPending ? "Menyimpan..." : "Simpan Perubahan"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '260,620p' 'src/app/(dashboard)/nasabah/[id]/page.tsx'" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 0ms:
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Indikator</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">Ranking</span>
+              <Tooltip>
+                <TooltipTrigger render={<span className="inline-flex">{rankingBadge(indikator.ranking)}</span>} />
+                <TooltipContent className="max-w-sm">
+                  <div className="text-xs space-y-1">
+                    <div className="font-semibold">Alasan Ranking</div>
+                    <div>{rankingExplain.summary}</div>
+                    <div className="pt-1">
+                      {rankingExplain.rules.map((line) => (
+                        <div key={line}>{line}</div>
+                      ))}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Separator />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Telat</p>
+                <p className="font-semibold text-red-600">{indikator.telat.toLocaleString("id-ID")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Belum JT</p>
+                <p className="font-semibold">{indikator.belumJatuhTempo.toLocaleString("id-ID")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tunggakan</p>
+                <p className="font-semibold">{fmt(indikator.tunggakanNominal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className="font-semibold text-blue-700">{fmt(indikator.outstanding)}</p>
+              </div>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">Anomali pencatatan</span>
+              {indikator.anomaliPembayaran > 0 ? (
+                <Badge className="bg-amber-100 text-amber-700">
+                  {indikator.anomaliPembayaran} trx ({fmt(indikator.anomaliNominal)})
+                </Badge>
+              ) : (
+                <Badge className="bg-emerald-100 text-emerald-700">0</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Penjamin */}
+        <Card id="penjamin" className="scroll-mt-24">
+          <CardHeader>
+            <CardTitle className="text-base">Penjamin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {nasabah.penjamin.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Belum ada data penjamin.</p>
+            ) : (
+              nasabah.penjamin.map((p) => (
+                <div key={p.id} className="text-sm space-y-0.5">
+                  <p className="font-medium">{p.namaLengkap}</p>
+                  <p className="text-xs text-muted-foreground">{p.hubungan} · {p.noHp}</p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card id="dokumen" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle className="text-base">Dokumen Terlampir</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {nasabah.dokumenUrls.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada dokumen terlampir.</p>
+          ) : (
+            <div className="space-y-2">
+              {nasabah.dokumenUrls.map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded border px-3 py-2 hover:bg-muted/30"
+                >
+                  <div className="text-sm font-medium truncate">{docTitle(url)}</div>
+                  <div className="text-xs text-muted-foreground truncate">{url}</div>
+                </a>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Riwayat Pengajuan */}
+      <Card id="pengajuan" className="scroll-mt-24">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Riwayat Pengajuan Pinjaman</CardTitle>
+          <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+            <Link href={`/pengajuan/baru?nasabahId=${nasabah.id}`}>+ Pengajuan Baru</Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          {nasabah.pengajuan.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4">Belum ada pengajuan pinjaman.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Tenor</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Sisa Pinjaman</th>
+                  <th className="text-left px-4 py-2.5 hidden md:table-cell font-medium">No. Kontrak</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Tanggal</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {nasabah.pengajuan.map((p) => (
+                  // Progress tenor ditampilkan jika sudah ada pinjaman + jadwal.
+                  // Format: Bulanan 1/12, Mingguan 3/16
+                  <tr key={p.id} className="border-b hover:bg-muted/20">
+                    <td className="px-4 py-2.5">
+                      <Badge className={`${statusPengajuan[p.status]} border-0`}>{p.status}</Badge>
+                      {p.pinjaman && (
+                        <Badge className={`${statusPinjaman[p.pinjaman.status]} border-0 ml-1`}>{p.pinjaman.status}</Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs">
+                      {p.pinjaman ? (
+                        (() => {
+                          const total = p.pinjaman.tenor
+                          const paid = p.pinjaman.jadwalAngsuran.filter((j) => j.sudahDibayar).length
+                          const label = p.pinjaman.tenorType === "MINGGUAN" ? "Mingguan" : "Bulanan"
+                          return `${label} ${paid}/${total}`
+                        })()
+                      ) : (
+                        (() => {
+                          const label = p.tenorType === "MINGGUAN" ? "Mingguan" : "Bulanan"
+                          return `${label} 0/${p.tenor}`
+                        })()
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-medium">
+                      {p.pinjaman ? fmt(Number(p.pinjaman.sisaPinjaman)) : fmt(Number(p.plafonDiajukan))}
+                    </td>
+                    <td className="px-4 py-2.5 hidden md:table-cell font-mono text-xs text-muted-foreground">
+                      {p.pinjaman?.nomorKontrak ?? "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(p.tanggalPengajuan).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-4 py-2.5 flex justify-end gap-1">
+                      {p.pinjaman && (
+                        <Link 
+                          href={`/dokumen/kartu-angsuran/${p.pinjaman.id}`}
+                          className="inline-flex items-center justify-center rounded-md text-xs font-medium border h-7 px-2.5 hover:bg-indigo-50 text-indigo-700 border-indigo-200"
+                        >
+                          Kartu
+                        </Link>
+                      )}
+                      <Link 
+                        href={`/pengajuan/${p.id}`}
+                        className="inline-flex items-center justify-center rounded-md text-xs font-medium hover:bg-slate-100 h-7 px-2.5"
+                      >
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card id="transaksi" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle className="text-base">Log Detail Transaksi Terjadi</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {transaksiTerjadi.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4">Belum ada transaksi pembayaran yang tercatat.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left px-4 py-2.5 font-medium">Tanggal</th>
+                  <th className="text-left px-4 py-2.5 font-medium">No. Kontrak</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Pokok</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Bunga</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Denda</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Total</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Petugas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transaksiTerjadi.map((row) => (
+                  <tr key={row.id} className="border-b hover:bg-muted/20">
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(row.tanggal).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{row.kontrak}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.pokok)}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.bunga)}</td>
+                    <td className="px-4 py-2.5 text-right text-orange-600">{fmt(row.denda)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold">{fmt(row.total)}</td>
+                    <td className="px-4 py-2.5 text-xs">{row.petugas}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card id="jadwal" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle className="text-base">Daftar Transaksi Akan Datang</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {transaksiAkanDatang.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4">Tidak ada jadwal transaksi yang akan datang.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left px-4 py-2.5 font-medium">Jatuh Tempo</th>
+                  <th className="text-left px-4 py-2.5 font-medium">No. Kontrak</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Angsuran Ke</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Pokok</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Bunga</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Total</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transaksiAkanDatang.map((row) => (
+                  <tr key={row.id} className="border-b hover:bg-muted/20">
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(row.tanggalJatuhTempo).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{row.kontrak}</td>
+                    <td className="px-4 py-2.5 text-right">{row.angsuranKe}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.pokok)}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.bunga)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold">{fmt(row.total)}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge className={row.status === "TERLAMBAT" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}>
+                        {row.status === "TERLAMBAT" ? "Terlambat" : "Akan Datang"}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+codex
+Saya sudah baca file target. Sekarang saya cek pola API route lain untuk standar response shape (supaya form quick-add survey konsisten dengan error handling di aplikasi ini).
+exec
+/bin/bash -lc "rg -n \"return NextResponse\\.json|NextResponse\\.json\" src/app/api | head -n 120" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+exec
+/bin/bash -lc 'rg -n "export async function (GET|POST|PUT|PATCH)" src/app/api | head -n 60' in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+exec
+/bin/bash -lc "rg -n \"fetch\\(\\\"/api/\" src/app/(dashboard) | head -n 120" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `rg -n "fetch\(\"/api/" src/app/(dashboard) | head -n 120'
+
+ succeeded in 320ms:
+ succeeded in 267ms:
+src/app/api/upload/pengajuan/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/nasabah/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/pembayaran/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/kas/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/logo/route.ts:12:export async function POST(req: Request) {
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+exec
+/bin/bash -lc "rg -n \"fetch\\(\\\"/api/\" 'src/app/(dashboard)' | head -n 120" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 643ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+ succeeded in 3236ms:
+src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:99:      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+src/app/(dashboard)/nasabah/baru/page.tsx:92:      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+src/app/(dashboard)/pengajuan/baru/page.tsx:230:      const res = await fetch("/api/upload/pengajuan", { method: "POST", body: formData })
+src/app/(dashboard)/pembayaran/bayar-button.tsx:27:  const res = await fetch("/api/upload/pembayaran", { method: "POST", body: formData })
+src/app/(dashboard)/pembayaran/edit-button.tsx:23:  const res = await fetch("/api/upload/pembayaran", { method: "POST", body: formData })
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:47:      const res = await fetch("/api/upload/kas", { method: "POST", body: formData })
+src/app/(dashboard)/settings/company-settings-form.tsx:18:  const res = await fetch("/api/upload/logo", { method: "POST", body: formData })
+src/app/(dashboard)/kas/kas-client.tsx:128:      const res = await fetch("/api/upload/kas", { method: "POST", body: formData })
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'src/app/(dashboard)/nasabah/baru/page.tsx'" in /tmp/codex-fanout/20260423_133415/p1d-survey-ui/dashboard
+ succeeded in 10241ms:
+"use client"
+
+import { useEffect, useRef, useState, useTransition } from "react"
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { createNasabah, getKelompokList, getKolektorList } from "@/actions/nasabah"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
+import { ArrowLeft, ArrowRight, Save, User, MapPin, Upload, X } from "lucide-react"
+import Link from "next/link"
+
+const STEPS = ["Data Diri", "Data Kontak & Usaha", "Penugasan & Dokumen"]
+
+type Option = { id: string; nama: string }
+type KolektorOption = { id: string; name: string }
+
+function parseDokumen(raw: string): string[] {
+  return raw
+    .split(/\n|,/)
+    .map((v) => v.trim())
+    .filter(Boolean)
+}
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+export default function NasabahBaruPage() {
+  const [step, setStep] = useState(0)
+  const [isPending, startTransition] = useTransition()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
+  const [dokumenText, setDokumenText] = useState("")
+  const [uploadedDokumen, setUploadedDokumen] = useState<string[]>([])
+  const [kelompokList, setKelompokList] = useState<Option[]>([])
+  const [kolektorList, setKolektorList] = useState<KolektorOption[]>([])
+  const submitIntentRef = useRef(false)
+  const router = useRouter()
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    setValue,
+    trigger,
+    formState: { errors },
+  } = useForm<NasabahInput>({
+    resolver: zodResolver(nasabahSchema) as never,
+    defaultValues: { status: "AKTIF", dokumenUrls: [] },
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    Promise.all([getKelompokList(), getKolektorList()])
+      .then(([kelompok, kolektor]) => {
+        if (cancelled) return
+        setKelompokList(kelompok.map((k) => ({ id: k.id, nama: k.nama })))
+        setKolektorList(kolektor)
+      })
+      .catch(() => {
+        toast.error("Gagal memuat daftar kelompok/kolektor.")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  function syncDokumenValue(rawText: string, uploaded: string[]) {
+    const merged = Array.from(new Set([...parseDokumen(rawText), ...uploaded]))
+    setValue("dokumenUrls", merged, { shouldValidate: true })
+  }
+
+  async function handleUploadDokumen(files: FileList | null) {
+    if (!files || files.length === 0) return
+
+    setIsUploadingDokumen(true)
+    try {
+      const formData = new FormData()
+      Array.from(files).forEach((file) => formData.append("files", file))
+
+      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+      const json = (await res.json()) as { urls?: string[]; error?: string }
+
+      if (!res.ok || !json.urls?.length) {
+        throw new Error(json.error ?? "Upload dokumen gagal.")
+      }
+
+      const nextUploaded = Array.from(new Set([...uploadedDokumen, ...json.urls]))
+      setUploadedDokumen(nextUploaded)
+      syncDokumenValue(dokumenText, nextUploaded)
+      toast.success("Dokumen berhasil diupload.")
+    } catch {
+      toast.error("Upload dokumen gagal.")
+    } finally {
+      setIsUploadingDokumen(false)
+    }
+  }
+
+  const handleNext = async () => {
+    submitIntentRef.current = false
+    const fields: (keyof NasabahInput)[] =
+      step === 0
+        ? ["namaLengkap", "nik", "alamat"]
+        : step === 1
+          ? ["noHp"]
+          : ["status"]
+
+    const valid = await trigger(fields)
+    if (valid) setStep((s) => s + 1)
+  }
+
+  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (step < STEPS.length - 1) {
+      event.preventDefault()
+      void handleNext()
+      return
+    }
+
+    if (!submitIntentRef.current) {
+      event.preventDefault()
+      return
+    }
+
+    submitIntentRef.current = false
+    void handleSubmit(onSubmit)(event)
+  }
+
+  const handleFormKeyDown = (event: ReactKeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== "Enter") return
+    const target = event.target as HTMLElement | null
+    if (target instanceof HTMLTextAreaElement) return
+    event.preventDefault()
+  }
+
+  const onSubmit = (data: NasabahInput) => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    startTransition(async () => {
+      try {
+        const result = await createNasabah(data)
+        if ("error" in result) {
+          const firstField = Object.keys(result.error)[0] as keyof typeof result.error | undefined
+
+          // Apply field errors into react-hook-form so UI shows what failed.
+          for (const [key, messages] of Object.entries(result.error)) {
+            const msg = Array.isArray(messages) ? messages[0] : undefined
+            if (!msg) continue
+            if (key === "nomorAnggota") continue
+            setError(key as keyof NasabahInput, { type: "server", message: msg })
+          }
+
+          // Move user to the relevant step.
+          if (result.error.nik || result.error.namaLengkap || result.error.alamat || result.error.tanggalLahir || result.error.tempatLahir) {
+            setStep(0)
+          } else if (result.error.noHp || result.error.pekerjaan || result.error.namaUsaha || result.error.status) {
+            setStep(1)
+          } else if (result.error.kelompokId || result.error.kolektorId || result.error.dokumenUrls) {
+            setStep(2)
+          }
+
+          const nikError = result.error.nik?.[0]
+          const nomorAnggotaError = (result.error as { nomorAnggota?: string[] }).nomorAnggota?.[0]
+          toast.error(nikError ?? nomorAnggotaError ?? (firstField ? (result.error as Record<string, string[]>)[firstField as string]?.[0] : null) ?? "Gagal menyimpan data nasabah.")
+          return
+        }
+
+        toast.success("Nasabah berhasil ditambahkan!")
+        router.push("/nasabah")
+      } finally {
+        setIsSubmitting(false)
+      }
+    })
+  }
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/nasabah"><ArrowLeft className="size-4" /></Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Tambah Nasabah Baru</h1>
+          <p className="text-muted-foreground text-sm">Langkah {step + 1} dari {STEPS.length}: {STEPS[step]}</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        {STEPS.map((s, i) => (
+          <div key={s} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-emerald-500" : "bg-muted"}`} />
+        ))}
+      </div>
+
+      <form onSubmit={handleFormSubmit} onKeyDown={handleFormKeyDown}>
+        {step === 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><User className="size-4" /> Data Diri</CardTitle>
+              <CardDescription>Informasi identitas nasabah</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="namaLengkap">Nama Lengkap <span className="text-red-500">*</span></Label>
+                <Input id="namaLengkap" {...register("namaLengkap")} placeholder="Sesuai KTP" />
+                {errors.namaLengkap && <p className="text-xs text-red-500">{errors.namaLengkap.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nik">NIK (16 digit) <span className="text-red-500">*</span></Label>
+                <Input id="nik" {...register("nik")} placeholder="Nomor KTP" maxLen
+2026-04-23T14:19:30.908499Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 2/5
+2026-04-23T14:31:32.962451Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 3/5
+2026-04-23T14:37:49.873145Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 4/5
+2026-04-23T15:39:10.034898Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 5/5

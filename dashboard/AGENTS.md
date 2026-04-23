@@ -172,3 +172,77 @@ Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
    - cek login user biasa
    - cek login `SUPER_ADMIN`
    - cek guard middleware untuk route sensitif
+
+## 12. Master Plan Ekspansi Koperasi Umum (Wajib Acuan)
+
+- Dokumen induk: `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`
+- Scope target: evolusi dari koperasi pinjam menjadi koperasi umum penuh (keanggotaan, simpanan, unit usaha, SHU, portal anggota, RAT/compliance).
+- Agent yang mengerjakan fitur lintas modul wajib:
+  - membaca fase aktif pada master plan,
+  - mengerjakan berdasarkan urutan fase dan dependency,
+  - memperbarui checklist fase terkait setelah implementasi.
+
+## 13. Aturan Checklist Eksekusi (Mandatory)
+
+1. Setiap task signifikan harus dirujuk ke fase/subtask checkbox di master plan.
+2. Checkbox hanya boleh ditandai selesai jika:
+   - implementasi selesai,
+   - testing yang diwajibkan untuk item itu selesai,
+   - tidak ada blocker kritis terbuka.
+3. Jika ada scope baru di luar plan:
+   - tambahkan subtask checkbox baru di fase terkait,
+   - jelaskan dependency dan risiko singkat.
+4. Untuk task yang memengaruhi multi-tenant atau akuntansi:
+   - wajib tambahkan catatan validasi di section progress fase.
+
+## 14. Aturan Changelog & Testing (Mandatory)
+
+1. Setiap penyelesaian subtask/fase harus menambah entry di `CHANGELOG.md`.
+2. Format entry minimal:
+   - tanggal (`YYYY-MM-DD`),
+   - fase,
+   - perubahan utama,
+   - status testing (unit/integration/E2E/build).
+3. Testing adalah bagian definisi selesai:
+   - perubahan kecil minimal `npm run build`,
+   - perubahan logic bisnis minimal unit/integration yang relevan,
+   - perubahan flow kritikal minimal E2E/smoke sesuai modul.
+4. Dilarang menutup fase bila testing checklist pada fase tersebut belum terpenuhi.
+
+## 15. Verifikasi Lengkap Saat Task Selesai (Mandatory)
+
+Setiap task yang selesai wajib melewati quality gate berikut:
+
+1. Wajib pass command dasar:
+   - `npm run build`
+   - `npm run lint`
+2. Jika menyentuh schema/database:
+   - `npm run db:generate`
+3. Jika ada test automation untuk area tersebut:
+   - jalankan unit/integration/E2E yang relevan dan catat hasilnya.
+4. Wajib smoke test manual untuk flow yang disentuh:
+   - klik alur utama end-to-end,
+   - cek loading/error/empty state,
+   - cek console/runtime error.
+5. Wajib validasi lintas role jika relevan:
+   - user biasa,
+   - admin/owner,
+   - `SUPER_ADMIN`.
+6. Task tidak boleh ditutup jika masih ada bug sederhana yang memengaruhi flow utama:
+   - tombol tidak jalan,
+   - validasi form bocor,
+   - hydration mismatch/runtime error,
+   - dead link/route rusak,
+   - print dokumen gagal.
+
+## 16. Standar Skill Delegation (Diselaraskan Jadi 1)
+
+Untuk orkestrasi/delegation agent, gunakan satu standar skill:
+
+- `fork-discipline` (`~/.agents/skills/fork-discipline/SKILL.md`)
+
+Aturan pakai:
+
+1. Jika task menyangkut pemecahan kerja antar-agent, boundary core-vs-client, atau clean separation lintas modul, gunakan `fork-discipline` sebagai acuan utama.
+2. Hindari mencampur pola delegation dari banyak skill sekaligus dalam satu task kecuali diminta eksplisit.
+3. Jika ada skill orchestration lain yang terpasang, tetap treat `fork-discipline` sebagai default baseline untuk keputusan struktur kerja.

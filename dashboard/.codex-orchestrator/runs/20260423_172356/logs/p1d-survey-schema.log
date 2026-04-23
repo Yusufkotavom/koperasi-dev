@@ -1,0 +1,1845 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dbb5e-ac95-75b0-81b2-3a684fcfacca
+--------
+user
+You are Worker p1d-survey-schema. Ownership: prisma/schema.prisma and new prisma/migrations/*nasabah_survey*. Task: add minimal additive schema for nasabah survey notes timeline with relations to Nasabah, Company, optional User actor; include tenant-aware indexes and safe defaults. Generate migration SQL. Do not edit app code. Run prisma generate if needed and commit. You are not alone in codebase; do not revert others' edits.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+codex
+Memahami scope: saya akan menambah skema Prisma yang minimal dan aditif untuk timeline catatan survey nasabah (relasi ke `Nasabah`, `Company`, dan `User` opsional), lalu membuat migration SQL `*nasabah_survey*`, menjalankan generate, dan commit bertahap tanpa menyentuh app code. Saya mulai dengan cek struktur schema dan status git agar perubahan tetap terisolasi pada ownership Anda.
+exec
+/bin/bash -lc 'rg --line-number "model Nasabah|model Company|model User" prisma/schema.prisma' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+9:model UserRole {
+19:model Company {
+59:model User {
+88:model Nasabah {
+495:model CompanySetting {
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc "sed -n '220,520p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh      User        @relation(fields: [inputOlehId], references: [id])
+  pinjaman       Pinjaman    @relation(fields: [pinjamanId], references: [id])
+
+  @@index([companyId])
+  @@map("pembayaran")
+}
+
+model Simpanan {
+  id        String   @id @default(cuid())
+  nasabahId String
+  jenis     String
+  jumlah    Decimal  @db.Decimal(15, 2)
+  tanggal   DateTime @default(now())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id])
+
+  @@index([companyId])
+  @@map("simpanan")
+}
+
+model Account {
+  id           String            @id @default(cuid())
+  code         String
+  name         String
+  type         AccountType
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  companyId    String
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  kasKategori  KasKategori[]
+  rekonsiliasi RekonsiliasiKas[]
+
+  @@unique([companyId, code])
+  @@index([type, isActive])
+  @@index([companyId])
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id          String            @id @default(cuid())
+  entryNo     String            @unique @default(cuid())
+  entryDate   DateTime
+  description String
+  sourceType  JournalSourceType
+  sourceId    String?
+  status      JournalStatus     @default(POSTED)
+  postedById  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  postedBy    User?             @relation("JournalPostedBy", fields: [postedById], references: [id])
+  lines       JournalLine[]
+
+  @@unique([sourceType, sourceId])
+  @@index([entryDate])
+  @@index([sourceType, sourceId])
+  @@index([companyId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal      @default(0) @db.Decimal(15, 2)
+  credit         Decimal      @default(0) @db.Decimal(15, 2)
+  memo           String?
+  createdAt      DateTime     @default(now())
+  account        Account      @relation(fields: [accountId], references: [id])
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}
+
+model RekonsiliasiKas {
+  id             String             @id @default(cuid())
+  accountId      String
+  periodMonth    Int
+  periodYear     Int
+  saldoStatement Decimal            @db.Decimal(15, 2)
+  saldoBook      Decimal            @db.Decimal(15, 2)
+  selisih        Decimal            @db.Decimal(15, 2)
+  catatan        String?
+  buktiUrl       String?
+  status         RekonsiliasiStatus @default(DRAFT)
+  createdById    String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  companyId      String
+  account        Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy      User               @relation("RekonsiliasiCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, periodMonth, periodYear], map: "rekonsiliasi_kas_account_period_key")
+  @@index([companyId])
+  @@index([periodYear, periodMonth], map: "rekonsiliasi_kas_period_idx")
+  @@map("rekonsiliasi_kas")
+}
+
+model KasKategori {
+  id           String         @id @default(cuid())
+  nama         String
+  key          String
+  jenis        JenisKas
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  accountId    String?
+  companyId    String
+  account      Account?       @relation(fields: [accountId], references: [id])
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kasTransaksi KasTransaksi[]
+
+  @@unique([companyId, key])
+  @@index([companyId])
+  @@map("kas_kategori")
+}
+
+model KasTransaksi {
+  id          String      @id @default(cuid())
+  tanggal     DateTime    @default(now())
+  jenis       JenisKas
+  kategoriKey String
+  deskripsi   String
+  jumlah      Decimal     @db.Decimal(15, 2)
+  kasJenis    String      @default("TUNAI")
+  buktiUrl    String?
+  inputOlehId String
+  isApproved  Boolean     @default(true)
+  referensiId String?
+  createdAt   DateTime    @default(now())
+  companyId   String
+  kategoriId  String
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh   User        @relation(fields: [inputOlehId], references: [id])
+  kat         KasKategori @relation(fields: [kategoriId], references: [id])
+
+  @@index([companyId])
+  @@index([kategoriId])
+  @@map("kas_transaksi")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  entityType String
+  entityId   String?
+  action     AuditAction
+  beforeData Json?
+  afterData  Json?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model ApprovalLog {
+  id            String             @id @default(cuid())
+  entityType    ApprovalEntityType
+  entityId      String
+  status        ApprovalStatus     @default(PENDING)
+  catatan       String?
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  approvedBy    User?              @relation("ApprovalApprover", fields: [approvedById], references: [id])
+  requestedBy   User               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([requestedById, createdAt])
+  @@map("approval_logs")
+}
+
+model KolektorTarget {
+  id                 String   @id @default(cuid())
+  kolektorId         String
+  periodMonth        Int
+  periodYear         Int
+  targetTagihan      Decimal  @db.Decimal(15, 2)
+  realisasiTagihan   Decimal  @default(0) @db.Decimal(15, 2)
+  targetKunjungan    Int      @default(0)
+  realisasiKunjungan Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kolektor           User     @relation("KolektorTargetUser", fields: [kolektorId], references: [id], onDelete: Cascade)
+
+  @@unique([kolektorId, periodMonth, periodYear])
+  @@index([periodYear, periodMonth])
+  @@index([companyId])
+  @@map("kolektor_targets")
+}
+
+model Notifikasi {
+  id        String          @id @default(cuid())
+  userId    String?
+  jenis     NotifikasiJenis
+  judul     String
+  pesan     String
+  link      String?
+  isRead    Boolean         @default(false)
+  readAt    DateTime?
+  createdAt DateTime        @default(now())
+  companyId String
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User?           @relation("UserNotifikasi", fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@index([companyId])
+  @@map("notifikasi")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
+
+model CompanySetting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+
+exec
+/bin/bash -lc "sed -n '1,220p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserRole {
+  id     String   @id @default(cuid())
+  userId String
+  role   RoleType
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model Company {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  address         String?
+  phone           String?
+  email           String?
+  isActive        Boolean           @default(true)
+  ownerId         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  status          CompanyStatus     @default(ACTIVE)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  suspendedUntil  DateTime?
+  deletedAt       DateTime?
+  deletedReason   String?
+  accounts        Account[]
+  owner           User              @relation("CompanyOwner", fields: [ownerId], references: [id])
+  settings        CompanySetting[]
+  jadwalAngsuran  JadwalAngsuran[]
+  journalEntries  JournalEntry[]
+  kasKategori     KasKategori[]
+  kasTransaksi    KasTransaksi[]
+  kelompok        Kelompok[]
+  kolektorTargets KolektorTarget[]
+  nasabah         Nasabah[]
+  notifikasi      Notifikasi[]
+  pembayaran      Pembayaran[]
+  pengajuan       Pengajuan[]
+  penjamin        Penjamin[]
+  pinjaman        Pinjaman[]
+  rekonsiliasi    RekonsiliasiKas[]
+  simpanan        Simpanan[]
+  users           User[]            @relation("UserCompany")
+
+  @@index([ownerId])
+  @@map("companies")
+}
+
+model User {
+  id                     String            @id @default(cuid())
+  name                   String
+  email                  String            @unique
+  password               String
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  companyId              String?
+  approvalApproved       ApprovalLog[]     @relation("ApprovalApprover")
+  approvalRequested      ApprovalLog[]     @relation("ApprovalRequester")
+  auditLogs              AuditLog[]        @relation("AuditActor")
+  ownedCompanies         Company[]         @relation("CompanyOwner")
+  journalPosted          JournalEntry[]    @relation("JournalPostedBy")
+  kasDiinput             KasTransaksi[]
+  kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+  notifikasi             Notifikasi[]      @relation("UserNotifikasi")
+  pembayaranDiinput      Pembayaran[]
+  pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+  rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  roles                  UserRole[]
+  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model Nasabah {
+  id            String        @id @default(cuid())
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  id              String      @id @default(cuid())
+  kode            String
+  nama            String
+  ketua           String?
+  wilayah         String?
+  jadwalPertemuan String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+codex
+Saya sudah membaca struktur model saat ini. Berikutnya saya akan menambahkan model baru yang konsisten dengan pola tenant (`companyId` + relasi cascade + index komposit timeline), lalu commit pertama khusus perubahan schema sebelum lanjut ke migration SQL.
+exec
+/bin/bash -lc 'ls -1 prisma/migrations | tail -n 20' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+20260418204642_init
+20260419103000_task1_audit_approval_foundation
+20260419141000_tenor_type_and_payment_proof
+20260419160000_app_settings_ranking_config
+20260419190000_pengajuan_docs_kas_kategori
+20260419194500_coa_rekonsiliasi
+20260421110000_journal_entries
+20260422103000_company_user_scope
+20260422104500_backfill_demo_company
+20260422105500_backfill_super_admin
+20260422120000_company_status_fields
+20260422132000_multi_tenant_backfill
+migration_lock.toml
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard/prisma/schema.prisma
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+exec
+/bin/bash -lc 'git diff -- prisma/schema.prisma' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574c..0478f8e 100644
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@ model Company {
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@ model User {
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@ model Nasabah {
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@ model Nasabah {
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+codex
+Perubahan schema sudah masuk dan saya akan commit pertama sekarang agar progres aman sesuai cadence, lalu lanjut membuat migration SQL terpisah.
+exec
+/bin/bash -lc 'git add prisma/schema.prisma && git commit -m "feat(prisma): add nasabah survey note model and relations"' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+[codex_20260423_1736_p1d-survey-schema a41e3ea] feat(prisma): add nasabah survey note model and relations
+ 1 file changed, 21 insertions(+)
+
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+codex
+Commit pertama sudah tersimpan. Saya lanjut generate SQL migration berbasis diff agar perubahan DDL akurat terhadap schema terbaru, lalu saya simpan ke folder migration bernama `*nasabah_survey*`.
+exec
+/bin/bash -lc 'npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --script' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+ exited 1 in 9987ms:
+Loaded Prisma config from prisma.config.ts.
+
+Error: 
+`--to-schema-datamodel` was removed. Please use `--[from/to]-schema` instead.
+
+Usage
+
+  $ prisma migrate diff [options]
+
+Options
+
+  -h, --help               Display this help message
+  --config                 Custom path to your Prisma config file
+  -o, --output             Writes to a file instead of stdout
+
+From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):
+  --from-empty             Flag to assume from or to is an empty datamodel
+  --to-empty
+
+  --from-schema            Path to a Prisma schema file, uses the datamodel for the diff
+  --to-schema
+
+  --from-migrations        Path to the Prisma Migrate migrations directory
+  --to-migrations
+
+  --from-config-datasource Flag to use the datasource from the Prisma config file
+  --to-config-datasource
+
+Flags
+
+  --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+
+
+exec
+/bin/bash -lc 'npx prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --script' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+ exited 1 in 5639ms:
+Loaded Prisma config from prisma.config.ts.
+
+Error: You must pass the `--shadow-database-url` flag or set `datasource.shadowDatabaseUrl` in your `prisma.config.ts` if you want to diff a migrations directory.
+
+
+
+exec
+/bin/bash -lc "sed -n '1,220p' prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql" in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+-- Multi-tenant baseline: attach all existing rows to demo company.
+-- NOTE: This is safe for current single-tenant DB. For real multi-tenant production, run per-customer backfill strategy.
+
+DO $$
+DECLARE
+  owner_id TEXT;
+BEGIN
+  SELECT id INTO owner_id FROM "users" WHERE email = 'admin@koperasi.id' LIMIT 1;
+  IF owner_id IS NULL THEN
+    SELECT id INTO owner_id FROM "users" ORDER BY "createdAt" ASC NULLS LAST LIMIT 1;
+  END IF;
+
+  IF owner_id IS NULL THEN
+    INSERT INTO "users" ("id","name","email","password","isActive","createdAt","updatedAt")
+    VALUES (
+      'user_system_owner',
+      'System Owner',
+      'system@koperasiapp.local',
+      '$2b$12$RNj14atU5BE0rJi525nQUesxbn4sf7HPz8PQAm67YJlfuemLmk/Vu',
+      true,
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP
+    )
+    ON CONFLICT ("email") DO NOTHING;
+
+    owner_id := 'user_system_owner';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM "companies" WHERE id = 'company_demo_default') THEN
+    INSERT INTO "companies" ("id", "name", "slug", "email", "ownerId", "createdAt", "updatedAt")
+    VALUES ('company_demo_default', 'Koperasi Demo Sejahtera', 'koperasi-demo-sejahtera', 'admin@koperasi.id', owner_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ON CONFLICT ("slug") DO NOTHING;
+  END IF;
+END $$;
+
+-- 1) Add companyId columns (nullable), backfill, and enforce NOT NULL + FK.
+
+ALTER TABLE "kelompok" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "kelompok" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "kelompok" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'kelompok_companyId_fkey') THEN
+    ALTER TABLE "kelompok" ADD CONSTRAINT "kelompok_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "kelompok_companyId_idx" ON "kelompok"("companyId");
+
+ALTER TABLE "nasabah" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "nasabah" SET "companyId" = COALESCE("companyId", (SELECT "companyId" FROM "kelompok" k WHERE k.id = "nasabah"."kelompokId" LIMIT 1), 'company_demo_default');
+UPDATE "nasabah" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "nasabah" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'nasabah_companyId_fkey') THEN
+    ALTER TABLE "nasabah" ADD CONSTRAINT "nasabah_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "nasabah_companyId_idx" ON "nasabah"("companyId");
+
+ALTER TABLE "penjamin" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "penjamin" p SET "companyId" = n."companyId" FROM "nasabah" n WHERE p."nasabahId" = n.id AND p."companyId" IS NULL;
+UPDATE "penjamin" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "penjamin" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'penjamin_companyId_fkey') THEN
+    ALTER TABLE "penjamin" ADD CONSTRAINT "penjamin_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "penjamin_companyId_idx" ON "penjamin"("companyId");
+
+ALTER TABLE "simpanan" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "simpanan" s SET "companyId" = n."companyId" FROM "nasabah" n WHERE s."nasabahId" = n.id AND s."companyId" IS NULL;
+UPDATE "simpanan" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "simpanan" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'simpanan_companyId_fkey') THEN
+    ALTER TABLE "simpanan" ADD CONSTRAINT "simpanan_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "simpanan_companyId_idx" ON "simpanan"("companyId");
+
+ALTER TABLE "pengajuan" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "pengajuan" p SET "companyId" = n."companyId" FROM "nasabah" n WHERE p."nasabahId" = n.id AND p."companyId" IS NULL;
+UPDATE "pengajuan" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "pengajuan" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pengajuan_companyId_fkey') THEN
+    ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "pengajuan_companyId_idx" ON "pengajuan"("companyId");
+
+ALTER TABLE "pinjaman" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "pinjaman" p SET "companyId" = pj."companyId" FROM "pengajuan" pj WHERE p."pengajuanId" = pj.id AND p."companyId" IS NULL;
+UPDATE "pinjaman" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "pinjaman" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pinjaman_companyId_fkey') THEN
+    ALTER TABLE "pinjaman" ADD CONSTRAINT "pinjaman_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "pinjaman_companyId_idx" ON "pinjaman"("companyId");
+
+ALTER TABLE "jadwal_angsuran" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "jadwal_angsuran" j SET "companyId" = p."companyId" FROM "pinjaman" p WHERE j."pinjamanId" = p.id AND j."companyId" IS NULL;
+UPDATE "jadwal_angsuran" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "jadwal_angsuran" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'jadwal_angsuran_companyId_fkey') THEN
+    ALTER TABLE "jadwal_angsuran" ADD CONSTRAINT "jadwal_angsuran_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "jadwal_angsuran_companyId_idx" ON "jadwal_angsuran"("companyId");
+
+ALTER TABLE "pembayaran" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "pembayaran" b SET "companyId" = p."companyId" FROM "pinjaman" p WHERE b."pinjamanId" = p.id AND b."companyId" IS NULL;
+UPDATE "pembayaran" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "pembayaran" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pembayaran_companyId_fkey') THEN
+    ALTER TABLE "pembayaran" ADD CONSTRAINT "pembayaran_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "pembayaran_companyId_idx" ON "pembayaran"("companyId");
+
+ALTER TABLE "accounts" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "accounts" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "accounts" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'accounts_companyId_fkey') THEN
+    ALTER TABLE "accounts" ADD CONSTRAINT "accounts_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "accounts_companyId_idx" ON "accounts"("companyId");
+
+ALTER TABLE "journal_entries" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "journal_entries" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "journal_entries" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'journal_entries_companyId_fkey') THEN
+    ALTER TABLE "journal_entries" ADD CONSTRAINT "journal_entries_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "journal_entries_companyId_idx" ON "journal_entries"("companyId");
+
+ALTER TABLE "rekonsiliasi_kas" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "rekonsiliasi_kas" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "rekonsiliasi_kas" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'rekonsiliasi_kas_companyId_fkey') THEN
+    ALTER TABLE "rekonsiliasi_kas" ADD CONSTRAINT "rekonsiliasi_kas_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "rekonsiliasi_kas_companyId_idx" ON "rekonsiliasi_kas"("companyId");
+
+ALTER TABLE "kas_kategori" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "kas_kategori" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "kas_kategori" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'kas_kategori_companyId_fkey') THEN
+    ALTER TABLE "kas_kategori" ADD CONSTRAINT "kas_kategori_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "kas_kategori_companyId_idx" ON "kas_kategori"("companyId");
+
+ALTER TABLE "kas_transaksi" RENAME COLUMN "kategori" TO "kategoriKey";
+ALTER TABLE "kas_transaksi" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+UPDATE "kas_transaksi" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+ALTER TABLE "kas_transaksi" ALTER COLUMN "companyId" SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'kas_transaksi_companyId_fkey') THEN
+    ALTER TABLE "kas_transaksi" ADD CONSTRAINT "kas_transaksi_companyId_fkey"
+    FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS "kas_transaksi_companyId_idx" ON "kas_transaksi"("companyId");
+
+ALTER TABLE "kas_transaksi" ADD COLUMN IF NOT EXISTS "kategoriId" TEXT;
+
+-- Drop old FK from kas_transaksi.kategoriKey -> kas_kategori.key if it exists.
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'kas_transaksi_kategori_fkey') THEN
+    ALTER TABLE "kas_transaksi" DROP CONSTRAINT "kas_transaksi_kategori_fkey";
+  END IF;
+END $$;
+
+-- Ensure all referenced keys exist in kas_kategori
+INSERT INTO "kas_kategori" ("id", "companyId", "nama", "key", "jenis", "isActive", "createdAt", "updatedAt")
+SELECT
+  gen_random_uuid()::text,
+  'company_demo_default',
+  kt."kategoriKey",
+  kt."kategoriKey",
+  kt."jenis",
+  true,
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP
+FROM (
+  SELECT DISTINCT "kategoriKey", "jenis"
+  FROM "kas_transaksi"
+) kt
+LEFT JOIN "kas_kategori" k ON k."companyId" = 'company_demo_default' AND k."key" = kt."kategoriKey"
+WHERE k.id IS NULL;
+
+UPDATE "kas_transaksi" t
+SET "kategoriId" = k.id
+FROM "kas_kategori" k
+WHERE t."kategoriId" IS NULL
+  AND k."companyId" = t."companyId"
+
+exec
+/bin/bash -lc "sed -n '1,220p' prisma/migrations/20260421110000_journal_entries/migration.sql" in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'JournalSourceType') THEN
+    CREATE TYPE "JournalSourceType" AS ENUM ('PEMBAYARAN', 'PENCAIRAN', 'KAS', 'SIMPANAN', 'ADJUSTMENT', 'REVERSAL', 'DEMO_IMPORT');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'JournalStatus') THEN
+    CREATE TYPE "JournalStatus" AS ENUM ('DRAFT', 'POSTED', 'VOIDED');
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "journal_entries" (
+  "id" TEXT NOT NULL,
+  "entryNo" TEXT NOT NULL,
+  "entryDate" TIMESTAMP(3) NOT NULL,
+  "description" TEXT NOT NULL,
+  "sourceType" "JournalSourceType" NOT NULL,
+  "sourceId" TEXT,
+  "status" "JournalStatus" NOT NULL DEFAULT 'POSTED',
+  "postedById" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL,
+  CONSTRAINT "journal_entries_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "journal_lines" (
+  "id" TEXT NOT NULL,
+  "journalEntryId" TEXT NOT NULL,
+  "accountId" TEXT NOT NULL,
+  "debit" DECIMAL(15,2) NOT NULL DEFAULT 0,
+  "credit" DECIMAL(15,2) NOT NULL DEFAULT 0,
+  "memo" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "journal_lines_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "journal_entries_entryNo_key" ON "journal_entries"("entryNo");
+CREATE UNIQUE INDEX IF NOT EXISTS "journal_entries_sourceType_sourceId_key" ON "journal_entries"("sourceType", "sourceId");
+CREATE INDEX IF NOT EXISTS "journal_entries_entryDate_idx" ON "journal_entries"("entryDate");
+CREATE INDEX IF NOT EXISTS "journal_entries_sourceType_sourceId_idx" ON "journal_entries"("sourceType", "sourceId");
+CREATE INDEX IF NOT EXISTS "journal_lines_journalEntryId_idx" ON "journal_lines"("journalEntryId");
+CREATE INDEX IF NOT EXISTS "journal_lines_accountId_idx" ON "journal_lines"("accountId");
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'journal_entries_postedById_fkey') THEN
+    ALTER TABLE "journal_entries"
+    ADD CONSTRAINT "journal_entries_postedById_fkey"
+    FOREIGN KEY ("postedById") REFERENCES "users"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'journal_lines_journalEntryId_fkey') THEN
+    ALTER TABLE "journal_lines"
+    ADD CONSTRAINT "journal_lines_journalEntryId_fkey"
+    FOREIGN KEY ("journalEntryId") REFERENCES "journal_entries"("id")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'journal_lines_accountId_fkey') THEN
+    ALTER TABLE "journal_lines"
+    ADD CONSTRAINT "journal_lines_accountId_fkey"
+    FOREIGN KEY ("accountId") REFERENCES "accounts"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+exec
+/bin/bash -lc "mkdir -p prisma/migrations/20260423174200_nasabah_survey_notes_timeline && cat > prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql <<'SQL'
+CREATE TABLE IF NOT EXISTS \"nasabah_survey_notes\" (
+  \"id\" TEXT NOT NULL,
+  \"nasabahId\" TEXT NOT NULL,
+  \"companyId\" TEXT NOT NULL,
+  \"actorUserId\" TEXT,
+  \"note\" TEXT NOT NULL,
+  \"createdAt\" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \"updatedAt\" TIMESTAMP(3) NOT NULL,
+  CONSTRAINT \"nasabah_survey_notes_pkey\" PRIMARY KEY (\"id\")
+);
+
+CREATE INDEX IF NOT EXISTS \"nasabah_survey_notes_companyId_idx\"
+ON \"nasabah_survey_notes\"(\"companyId\");
+
+CREATE INDEX IF NOT EXISTS \"nasabah_survey_notes_timeline_idx\"
+ON \"nasabah_survey_notes\"(\"companyId\", \"nasabahId\", \"createdAt\");
+
+CREATE INDEX IF NOT EXISTS \"nasabah_survey_notes_actor_idx\"
+ON \"nasabah_survey_notes\"(\"companyId\", \"actorUserId\", \"createdAt\");
+
+DO "'$$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '"'nasabah_survey_notes_companyId_fkey') THEN
+    ALTER TABLE \"nasabah_survey_notes\"
+    ADD CONSTRAINT \"nasabah_survey_notes_companyId_fkey\"
+    FOREIGN KEY (\"companyId\") REFERENCES \"companies\"(\"id\")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END "'$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '"'nasabah_survey_notes_nasabahId_fkey') THEN
+    ALTER TABLE \"nasabah_survey_notes\"
+    ADD CONSTRAINT \"nasabah_survey_notes_nasabahId_fkey\"
+    FOREIGN KEY (\"nasabahId\") REFERENCES \"nasabah\"(\"id\")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END "'$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '"'nasabah_survey_notes_actorUserId_fkey') THEN
+    ALTER TABLE \"nasabah_survey_notes\"
+    ADD CONSTRAINT \"nasabah_survey_notes_actorUserId_fkey\"
+    FOREIGN KEY (\"actorUserId\") REFERENCES \"users\"(\"id\")
+    ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END "'$$;
+SQL' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+codex
+Migration SQL sudah dibuat manual dengan FK dan index tenant-aware yang idempotent. Saya lanjut jalankan `prisma generate` untuk memastikan schema valid, lalu commit kedua.
+exec
+/bin/bash -lc 'npm run db:generate' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+ succeeded in 2775ms:
+
+> dashboard@0.1.0 db:generate
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.7.0) to ./../../../../../home/kotacom/projects/koperasi-pinjam/dashboard/node_modules/@prisma/client in 785ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+?? prisma/migrations/20260423174200_nasabah_survey_notes_timeline/
+
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+exec
+/bin/bash -lc 'git add prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql && git commit -m "feat(prisma): add nasabah survey notes migration sql"' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+ succeeded in 128ms:
+[codex_20260423_1736_p1d-survey-schema c7e89bf] feat(prisma): add nasabah survey notes migration sql
+ 1 file changed, 49 insertions(+)
+ create mode 100644 dashboard/prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql
+
+exec
+/bin/bash -lc 'git log --oneline -n 3' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+c7e89bf feat(prisma): add nasabah survey notes migration sql
+a41e3ea feat(prisma): add nasabah survey note model and relations
+1cf4435 Harden superadmin actions when acting as company context
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard
+ succeeded in 0ms:
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+codex
+Implemented with additive-only Prisma changes in your owned scope, no app code touched.
+
+Commits:
+1. `a41e3ea` `feat(prisma): add nasabah survey note model and relations`
+2. `c7e89bf` `feat(prisma): add nasabah survey notes migration sql`
+
+Changed files:
+- [prisma/schema.prisma](/tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard/prisma/schema.prisma)
+- [prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql](/tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard/prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql)
+
+What was added:
+- New model `NasabahSurveyNote` with:
+  - required relations: `nasabahId -> Nasabah`, `companyId -> Company`
+  - optional actor: `actorUserId -> User` (`ON DELETE SET NULL`)
+  - timeline fields: `createdAt`, `updatedAt`
+  - tenant-aware indexes:
+    - `companyId`
+    - `(companyId, nasabahId, createdAt)` timeline index
+    - `(companyId, actorUserId, createdAt)` actor timeline index
+- Back-relations added in `Company`, `Nasabah`, and `User`.
+
+Validation run:
+- `npm run db:generate` succeeded.
+
+Working tree is clean (all completed work committed).
+diff --git a/dashboard/prisma/schema.prisma b/dashboard/prisma/schema.prisma
+index a73574cfd4762f4f49b763298143d5a07228a8a0..0478f8e46a8ea13158ce77917971a441d5fa4cf5
+--- a/dashboard/prisma/schema.prisma
++++ b/dashboard/prisma/schema.prisma
+@@ -44,6 +44,7 @@
+   kolektorTargets KolektorTarget[]
+   nasabah         Nasabah[]
+   notifikasi      Notifikasi[]
++  nasabahSurveyNotes NasabahSurveyNote[]
+   pembayaran      Pembayaran[]
+   pengajuan       Pengajuan[]
+   penjamin        Penjamin[]
+@@ -74,6 +75,7 @@
+   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
++  nasabahSurveyNotes     NasabahSurveyNote[] @relation("NasabahSurveyNoteActor")
+   pembayaranDiinput      Pembayaran[]
+   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+@@ -114,6 +116,7 @@
+   pengajuan     Pengajuan[]
+   penjamin      Penjamin[]
+   simpanan      Simpanan[]
++  surveyNotes   NasabahSurveyNote[]
+ 
+   @@unique([companyId, nomorAnggota])
+   @@unique([companyId, nik])
+@@ -121,6 +124,24 @@
+   @@map("nasabah")
+ }
+ 
++model NasabahSurveyNote {
++  id          String   @id @default(cuid())
++  nasabahId   String
++  companyId   String
++  actorUserId String?
++  note        String
++  createdAt   DateTime @default(now())
++  updatedAt   DateTime @updatedAt
++  actor       User?    @relation("NasabahSurveyNoteActor", fields: [actorUserId], references: [id], onDelete: SetNull)
++  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
++  nasabah     Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
++
++  @@index([companyId])
++  @@index([companyId, nasabahId, createdAt], map: "nasabah_survey_notes_timeline_idx")
++  @@index([companyId, actorUserId, createdAt], map: "nasabah_survey_notes_actor_idx")
++  @@map("nasabah_survey_notes")
++}
++
+ model Penjamin {
+   id          String  @id @default(cuid())
+   namaLengkap String
+
+tokens used
+22,295
+Implemented with additive-only Prisma changes in your owned scope, no app code touched.
+
+Commits:
+1. `a41e3ea` `feat(prisma): add nasabah survey note model and relations`
+2. `c7e89bf` `feat(prisma): add nasabah survey notes migration sql`
+
+Changed files:
+- [prisma/schema.prisma](/tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard/prisma/schema.prisma)
+- [prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql](/tmp/codex-fanout/20260423_172356/p1d-survey-schema/dashboard/prisma/migrations/20260423174200_nasabah_survey_notes_timeline/migration.sql)
+
+What was added:
+- New model `NasabahSurveyNote` with:
+  - required relations: `nasabahId -> Nasabah`, `companyId -> Company`
+  - optional actor: `actorUserId -> User` (`ON DELETE SET NULL`)
+  - timeline fields: `createdAt`, `updatedAt`
+  - tenant-aware indexes:
+    - `companyId`
+    - `(companyId, nasabahId, createdAt)` timeline index
+    - `(companyId, actorUserId, createdAt)` actor timeline index
+- Back-relations added in `Company`, `Nasabah`, and `User`.
+
+Validation run:
+- `npm run db:generate` succeeded.
+
+Working tree is clean (all completed work committed).

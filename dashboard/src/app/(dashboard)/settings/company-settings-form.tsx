@@ -132,7 +132,7 @@ export function CompanySettingsForm({ initial }: { initial: CompanyInfo }) {
               placeholder="Contoh: Bendahara Koperasi"
             />
             <p className="text-xs text-muted-foreground">
-              Jika diisi, nama ini akan dipakai di kolom tanda tangan "Diterima & Diinput Oleh" pada dokumen kwitansi.
+              Jika diisi, nama ini akan dipakai di kolom tanda tangan &quot;Diterima &amp; Diinput Oleh&quot; pada dokumen kwitansi.
             </p>
           </div>
 

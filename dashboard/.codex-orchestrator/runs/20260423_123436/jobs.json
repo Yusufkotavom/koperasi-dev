@@ -1,0 +1,17 @@
+[
+  {
+    "id": "phase0-tenant-guard-audit",
+    "mode": "full-auto",
+    "prompt": "You are worker 1. Focus ONLY on tenant guard consistency across src/actions and src/app dashboard routes. Do not push. Create commit(s) on your branch with fixes and include a concise report in README_WORKER.md listing changed files and rationale."
+  },
+  {
+    "id": "phase0-lint-hardening",
+    "mode": "full-auto",
+    "prompt": "You are worker 2. Focus ONLY on resolving simple lint/runtime hazards (especially warnings/errors likely to break CI or hydration) in dashboard app. Do not push. Commit your fixes and write README_WORKER.md with exact commands run and remaining warnings."
+  },
+  {
+    "id": "phase0-test-baseline",
+    "mode": "full-auto",
+    "prompt": "You are worker 3. Focus ONLY on creating a practical testing baseline document and scripts references aligned with docs/internal/MASTER-PLAN-KOPERASI-UMUM.md. Do not push. Produce docs/internal/testing-baseline.md and commit. Include README_WORKER.md summary."
+  }
+]

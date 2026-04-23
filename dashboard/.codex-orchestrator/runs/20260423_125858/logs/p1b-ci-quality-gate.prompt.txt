@@ -1,0 +1,1 @@
+Worker 7 ownership: .github/workflows/* and docs/internal/testing-baseline.md only. Add CI workflow quality gate running lint + build (+ smoke placeholder non-blocking if no env). Document required env and fallback behavior. Commit.

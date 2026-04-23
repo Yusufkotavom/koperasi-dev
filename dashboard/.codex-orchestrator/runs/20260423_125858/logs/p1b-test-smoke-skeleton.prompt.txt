@@ -1,0 +1,1 @@
+Worker 6 ownership: tests/e2e/* and playwright config files only. Create initial Playwright smoke skeleton for login, dashboard, nasabah list flow with @smoke tags. Add npm scripts test:e2e and test:smoke in package.json. Do not break existing scripts. Commit.

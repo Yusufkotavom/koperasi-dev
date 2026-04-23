@@ -1,0 +1,2067 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba8c-883f-76f2-b3ee-e8b06fbd2e13
+--------
+user
+You are Worker p1d-survey-actions-api. Ownership: src/actions/nasabah-survey.ts (new), src/app/api/nasabah/[id]/survey/route.ts (new). Task: implement list/create survey note API scoped by companyId and role guard; validation non-empty note and sensible max length; stable JSON responses. If schema model names differ, adapt cleanly. Add concise error handling. Run lint/build targeted checks and commit. You are not alone in codebase; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+2026-04-23T13:34:27.240259Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+Saya akan implement endpoint list/create catatan survey nasabah dengan isolasi `companyId`, role guard, validasi note, dan response JSON stabil. Langkah pertama: cek model Prisma dan pola action/API route yang sudah ada supaya adaptasi nama model dan error handling konsisten.
+exec
+/bin/bash -lc "rg --files src/actions src/app/api prisma | sed -n '1,220p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+exec
+/bin/bash -lc 'cat /home/kotacom/.codex/skills/using-superpowers/SKILL.md' in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 172ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+ succeeded in 130ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 13:34 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:34 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 13:34 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:34 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 13:34 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 13:34 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 13:34 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 13:34 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 13:34 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 13:34 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 13:34 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 13:34 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 13:34 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 13:34 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 13:34 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 13:34 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 13:34 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 13:34 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 13:34 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 13:34 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:34 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 13:34 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 13:34 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 13:34 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 13:34 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 13:34 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 13:34 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 13:34 tsconfig.json
+
+ succeeded in 631ms:
+prisma/seed.ts
+src/app/api/auth/[...nextauth]/route.ts
+src/actions/company-users.ts
+src/actions/kelompok.ts
+src/actions/nasabah.ts
+src/actions/akuntansi.ts
+src/actions/maintenance.ts
+src/actions/auth-registration.ts
+src/actions/pengajuan.ts
+src/actions/settings.ts
+src/actions/kas.ts
+src/actions/platform-admin.ts
+src/actions/dashboard.ts
+src/actions/pembayaran.ts
+src/actions/kolektor.ts
+prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+prisma/migrations/20260421110000_journal_entries/migration.sql
+prisma/migrations/migration_lock.toml
+prisma/migrations/20260418204642_init/migration.sql
+prisma/seed.cjs
+prisma/schema.prisma
+prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+prisma/migrations/20260422103000_company_user_scope/migration.sql
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/kas/route.ts
+prisma/migrations/20260422120000_company_status_fields/migration.sql
+src/app/api/upload/logo/route.ts
+
+codex
+Saya sudah cek konteks repo dan akan lanjut baca panduan Next.js lokal untuk Route Handler sebelum coding, lalu meniru pola tenant/auth dari action yang ada agar konsisten.
+exec
+/bin/bash -lc "ls node_modules/next/dist/docs | sed -n '1,120p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+exec
+/bin/bash -lc "rg -n \"route handler|route.ts|Request|Response|dynamic\" node_modules/next/dist/docs -g \"*.md\" | sed -n '1,160p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+ succeeded in 175ms:
+ls: cannot access 'node_modules/next/dist/docs': No such file or directory
+
+exec
+/bin/bash -lc "rg -n \"model .*Survey|survey|Nasabah\" prisma/schema.prisma src/actions src/app/api | sed -n '1,240p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 107ms:
+ah,
+src/actions/kolektor.ts:48:    totalNasabah: u._count.nasabahSebagaiKolektor,
+src/actions/kolektor.ts:154:export async function createKolektorFromNasabah(input: {
+src/actions/kolektor.ts:170:  if (!nasabah) return { error: "Nasabah tidak ditemukan." }
+src/actions/kolektor.ts:215:  const ketuaNasabah = kelompok.nasabah.find((n) => n.namaLengkap === kelompok.ketua) ?? kelompok.nasabah[0]
+src/actions/kolektor.ts:216:  if (!ketuaNasabah) return { error: "Kelompok belum memiliki anggota untuk dijadikan kolektor." }
+src/actions/kolektor.ts:218:  const safeName = ketuaNasabah.namaLengkap.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, "")
+src/actions/kolektor.ts:223:    name: ketuaNasabah.namaLengkap,
+src/actions/kolektor.ts:225:    password: input.password?.trim() || defaultPasswordFromPhone(ketuaNasabah.noHp),
+src/actions/pembayaran.ts:278:  const byNasabah = new Map<string, ActiveLoanBorrowerOption>()
+src/actions/pembayaran.ts:283:    const existing = byNasabah.get(nasabahId) ?? {
+src/actions/pembayaran.ts:302:    byNasabah.set(nasabahId, existing)
+src/actions/pembayaran.ts:305:  return serializeData(Array.from(byNasabah.values()).sort((a, b) => a.namaLengkap.localeCompare(b.namaLengkap, "id")))
+src/actions/pembayaran.ts:696:export async function getHistoryPembayaranNasabahReport(params?: { page?: number; limit?: number; search?: string }) {
+src/actions/pembayaran.ts:711:  const where: Prisma.NasabahWhereInput = {
+src/actions/platform-admin.ts:53:  recentNasabah: Array<{ id: string; namaLengkap: string; nomorAnggota: string; createdAt: string }>
+src/actions/platform-admin.ts:253:  const [users, nasabahAktif, pengajuanAktif, pinjamanAktif, kasPending, recentUsers, recentNasabah, recentPengajuan] = await Promise.all([
+src/actions/platform-admin.ts:303:    recentNasabah: recentNasabah.map((row) => ({
+
+exec
+/bin/bash -lc "sed -n '1,260p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserRole {
+  id     String   @id @default(cuid())
+  userId String
+  role   RoleType
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model Company {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  address         String?
+  phone           String?
+  email           String?
+  isActive        Boolean           @default(true)
+  ownerId         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  status          CompanyStatus     @default(ACTIVE)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  suspendedUntil  DateTime?
+  deletedAt       DateTime?
+  deletedReason   String?
+  accounts        Account[]
+  owner           User              @relation("CompanyOwner", fields: [ownerId], references: [id])
+  settings        CompanySetting[]
+  jadwalAngsuran  JadwalAngsuran[]
+  journalEntries  JournalEntry[]
+  kasKategori     KasKategori[]
+  kasTransaksi    KasTransaksi[]
+  kelompok        Kelompok[]
+  kolektorTargets KolektorTarget[]
+  nasabah         Nasabah[]
+  notifikasi      Notifikasi[]
+  pembayaran      Pembayaran[]
+  pengajuan       Pengajuan[]
+  penjamin        Penjamin[]
+  pinjaman        Pinjaman[]
+  rekonsiliasi    RekonsiliasiKas[]
+  simpanan        Simpanan[]
+  users           User[]            @relation("UserCompany")
+
+  @@index([ownerId])
+  @@map("companies")
+}
+
+model User {
+  id                     String            @id @default(cuid())
+  name                   String
+  email                  String            @unique
+  password               String
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  companyId              String?
+  approvalApproved       ApprovalLog[]     @relation("ApprovalApprover")
+  approvalRequested      ApprovalLog[]     @relation("ApprovalRequester")
+  auditLogs              AuditLog[]        @relation("AuditActor")
+  ownedCompanies         Company[]         @relation("CompanyOwner")
+  journalPosted          JournalEntry[]    @relation("JournalPostedBy")
+  kasDiinput             KasTransaksi[]
+  kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+  notifikasi             Notifikasi[]      @relation("UserNotifikasi")
+  pembayaranDiinput      Pembayaran[]
+  pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+  rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  roles                  UserRole[]
+  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model Nasabah {
+  id            String        @id @default(cuid())
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  id              String      @id @default(cuid())
+  kode            String
+  nama            String
+  ketua           String?
+  wilayah         String?
+  jadwalPertemuan String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+
+exec
+/bin/bash -lc "sed -n '1,240p' src/lib/tenant.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+export function requireCompanyId(session: SessionLike) {
+  const userId = session?.user?.id
+  if (!userId) throw new Error("Unauthorized")
+
+  const companyId = session.user?.companyId
+  if (!companyId) {
+    // SUPER_ADMIN is allowed to exist without a company context.
+    const roles = session.user?.roles ?? []
+    if (roles.includes(RoleType.SUPER_ADMIN)) {
+      throw new Error("Company context required")
+    }
+    throw new Error("Akun belum terhubung ke company.")
+  }
+
+  return { userId, companyId }
+}
+
+export function requireCompanyRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const { userId } = requireRoles(session, allowedRoles)
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+  return { userId, companyId }
+}
+
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/lib/auth.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
+  logger: {
+    error(error) {
+      // Invalid credentials are expected during login attempts; avoid noisy server error logs.
+      const raw = String(error)
+      if (raw.includes("CredentialsSignin")) return
+      console.error("[auth][error]", error)
+    },
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(6),
+        }).safeParse({
+          email: typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "",
+          password: typeof credentials?.password === "string" ? credentials.password : "",
+        })
+
+        if (!parsed.success) return null
+
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+          },
+        })
+
+        if (!user || !user.isActive) return null
+        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password)
+        if (!passwordMatch) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles.map((r: { role: string }) => r.role),
+          companyId: user.companyId,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      const t = token as typeof token & {
+        id?: string
+        roles?: string[]
+        companyId?: string | null
+        companyName?: string | null
+        companySlug?: string | null
+      }
+
+      if (user) {
+        // @ts-expect-error custom field
+        t.roles = user.roles
+        t.id = user.id
+        // @ts-expect-error custom field
+        t.companyId = user.companyId
+        // @ts-expect-error custom field
+        t.companyName = user.companyName
+        // @ts-expect-error custom field
+        t.companySlug = user.companySlug
+      }
+
+      if (!t.id && token.sub) {
+        t.id = token.sub
+      }
+
+      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+        const next = session as { actingCompanyId?: unknown; clearActingCompany?: unknown } | undefined
+        const clearActing = next?.clearActingCompany === true || next?.actingCompanyId === null || next?.actingCompanyId === ""
+        if (clearActing) {
+          t.companyId = null
+          t.companyName = null
+          t.companySlug = null
+        } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
+          const company = await prisma.company.findUnique({
+            where: { id: next.actingCompanyId },
+            select: { id: true, name: true, slug: true },
+          })
+          if (company) {
+            t.companyId = company.id
+            t.companyName = company.name
+            t.companySlug = company.slug
+          }
+        }
+      }
+
+      const needsHydration =
+        !Array.isArray(t.roles) ||
+        typeof t.id !== "string" ||
+        t.id.length === 0 ||
+        t.companyId === undefined
+
+      if (needsHydration && typeof token.email === "string" && token.email.length > 0) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email.toLowerCase() },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true } },
+          },
+        })
+
+        if (dbUser) {
+          t.id = dbUser.id
+          t.roles = dbUser.roles.map((r) => r.role)
+          t.companyId = dbUser.companyId
+          t.companyName = dbUser.company?.name ?? null
+          t.companySlug = dbUser.company?.slug ?? null
+        }
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        const t = token as typeof token & {
+          id?: string
+          roles?: string[]
+          companyId?: string | null
+          companyName?: string | null
+          companySlug?: string | null
+        }
+        // @ts-expect-error custom field
+        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+        session.user.id = (t.id ?? token.sub ?? "") as string
+        // @ts-expect-error custom field
+        session.user.companyId = (t.companyId ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyName = (t.companyName ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companySlug = (t.companySlug ?? null) as string | null
+      }
+      return session
+    },
+  },
+})
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/roles.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+  }
+} | null
+
+export function extractRoles(session: SessionLike): RoleType[] {
+  const roles = session?.user?.roles ?? []
+  return roles.filter((role): role is RoleType =>
+    Object.values(RoleType).includes(role as RoleType)
+  )
+}
+
+export function requireRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const userId = session?.user?.id
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const roles = extractRoles(session)
+  const allowed = roles.some((role) => allowedRoles.includes(role))
+
+  if (!allowed) {
+    throw new Error("Forbidden")
+  }
+
+  return { userId, roles }
+}
+
+export function hasAnyRole(session: SessionLike, allowedRoles: RoleType[]) {
+  const roles = extractRoles(session)
+  return roles.some((role) => allowedRoles.includes(role))
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let lastPaymentAt: Date | null = null
+    let nextDueAt: Date | null = null
+    let overdueCount = 0
+    let overdueOldestDueAt: Date | null = null
+    let overdueOldestDaysLate = 0
+    let overdueMaxDaysLate = 0
+    let aktifPinjaman = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+
+      const pembayaranTagMap = new Map<string, number>()
+      for (const p of pinjaman.pembayaran) {
+        if (p.tanggalBayar) {
+          if (!lastPaymentAt || p.tanggalBayar > lastPaymentAt) lastPaymentAt = p.tanggalBayar
+        }
+        const tags = parseJadwalTags(p.catatan)
+        if (tags.length === 0) continue
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (!nextDueAt || jadwal.tanggalJatuhTempo < nextDueAt) nextDueAt = jadwal.tanggalJatuhTempo
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+          overdueCount += 1
+          if (!overdueOldestDueAt || jadwal.tanggalJatuhTempo < overdueOldestDueAt) {
+            overdueOldestDueAt = jadwal.tanggalJatuhTempo
+          }
+          const daysLate = Math.max(
+            0,
+            Math.floor((now.getTime() - jadwal.tanggalJatuhTempo.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          if (daysLate > overdueMaxDaysLate) overdueMaxDaysLate = daysLate
+        }
+      }
+    }
+
+    if (overdueOldestDueAt) {
+      overdueOldestDaysLate = Math.max(
+        0,
+        Math.floor((now.getTime() - overdueOldestDueAt.getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      ...nasabah,
+      indikator: {
+        ranking,
+        telat,
+        belumBayar,
+        belumJatuhTempo,
+        kurangAngsuran: tunggakanNominal, // Mapping for UI compatibility if needed, but semantic is tunggakan
+        tunggakanNominal,
+        outstanding,
+        lastPaymentAt,
+        nextDueAt,
+        overdueCount,
+        overdueOldestDueAt,
+        overdueOldestDaysLate,
+        overdueMaxDaysLate,
+        aktifPinjaman,
+      },
+    }
+  })
+
+  return serializeData({ data: withIndicators, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getNasabahById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.nasabah.findFirst({
+    where: { id, companyId },
+    include: {
+      kelompok: true,
+      kolektor: { select: { id: true, name: true, email: true } },
+      pengajuan: {
+        orderBy: { tanggalPengajuan: "desc" },
+        include: {
+          pinjaman: {
+            include: {
+              jadwalAngsuran: {
+                orderBy: { tanggalJatuhTempo: "asc" },
+              },
+              pembayaran: {
+                where: { isBatalkan: false },
+                orderBy: { tanggalBayar: "desc" },
+                include: { inputOleh: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      },
+      penjamin: true,
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function createNasabah(input: NasabahInput): Promise<CreateNasabahResult> {
+  const session = await auth()
+
+exec
+/bin/bash -lc "rg -n \"export async function (GET|POST|PATCH|DELETE)\\(|Response\\.json|requireCompanyId|requireRoles|RoleType\" src/app/api src/actions -g '*.ts' | sed -n '1,260p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 276ms:
+reCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:182:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/app/api/upload/pembayaran/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/pembayaran/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pembayaran/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pembayaran/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/pembayaran/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/actions/auth-registration.ts:4:import { RoleType } from "@prisma/client"
+src/actions/auth-registration.ts:92:          create: [{ role: RoleType.OWNER }, { role: RoleType.ADMIN }],
+src/actions/akuntansi.ts:6:import { requireRoles } from "@/lib/roles"
+src/actions/akuntansi.ts:7:import { Prisma, RoleType, RekonsiliasiStatus } from "@prisma/client"
+src/actions/akuntansi.ts:13:import { requireCompanyId } from "@/lib/tenant"
+src/actions/akuntansi.ts:22:  return requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:29:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:54:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:55:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:89:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:113:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:114:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:174:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:196:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:304:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:399:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:7:import { requireRoles } from "@/lib/roles"
+src/actions/settings.ts:8:import { RoleType } from "@prisma/client"
+src/actions/settings.ts:11:import { requireCompanyId } from "@/lib/tenant"
+src/actions/settings.ts:75:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:107:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:110:    requireRoles(session, [RoleType.ADMIN, RoleType.PIMPINAN])
+src/actions/settings.ts:148:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:159:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:162:    requireRoles(session, [RoleType.ADMIN])
+src/actions/settings.ts:183:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:201:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:204:    requireRoles(session, [RoleType.ADMIN, RoleType.PIMPINAN])
+src/actions/pengajuan.ts:8:import { ApprovalStatus, Prisma, RoleType } from "@prisma/client"
+src/actions/pengajuan.ts:9:import { requireRoles } from "@/lib/roles"
+src/actions/pengajuan.ts:14:import { requireCompanyId } from "@/lib/tenant"
+src/actions/pengajuan.ts:42:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:77:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:100:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:120:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:163:    const required = requireRoles(session, [RoleType.MANAGER, RoleType.PIMPINAN, RoleType.ADMIN])
+src/actions/pengajuan.ts:218:  const { companyId } = requireCompanyId(
+src/actions/pengajuan.ts:223:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pengajuan.ts:378:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:399:  const { companyId } = requireCompanyId(
+src/actions/pengajuan.ts:405:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/dashboard.ts:9:import { requireCompanyId } from "@/lib/tenant"
+src/actions/dashboard.ts:22:  const { companyId } = requireCompanyId(
+src/actions/dashboard.ts:124:  const { companyId } = requireCompanyId(
+src/actions/dashboard.ts:161:  const { companyId } = requireCompanyId(
+src/actions/dashboard.ts:293:  const { companyId } = requireCompanyId(
+src/actions/dashboard.ts:406:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/dashboard.ts:435:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:7:import { ApprovalEntityType, ApprovalStatus, Prisma, RoleType } from "@prisma/client"
+src/actions/kas.ts:8:import { hasAnyRole, requireRoles } from "@/lib/roles"
+src/actions/kas.ts:13:import { requireCompanyId } from "@/lib/tenant"
+src/actions/kas.ts:51:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:80:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:130:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:133:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:173:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:176:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:234:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:237:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:278:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:343:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:406:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:410:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/kas.ts:412:    isPrivileged = hasAnyRole(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:496:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:499:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:578:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:581:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:622:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:625:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:645:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:649:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:760:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:821:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:7:import { RoleType } from "@prisma/client"
+src/actions/kolektor.ts:8:import { requireRoles } from "@/lib/roles"
+src/actions/kolektor.ts:9:import { requireCompanyId } from "@/lib/tenant"
+src/actions/kolektor.ts:24:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:55:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:97:            { role: RoleType.KOLEKTOR },
+src/actions/kolektor.ts:98:            ...(params.isAdmin ? [{ role: RoleType.ADMIN }] : []),
+src/actions/kolektor.ts:110:  const createRoles: { role: RoleType }[] = []
+src/actions/kolektor.ts:111:  if (!existingRoles.has(RoleType.KOLEKTOR)) createRoles.push({ role: RoleType.KOLEKTOR })
+src/actions/kolektor.ts:112:  if (params.isAdmin && !existingRoles.has(RoleType.ADMIN)) createRoles.push({ role: RoleType.ADMIN })
+src/actions/kolektor.ts:135:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:136:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:162:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:163:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:201:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:202:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:242:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kolektor.ts:243:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/app/api/upload/pengajuan/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/pengajuan/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pengajuan/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pengajuan/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/pengajuan/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/actions/maintenance.ts:5:import { Prisma, RoleType } from "@prisma/client"
+src/actions/maintenance.ts:17:import { requireRoles } from "@/lib/roles"
+src/actions/maintenance.ts:106:    RoleType.SUPER_ADMIN,
+src/actions/maintenance.ts:107:    RoleType.OWNER,
+src/actions/maintenance.ts:108:    RoleType.ADMIN,
+src/actions/maintenance.ts:179:  roles: RoleType[]
+src/actions/pembayaran.ts:7:import { Prisma, RoleType, ApprovalEntityType, ApprovalStatus } from "@prisma/client"
+src/actions/pembayaran.ts:8:import { requireRoles } from "@/lib/roles"
+src/actions/pembayaran.ts:14:import { requireCompanyId } from "@/lib/tenant"
+src/actions/pembayaran.ts:85:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:117:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:216:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:311:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:383:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:389:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/pembayaran.ts:592:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:608:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:699:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:1042:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:1069:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:1075:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.TELLER, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:1123:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:1150:  const { companyId } = requireCompanyId(
+src/actions/pembayaran.ts:1156:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:1317:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/app/api/upload/logo/route.ts:12:export async function POST(req: Request) {
+src/app/api/upload/logo/route.ts:15:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/logo/route.ts:23:    return Response.json({ error: "Tidak ada file logo yang diupload." }, { status: 400 })
+src/app/api/upload/logo/route.ts:31:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/logo/route.ts:34:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/kas/route.ts:4:export async function POST(req: Request) {
+src/app/api/upload/kas/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/kas/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/kas/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/kas/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/actions/platform-admin.ts:6:import { AuditAction, CompanyStatus, RoleType } from "@prisma/client"
+src/actions/platform-admin.ts:10:import { requireRoles } from "@/lib/roles"
+src/actions/platform-admin.ts:69:  return requireRoles(session, [RoleType.SUPER_ADMIN]).userId
+
+codex
+Saya menemukan belum ada model `survey` eksplisit di file yang terbaca, jadi saya akan cek sisa schema untuk menentukan tabel yang paling tepat (atau fallback kolom existing) sebelum membuat action baru agar kompatibel dengan struktur aktual.
+exec
+/bin/bash -lc "sed -n '260,620p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+exec
+/bin/bash -lc "sed -n '1,240p' src/actions/pengajuan.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { pengajuanSchema, approvalSchema, pencairanSchema } from "@/lib/validations/pengajuan"
+import { addMonths, addWeeks } from "date-fns"
+import { ApprovalStatus, Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { writeApprovalLog, writeAuditLog } from "@/lib/audit"
+import { ensureKasKategori } from "./kas"
+import { serializeData } from "@/lib/utils"
+import { ensureAccountingAccounts, getCashBalanceByJenis, postJournalEntry, postPencairanJournal } from "@/lib/accounting"
+import { requireCompanyId } from "@/lib/tenant"
+import { z } from "zod"
+
+function parseDateOnly(input: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return date
+}
+
+// ========================
+// PENGAJUAN
+// ========================
+
+export async function getPengajuanList(params: {
+  page?: number
+  status?: string
+  search?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const page = params.page ?? 1
+  const limit = 20
+
+  const where = {
+    AND: [
+      { companyId },
+      params.status ? { status: params.status as "DRAFT" | "DIAJUKAN" | "DISURVEY" | "DISETUJUI" | "DITOLAK" | "DICAIRKAN" | "SELESAI" } : {},
+      params.search ? {
+        nasabah: { namaLengkap: { contains: params.search, mode: "insensitive" as const } }
+      } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.pengajuan.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { tanggalPengajuan: "desc" },
+      include: {
+        nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+        kelompok: { select: { nama: true } },
+      },
+    }),
+    prisma.pengajuan.count({ where }),
+  ])
+
+  return serializeData({ data, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getPengajuanById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.pengajuan.findFirst({
+    where: { id, companyId },
+    include: {
+      nasabah: true,
+      kelompok: true,
+      surveyor: { select: { name: true } },
+      approver: { select: { name: true } },
+      pinjaman: {
+        include: {
+          jadwalAngsuran: { take: 5, orderBy: { angsuranKe: "asc" } },
+          _count: { select: { pembayaran: { where: { isBatalkan: false } } } },
+        },
+      },
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function getNasabahPengajuanOptions() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.nasabah.findMany({
+    where: { companyId, status: "AKTIF" },
+    select: {
+      id: true,
+      nomorAnggota: true,
+      namaLengkap: true,
+      kelompokId: true,
+      kelompok: { select: { nama: true } },
+      kolektor: { select: { name: true } },
+    },
+    orderBy: { namaLengkap: "asc" },
+  })
+}
+
+export async function createPengajuan(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const userId = session.user?.id
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = pengajuanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { bungaPerBulan, plafonDiajukan, dokumenPendukungUrls, ...rest } = parsed.data
+
+  const nasabah = await prisma.nasabah.findUnique({
+    where: { id: parsed.data.nasabahId },
+    select: { id: true, kelompokId: true },
+  })
+  if (!nasabah) {
+    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+  }
+
+  const pengajuan = await prisma.pengajuan.create({
+    data: {
+      companyId,
+      ...rest,
+      kelompokId: rest.kelompokId || nasabah.kelompokId || null,
+      plafonDiajukan: new Prisma.Decimal(plafonDiajukan),
+      bungaPerBulan: new Prisma.Decimal(bungaPerBulan / 100),
+      dokumenPendukungUrls: dokumenPendukungUrls ?? [],
+      status: "DIAJUKAN",
+    },
+  })
+
+  revalidatePath("/pengajuan")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PENGAJUAN",
+    entityId: pengajuan.id,
+    action: "CREATE",
+    afterData: { status: pengajuan.status, nasabahId: pengajuan.nasabahId },
+  })
+  return { success: true, data: pengajuan }
+}
+
+export async function approvePengajuan(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.MANAGER, RoleType.PIMPINAN, RoleType.ADMIN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk menyetujui pengajuan." }
+  }
+
+  const parsed = approvalSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, aksi, plafonDisetujui, catatanApproval } = parsed.data
+
+  let updated;
+  try {
+    updated = await prisma.pengajuan.update({
+      where: { id: pengajuanId },
+      data: {
+        status: aksi === "SETUJU" ? "DISETUJUI" : "DITOLAK",
+        approverId: userId,
+        tanggalApproval: new Date(),
+        plafonDisetujui: plafonDisetujui ? new Prisma.Decimal(plafonDisetujui) : undefined,
+        catatanApproval: catatanApproval,
+      },
+    })
+  } catch (err) {
+    console.error("[approvePengajuan][error]", err)
+    return { error: "Terjadi kesalahan database. Silakan coba login ulang (mungkin sesi kadaluarsa setelah reset database)." }
+  }
+
+  revalidatePath("/pengajuan")
+  revalidatePath(`/pengajuan/${pengajuanId}`)
+  await writeApprovalLog({
+    entityType: "PENGAJUAN",
+    entityId: pengajuanId,
+    status: aksi === "SETUJU" ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED,
+    catatan: catatanApproval,
+    requestedById: userId,
+    approvedById: userId,
+  })
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PENGAJUAN",
+    entityId: pengajuanId,
+    action: aksi === "SETUJU" ? "APPROVE" : "REJECT",
+    afterData: { status: updated.status, plafonDisetujui: updated.plafonDisetujui?.toString() },
+  })
+  return { success: true }
+}
+
+// ========================
+// PENCAIRAN
+// ========================
+
+export async function cairkanPinjaman(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(
+    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+  )
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk mencairkan pinjaman." }
+  }
+
+  const parsed = pencairanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, potonganAdmin, potonganProvisi, tanggalCair, kasJenis } = parsed.data
+
+  const pengajuan = await prisma.pengajuan.findFirst({
+    where: { id: pengajuanId, companyId, status: "DISETUJUI" },
+  })
+  if (!pengajuan) return { error: "Pengajuan tidak ditemukan atau belum disetujui." }
+
+  const plafon = Number(pengajuan.plafonDisetujui ?? pengajuan.plafonDiajukan)
+  const bunga = Number(pengajuan.bungaPerBulan)
+
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/prisma.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import "dotenv/config"
+import { Pool } from "pg"
+import { PrismaPg } from "@prisma/adapter-pg"
+import { PrismaClient } from "@prisma/client"
+
+type GlobalPrisma = typeof globalThis & {
+  pgPool?: Pool
+  prisma?: PrismaClient
+}
+
+const globalForPrisma = globalThis as GlobalPrisma
+
+const pool =
+  globalForPrisma.pgPool ??
+  new Pool({
+    connectionString: process.env.DATABASE_URL,
+  })
+
+const adapter = new PrismaPg(pool)
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+  })
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.pgPool = pool
+  globalForPrisma.prisma = prisma
+}
+
+ succeeded in 130ms:
+  buktiBayarUrl  String?
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh      User        @relation(fields: [inputOlehId], references: [id])
+  pinjaman       Pinjaman    @relation(fields: [pinjamanId], references: [id])
+
+  @@index([companyId])
+  @@map("pembayaran")
+}
+
+model Simpanan {
+  id        String   @id @default(cuid())
+  nasabahId String
+  jenis     String
+  jumlah    Decimal  @db.Decimal(15, 2)
+  tanggal   DateTime @default(now())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id])
+
+  @@index([companyId])
+  @@map("simpanan")
+}
+
+model Account {
+  id           String            @id @default(cuid())
+  code         String
+  name         String
+  type         AccountType
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  companyId    String
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  kasKategori  KasKategori[]
+  rekonsiliasi RekonsiliasiKas[]
+
+  @@unique([companyId, code])
+  @@index([type, isActive])
+  @@index([companyId])
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id          String            @id @default(cuid())
+  entryNo     String            @unique @default(cuid())
+  entryDate   DateTime
+  description String
+  sourceType  JournalSourceType
+  sourceId    String?
+  status      JournalStatus     @default(POSTED)
+  postedById  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  postedBy    User?             @relation("JournalPostedBy", fields: [postedById], references: [id])
+  lines       JournalLine[]
+
+  @@unique([sourceType, sourceId])
+  @@index([entryDate])
+  @@index([sourceType, sourceId])
+  @@index([companyId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal      @default(0) @db.Decimal(15, 2)
+  credit         Decimal      @default(0) @db.Decimal(15, 2)
+  memo           String?
+  createdAt      DateTime     @default(now())
+  account        Account      @relation(fields: [accountId], references: [id])
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}
+
+model RekonsiliasiKas {
+  id             String             @id @default(cuid())
+  accountId      String
+  periodMonth    Int
+  periodYear     Int
+  saldoStatement Decimal            @db.Decimal(15, 2)
+  saldoBook      Decimal            @db.Decimal(15, 2)
+  selisih        Decimal            @db.Decimal(15, 2)
+  catatan        String?
+  buktiUrl       String?
+  status         RekonsiliasiStatus @default(DRAFT)
+  createdById    String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  companyId      String
+  account        Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy      User               @relation("RekonsiliasiCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, periodMonth, periodYear], map: "rekonsiliasi_kas_account_period_key")
+  @@index([companyId])
+  @@index([periodYear, periodMonth], map: "rekonsiliasi_kas_period_idx")
+  @@map("rekonsiliasi_kas")
+}
+
+model KasKategori {
+  id           String         @id @default(cuid())
+  nama         String
+  key          String
+  jenis        JenisKas
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  accountId    String?
+  companyId    String
+  account      Account?       @relation(fields: [accountId], references: [id])
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kasTransaksi KasTransaksi[]
+
+  @@unique([companyId, key])
+  @@index([companyId])
+  @@map("kas_kategori")
+}
+
+model KasTransaksi {
+  id          String      @id @default(cuid())
+  tanggal     DateTime    @default(now())
+  jenis       JenisKas
+  kategoriKey String
+  deskripsi   String
+  jumlah      Decimal     @db.Decimal(15, 2)
+  kasJenis    String      @default("TUNAI")
+  buktiUrl    String?
+  inputOlehId String
+  isApproved  Boolean     @default(true)
+  referensiId String?
+  createdAt   DateTime    @default(now())
+  companyId   String
+  kategoriId  String
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh   User        @relation(fields: [inputOlehId], references: [id])
+  kat         KasKategori @relation(fields: [kategoriId], references: [id])
+
+  @@index([companyId])
+  @@index([kategoriId])
+  @@map("kas_transaksi")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  entityType String
+  entityId   String?
+  action     AuditAction
+  beforeData Json?
+  afterData  Json?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model ApprovalLog {
+  id            String             @id @default(cuid())
+  entityType    ApprovalEntityType
+  entityId      String
+  status        ApprovalStatus     @default(PENDING)
+  catatan       String?
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  approvedBy    User?              @relation("ApprovalApprover", fields: [approvedById], references: [id])
+  requestedBy   User               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([requestedById, createdAt])
+  @@map("approval_logs")
+}
+
+model KolektorTarget {
+  id                 String   @id @default(cuid())
+  kolektorId         String
+  periodMonth        Int
+  periodYear         Int
+  targetTagihan      Decimal  @db.Decimal(15, 2)
+  realisasiTagihan   Decimal  @default(0) @db.Decimal(15, 2)
+  targetKunjungan    Int      @default(0)
+  realisasiKunjungan Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kolektor           User     @relation("KolektorTargetUser", fields: [kolektorId], references: [id], onDelete: Cascade)
+
+  @@unique([kolektorId, periodMonth, periodYear])
+  @@index([periodYear, periodMonth])
+  @@index([companyId])
+  @@map("kolektor_targets")
+}
+
+model Notifikasi {
+  id        String          @id @default(cuid())
+  userId    String?
+  jenis     NotifikasiJenis
+  judul     String
+  pesan     String
+  link      String?
+  isRead    Boolean         @default(false)
+  readAt    DateTime?
+  createdAt DateTime        @default(now())
+  companyId String
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User?           @relation("UserNotifikasi", fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@index([companyId])
+  @@map("notifikasi")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
+
+model CompanySetting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum StatusNasabah {
+  AKTIF
+  NON_AKTIF
+  KELUAR
+}
+
+enum JenisPinjaman {
+  REGULAR
+  MIKRO
+  USAHA
+}
+
+enum TenorType {
+  BULANAN
+  MINGGUAN
+}
+
+enum StatusPengajuan {
+  DRAFT
+  DIAJUKAN
+  DISURVEY
+  DISETUJUI
+  DITOLAK
+  DICAIRKAN
+  SELESAI
+}
+
+enum StatusPinjaman {
+  AKTIF
+  MENUNGGAK
+  MACET
+  LUNAS
+}
+
+enum MetodeBayar {
+  TUNAI
+  TRANSFER
+}
+
+enum JenisKas {
+  MASUK
+  KELUAR
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalSourceType {
+  PEMBAYARAN
+  PENCAIRAN
+  KAS
+  SIMPANAN
+  ADJUSTMENT
+  REVERSAL
+  DEMO_IMPORT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum RekonsiliasiStatus {
+  DRAFT
+  SELESAI
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  DISBURSE
+  PAYMENT
+  CASH
+  LOGIN
+  LOGOUT
+}
+
+enum ApprovalEntityType {
+  PENGAJUAN
+  PEMBAYARAN
+  KAS
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+
+exec
+/bin/bash -lc "rg -n \"nasabah/.*/survey|survey\" src/app src/actions src/lib -g '*.ts' -g '*.tsx' | sed -n '1,260p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+exec
+/bin/bash -lc "rg -n \"survey|catatan_survey|nasabah_survey|hasilSurvey|Survey\" prisma/migrations -g '*.sql' | sed -n '1,260p'" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 516ms:
+prisma/migrations/20260418204642_init/migration.sql:111:    "hasilSurvey" TEXT,
+prisma/migrations/20260418204642_init/migration.sql:115:    "tanggalSurvey" TIMESTAMP(3),
+prisma/migrations/20260418204642_init/migration.sql:117:    "surveyorId" TEXT,
+prisma/migrations/20260418204642_init/migration.sql:260:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_surveyorId_fkey" FOREIGN KEY ("surveyorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ succeeded in 809ms:
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+
+codex
+Saya akan pakai adapter model dinamis supaya tetap jalan walau nama model survey di schema berbeda antar branch. Berikutnya saya cek util serialisasi dan pola error JSON agar response route konsisten.
+exec
+/bin/bash -lc "sed -n '1,260p' src/lib/utils.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 180ms:
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+function isPrismaDecimalWithPlaces(
+  value: unknown,
+): value is { toDecimalPlaces: (...args: unknown[]) => unknown } {
+  if (!value || typeof value !== "object") return false
+  const record = value as Record<string, unknown>
+  return (
+    "d" in record &&
+    "e" in record &&
+    "s" in record &&
+    typeof record.toDecimalPlaces === "function"
+  )
+}
+
+function isDecimalWithToNumber(value: unknown): value is { toNumber: () => unknown } {
+  if (!value || typeof value !== "object") return false
+  const record = value as Record<string, unknown>
+  if (typeof record.toNumber !== "function") return false
+
+  const ctorName = (value as { constructor?: { name?: unknown } }).constructor?.name
+  return ctorName === "Decimal"
+}
+
+export function serializeData<T>(data: T): T {
+  if (data === null || data === undefined) return data
+  if (typeof data !== "object") return data
+
+  if (data instanceof Date) {
+    return data
+  }
+
+  // Prisma Decimal-like objects are not directly serializable in RSC payloads.
+  if (isPrismaDecimalWithPlaces(data) || isDecimalWithToNumber(data)) {
+    return Number(data) as unknown as T
+  }
+
+  // Handle arrays
+  if (Array.isArray(data)) {
+    return data.map((item) => serializeData(item)) as unknown as T
+  }
+
+  // Handle plain objects
+  const serialized: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    serialized[key] = serializeData(value)
+  }
+  return serialized as unknown as T
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/logo/route.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/pengajuan/route.ts" in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 1437ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+const LOGO_MAX_FILE_SIZE = 600 * 1024 // 600KB
+const LOGO_ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+])
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+  const file = files[0]
+
+  if (!file) {
+    return Response.json({ error: "Tidak ada file logo yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob([file], "uploads/logo", {
+      maxFileSize: LOGO_MAX_FILE_SIZE,
+      allowedTypes: LOGO_ALLOWED_TYPES,
+    })
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload logo gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+ succeeded in 7535ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pengajuan")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_133415/p1d-survey-actions-api/dashboard
+ succeeded in 31196ms:
+2026-04-23T14:00:12.461265Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 2/5
+2026-04-23T14:03:51.891639Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 3/5
+2026-04-23T14:07:20.045352Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 4/5
+2026-04-23T14:08:25.768488Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 5/5
+2026-04-23T14:09:24.171415Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 1/5

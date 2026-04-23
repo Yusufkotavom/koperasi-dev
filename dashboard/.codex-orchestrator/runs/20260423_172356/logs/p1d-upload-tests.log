@@ -1,0 +1,2495 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dbb5e-b5e9-7253-a037-e1a945aaa82f
+--------
+user
+You are Worker p1d-upload-tests. Ownership: src/app/api/upload/nasabah/route.ts and src/app/api/upload/nasabah/__tests__/route.test.ts (new if needed). Task: ensure route enforces file count/mime/size and tenant-aware path, with focused tests for unauthorized/no-files/invalid-type/too-many/too-large/success. Keep backward-compatible response shape as much as practical. Run tests and commit. You are not alone; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+codex
+Saya akan mulai dengan membaca route upload nasabah dan test yang ada, lalu menambahkan validasi jumlah file/MIME/ukuran + tenant-aware path tanpa mengubah shape respons lebih dari perlu. Setelah itu saya jalankan test terfokus, lalu commit per scope yang selesai.
+exec
+/bin/bash -lc "pwd && ls -la /home/kotacom/.codex/skills/using-superpowers && sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+total 20
+drwxr-xr-x 3 kotacom kotacom 4096 Apr 19 14:17 .
+drwxr-xr-x 4 kotacom kotacom 4096 Apr 19 14:17 ..
+-rw-r--r-- 1 kotacom kotacom 5421 Apr 19 14:17 SKILL.md
+drwxr-xr-x 2 kotacom kotacom 4096 Apr 19 14:17 references
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+codex
+Saya sedang kumpulkan konteks wajib dulu: cek panduan Next.js lokal untuk Route Handlers, lalu baca implementasi route upload dan test saat ini sebelum edit.
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg --files node_modules/next/dist/docs | rg -i 'route|request|app' | head -n 40" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/02-pages/02-guides/migrating/from-create-react-app.md
+node_modules/next/dist/docs/02-pages/02-guides/migrating/app-router-migration.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/index.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/04-automatic-static-optimization.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/03-get-server-side-props.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/index.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/05-client-side.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/index.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/03-forms-and-mutations.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/05-client-side-rendering.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/01-server-side-rendering.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/01-get-static-props.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/03-linking-and-navigating.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/08-custom-error.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/05-custom-app.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/index.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/06-configuring/index.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/06-custom-document.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/06-configuring/12-error-handling.md
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/01-pages-and-layouts.md
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-request.md
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md
+node_modules/next/dist/docs/02-pages/04-api-reference/05-cli/create-next-app.md
+node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/bundlePagesRouterDependencies.md
+node_modules/next/dist/docs/01-app/index.md
+node_modules/next/dist/docs/01-app/02-guides/streaming.md
+node_modules/next/dist/docs/01-app/02-guides/debugging.md
+node_modules/next/dist/docs/01-app/02-guides/authentication.md
+node_modules/next/dist/docs/01-app/03-api-reference/index.md
+node_modules/next/dist/docs/01-app/02-guides/static-exports.md
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md
+node_modules/next/dist/docs/01-app/02-guides/multi-zones.md
+node_modules/next/dist/docs/01-app/02-guides/scripts.md
+node_modules/next/dist/docs/01-app/02-guides/mcp.md
+node_modules/next/dist/docs/01-app/03-api-reference/06-cli/next.md
+node_modules/next/dist/docs/01-app/02-guides/ci-build-caching.md
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && git status --short' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg --files node_modules/next/dist/docs/01-app | rg -i 'route-hand|route handler|route|request|formdata|api'" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/01-app/02-guides/migrating/app-router-migration.md
+node_modules/next/dist/docs/01-app/03-api-reference/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/06-cli/next.md
+node_modules/next/dist/docs/01-app/03-api-reference/06-cli/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/06-cli/create-next-app.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/intercepting-routes.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/error.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/not-found.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/parallel-routes.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/permanentRedirect.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-viewport.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/not-found.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-search-params.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-selected-layout-segment.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unstable_noStore.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/updateTag.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-selected-layout-segments.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/connection.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-sitemaps.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/catchError.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/forbidden.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/refresh.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/userAgent.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/draft-mode.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/image-response.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/template.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/default.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/src-folder.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/layout.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/page.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/forbidden.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/maxDuration.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/runtime.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/dynamicParams.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/preferredRegion.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/loading.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/mdx-components.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/unauthorized.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/manifest.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/app-icons.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/opengraph-image.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/sitemap.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/robots.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route-groups.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation-client.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/public-folder.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-image-metadata.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-params.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cacheLife.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-response.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-request.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidateTag.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-link-status.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cookies.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unauthorized.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cacheTag.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-router.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/fetch.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-pathname.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unstable_rethrow.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/headers.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-metadata.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unstable_cache.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-report-web-vitals.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/form.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/font.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/script.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/link.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/03-eslint.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/webpack.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/reactMaxHeadersLength.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/httpAgentOptions.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/trailingSlash.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/env.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/authInterrupts.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/rewrites.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/cacheHandlers.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/proxyClientMaxBodySize.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/appDir.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/logging.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/staticGeneration.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/deploymentId.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/reactStrictMode.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/serverExternalPackages.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/devIndicators.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/allowedDevOrigins.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/expireTime.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/urlImports.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackFileSystemCache.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/sassOptions.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/staleTimes.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/typedRoutes.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/adapterPath.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/exportPathMap.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/cacheComponents.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/htmlLimitedBots.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/distDir.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/mdxRs.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/cacheLife.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/onDemandEntries.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/assetPrefix.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/serverComponentsHmrCache.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/turbopack.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/compress.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/images.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/generateBuildId.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackIgnoreIssue.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/transpilePackages.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/webVitalsAttribution.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/serverActions.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/inlineCss.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/useLightningcss.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/redirects.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/generateEtags.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/poweredByHeader.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/headers.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/optimizePackageImports.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/incrementalCacheHandlerPath.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/productionBrowserSourceMaps.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/pageExtensions.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/reactCompiler.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/taint.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/crossOrigin.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/basePath.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/cssChunking.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/viewTransition.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/typescript.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/02-typescript.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache-remote.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-server.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache-private.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-client.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-edge.md
+node_modules/next/dist/docs/01-app/03-api-reference/08-turbopack.md
+node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/08-invoking-entrypoints.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/05-routing-with-next-routing.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/01-configuration.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/07-runtime-integration.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/11-use-cases.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/09-output-types.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/02-creating-an-adapter.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/06-implementing-ppr-in-an-adapter.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/03-api-reference.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/04-testing-adapters.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/10-routing-information.md
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg --files src/app/api/upload/nasabah && rg --files src/app/api/upload/nasabah/__tests__ || true' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/nasabah/__tests__: No such file or directory (os error 2)
+
+codex
+Saya sudah temukan route handler guide lokal Next.js yang relevan dan memastikan file test belum ada. Berikutnya saya baca route sekarang untuk menjaga kompatibilitas response, lalu tulis test failure dulu untuk 6 skenario yang diminta.
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && sed -n '1,220p' node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+---
+title: Route Handlers
+nav_title: Route Handlers
+description: Learn how to use Route Handlers
+related:
+  title: API Reference
+  description: Learn more about Route Handlers
+  links:
+    - app/api-reference/file-conventions/route
+    - app/guides/backend-for-frontend
+---
+
+## Route Handlers
+
+Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+
+<Image
+  alt="Route.js Special File"
+  srcLight="/docs/light/route-special-file.png"
+  srcDark="/docs/dark/route-special-file.png"
+  width="1600"
+  height="444"
+/>
+
+> **Good to know**: Route Handlers are only available inside the `app` directory. They are the equivalent of [API Routes](/docs/pages/building-your-application/routing/api-routes) inside the `pages` directory meaning you **do not** need to use API Routes and Route Handlers together.
+
+### Convention
+
+Route Handlers are defined in a [`route.js|ts` file](/docs/app/api-reference/file-conventions/route) inside the `app` directory:
+
+```ts filename="app/api/route.ts" switcher
+export async function GET(request: Request) {}
+```
+
+```js filename="app/api/route.js" switcher
+export async function GET(request) {}
+```
+
+Route Handlers can be nested anywhere inside the `app` directory, similar to `page.js` and `layout.js`. But there **cannot** be a `route.js` file at the same route segment level as `page.js`.
+
+### Supported HTTP Methods
+
+The following [HTTP methods](https://developer.mozilla.org/docs/Web/HTTP/Methods) are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`. If an unsupported method is called, Next.js will return a `405 Method Not Allowed` response.
+
+### Extended `NextRequest` and `NextResponse` APIs
+
+In addition to supporting the native [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs, Next.js extends them with [`NextRequest`](/docs/app/api-reference/functions/next-request) and [`NextResponse`](/docs/app/api-reference/functions/next-response) to provide convenient helpers for advanced use cases.
+
+### Caching
+
+Route Handlers are not cached by default. You can, however, opt into caching for `GET` methods. Other supported HTTP methods are **not** cached. To cache a `GET` method, use a [route config option](/docs/app/guides/caching-without-cache-components#dynamic) such as `export const dynamic = 'force-static'` in your Route Handler file.
+
+```ts filename="app/items/route.ts" switcher
+export const dynamic = 'force-static'
+
+export async function GET() {
+  const res = await fetch('https://data.mongodb-api.com/...', {
+    headers: {
+      'Content-Type': 'application/json',
+      'API-Key': process.env.DATA_API_KEY,
+    },
+  })
+  const data = await res.json()
+
+  return Response.json({ data })
+}
+```
+
+```js filename="app/items/route.js" switcher
+export const dynamic = 'force-static'
+
+export async function GET() {
+  const res = await fetch('https://data.mongodb-api.com/...', {
+    headers: {
+      'Content-Type': 'application/json',
+      'API-Key': process.env.DATA_API_KEY,
+    },
+  })
+  const data = await res.json()
+
+  return Response.json({ data })
+}
+```
+
+> **Good to know**: Other supported HTTP methods are **not** cached, even if they are placed alongside a `GET` method that is cached, in the same file.
+
+#### With Cache Components
+
+When [Cache Components](/docs/app/getting-started/caching) is enabled, `GET` Route Handlers follow the same model as normal UI routes in your application. They run at request time by default, can be prerendered when they don't access uncached or runtime data, and you can use `use cache` to include uncached data in the static response.
+
+**Static example** - doesn't access uncached or runtime data, so it will be prerendered at build time:
+
+```tsx filename="app/api/project-info/route.ts"
+export async function GET() {
+  return Response.json({
+    projectName: 'Next.js',
+  })
+}
+```
+
+**Dynamic example** - accesses non-deterministic operations. During the build, prerendering stops when `Math.random()` is called, deferring to request-time rendering:
+
+```tsx filename="app/api/random-number/route.ts"
+export async function GET() {
+  return Response.json({
+    randomNumber: Math.random(),
+  })
+}
+```
+
+**Runtime data example** - accesses request-specific data. Prerendering terminates when runtime APIs like `headers()` are called:
+
+```tsx filename="app/api/user-agent/route.ts"
+import { headers } from 'next/headers'
+
+export async function GET() {
+  const headersList = await headers()
+  const userAgent = headersList.get('user-agent')
+
+  return Response.json({ userAgent })
+}
+```
+
+> **Good to know**: Prerendering stops if the `GET` handler accesses network requests, database queries, async file system operations, request object properties (like `req.url`, `request.headers`, `request.cookies`, `request.body`), runtime APIs like [`cookies()`](/docs/app/api-reference/functions/cookies), [`headers()`](/docs/app/api-reference/functions/headers), [`connection()`](/docs/app/api-reference/functions/connection), or non-deterministic operations.
+
+**Cached example** - accesses uncached data (database query) but caches it with `use cache`, allowing it to be included in the prerendered response:
+
+```tsx filename="app/api/products/route.ts"
+import { cacheLife } from 'next/cache'
+
+export async function GET() {
+  const products = await getProducts()
+  return Response.json(products)
+}
+
+async function getProducts() {
+  'use cache'
+  cacheLife('hours')
+
+  return await db.query('SELECT * FROM products')
+}
+```
+
+> **Good to know**: `use cache` cannot be used directly inside a Route Handler body; extract it to a helper function. Cached responses revalidate according to `cacheLife` when a new request arrives.
+
+### Special Route Handlers
+
+Special Route Handlers like [`sitemap.ts`](/docs/app/api-reference/file-conventions/metadata/sitemap), [`opengraph-image.tsx`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), and [`icon.tsx`](/docs/app/api-reference/file-conventions/metadata/app-icons), and other [metadata files](/docs/app/api-reference/file-conventions/metadata) remain static by default unless they use Request-time APIs or dynamic config options.
+
+### Route Resolution
+
+You can consider a `route` the lowest level routing primitive.
+
+- They **do not** participate in layouts or client-side navigations like `page`.
+- There **cannot** be a `route.js` file at the same route as `page.js`.
+
+| Page                 | Route              | Result                       |
+| -------------------- | ------------------ | ---------------------------- |
+| `app/page.js`        | `app/route.js`     | <Cross size={18} /> Conflict |
+| `app/page.js`        | `app/api/route.js` | <Check size={18} /> Valid    |
+| `app/[user]/page.js` | `app/api/route.js` | <Check size={18} /> Valid    |
+
+Each `route.js` or `page.js` file takes over all HTTP verbs for that route.
+
+```ts filename="app/page.ts" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>
+}
+
+// Conflict
+// `app/route.ts`
+export async function POST(request: Request) {}
+```
+
+```js filename="app/page.js" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>
+}
+
+// Conflict
+// `app/route.js`
+export async function POST(request) {}
+```
+
+Read more about how Route Handlers [complement your frontend application](/docs/app/guides/backend-for-frontend), or explore the Route Handlers [API Reference](/docs/app/api-reference/file-conventions/route).
+
+### Route Context Helper
+
+In TypeScript, you can type the `context` parameter for Route Handlers with the globally available [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper) helper:
+
+```ts filename="app/users/[id]/route.ts" switcher
+import type { NextRequest } from 'next/server'
+
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+  const { id } = await ctx.params
+  return Response.json({ id })
+}
+```
+
+> **Good to know**
+>
+> - Types are generated during `next dev`, `next build` or `next typegen`.
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && sed -n '1,260p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && sed -n '1,260p' src/lib/auth.ts" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
+  logger: {
+    error(error) {
+      // Invalid credentials are expected during login attempts; avoid noisy server error logs.
+      const raw = String(error)
+      if (raw.includes("CredentialsSignin")) return
+      console.error("[auth][error]", error)
+    },
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(6),
+        }).safeParse({
+          email: typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "",
+          password: typeof credentials?.password === "string" ? credentials.password : "",
+        })
+
+        if (!parsed.success) return null
+
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+          },
+        })
+
+        if (!user || !user.isActive) return null
+        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password)
+        if (!passwordMatch) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles.map((r: { role: string }) => r.role),
+          companyId: user.companyId,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      const t = token as typeof token & {
+        id?: string
+        roles?: string[]
+        companyId?: string | null
+        companyName?: string | null
+        companySlug?: string | null
+      }
+
+      if (user) {
+        // @ts-expect-error custom field
+        t.roles = user.roles
+        t.id = user.id
+        // @ts-expect-error custom field
+        t.companyId = user.companyId
+        // @ts-expect-error custom field
+        t.companyName = user.companyName
+        // @ts-expect-error custom field
+        t.companySlug = user.companySlug
+      }
+
+      if (!t.id && token.sub) {
+        t.id = token.sub
+      }
+
+      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+        const next = session as { actingCompanyId?: unknown; clearActingCompany?: unknown } | undefined
+        const clearActing = next?.clearActingCompany === true || next?.actingCompanyId === null || next?.actingCompanyId === ""
+        if (clearActing) {
+          t.companyId = null
+          t.companyName = null
+          t.companySlug = null
+        } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
+          const company = await prisma.company.findUnique({
+            where: { id: next.actingCompanyId },
+            select: { id: true, name: true, slug: true },
+          })
+          if (company) {
+            t.companyId = company.id
+            t.companyName = company.name
+            t.companySlug = company.slug
+          }
+        }
+      }
+
+      const needsHydration =
+        !Array.isArray(t.roles) ||
+        typeof t.id !== "string" ||
+        t.id.length === 0 ||
+        t.companyId === undefined
+
+      if (needsHydration && typeof token.email === "string" && token.email.length > 0) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email.toLowerCase() },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true } },
+          },
+        })
+
+        if (dbUser) {
+          t.id = dbUser.id
+          t.roles = dbUser.roles.map((r) => r.role)
+          t.companyId = dbUser.companyId
+          t.companyName = dbUser.company?.name ?? null
+          t.companySlug = dbUser.company?.slug ?? null
+        }
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        const t = token as typeof token & {
+          id?: string
+          roles?: string[]
+          companyId?: string | null
+          companyName?: string | null
+          companySlug?: string | null
+        }
+        // @ts-expect-error custom field
+        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+        session.user.id = (t.id ?? token.sub ?? "") as string
+        // @ts-expect-error custom field
+        session.user.companyId = (t.companyId ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyName = (t.companyName ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companySlug = (t.companySlug ?? null) as string | null
+      }
+      return session
+    },
+  },
+})
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && sed -n '1,260p' src/lib/blob-upload.ts" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { put } from "@vercel/blob"
+import path from "node:path"
+import { randomUUID } from "node:crypto"
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+])
+
+function getBlobToken() {
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+  return token && token.length > 0 ? token : undefined
+}
+
+export function validateUploadFile(file: File): string | null {
+  if (!ALLOWED_TYPES.has(file.type)) {
+    return `Tipe file tidak didukung: ${file.name}`
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return `Ukuran file melebihi 5 MB: ${file.name}`
+  }
+  return null
+}
+
+type UploadPolicy = {
+  maxFileSize?: number
+  allowedTypes?: Set<string> | string[]
+}
+
+export function validateUploadFileWithPolicy(file: File, policy?: UploadPolicy): string | null {
+  const allowedTypes =
+    policy?.allowedTypes instanceof Set ? policy.allowedTypes : new Set(policy?.allowedTypes ?? ALLOWED_TYPES)
+  const maxFileSize = policy?.maxFileSize ?? MAX_FILE_SIZE
+
+  if (!allowedTypes.has(file.type)) {
+    return `Tipe file tidak didukung: ${file.name}`
+  }
+  if (file.size > maxFileSize) {
+    const maxMb = Math.round((maxFileSize / 1024 / 1024) * 10) / 10
+    return `Ukuran file melebihi ${maxMb} MB: ${file.name}`
+  }
+
+  return null
+}
+
+export async function uploadFilesToBlob(files: File[], folder: string, policy?: UploadPolicy): Promise<string[]> {
+  const token = getBlobToken()
+  const uploadedUrls: string[] = []
+
+  for (const file of files) {
+    const error = validateUploadFileWithPolicy(file, policy)
+    if (error) throw new Error(error)
+
+    const ext = path.extname(file.name) || ".bin"
+    const safeName = `${Date.now()}-${randomUUID()}${ext}`
+    const key = `${folder}/${safeName}`
+    const blob = await put(key, file, {
+      access: "public",
+      addRandomSuffix: false,
+      token,
+    })
+    uploadedUrls.push(blob.url)
+  }
+
+  return uploadedUrls
+}
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg -n \"uploadFilesToBlob\\(|uploads/\" src/app/api src/actions src/lib | head -n 120" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+src/app/api/upload/pengajuan/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pengajuan")
+src/app/api/upload/pembayaran/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pembayaran")
+src/app/api/upload/nasabah/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+src/app/api/upload/logo/route.ts:27:    const uploadedUrls = await uploadFilesToBlob([file], "uploads/logo", {
+src/lib/blob-upload.ts:49:export async function uploadFilesToBlob(files: File[], folder: string, policy?: UploadPolicy): Promise<string[]> {
+src/app/api/upload/kas/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/kas")
+
+codex
+Saya melihat helper upload sudah validasi MIME dan size per-file; saya lanjut cek route upload lain untuk pola kompatibilitas (status/error shape) sebelum menulis test khusus nasabah.
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && sed -n '1,240p' src/app/api/upload/pengajuan/route.ts && sed -n '1,240p' src/app/api/upload/pembayaran/route.ts && sed -n '1,240p' src/app/api/upload/logo/route.ts && sed -n '1,240p' src/app/api/upload/kas/route.ts" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pengajuan")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pembayaran")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+const LOGO_MAX_FILE_SIZE = 600 * 1024 // 600KB
+const LOGO_ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+])
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+  const file = files[0]
+
+  if (!file) {
+    return Response.json({ error: "Tidak ada file logo yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob([file], "uploads/logo", {
+      maxFileSize: LOGO_MAX_FILE_SIZE,
+      allowedTypes: LOGO_ALLOWED_TYPES,
+    })
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload logo gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/kas")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg -n \"api/upload/.+__tests__|upload.*route\\.test|Unauthorized|Tidak ada file\" src | head -n 200" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+src/actions/kelompok.ts:13:  if (!session) throw new Error("Unauthorized")
+src/actions/kelompok.ts:33:  if (!session) throw new Error("Unauthorized")
+src/actions/kelompok.ts:52:  if (!session) throw new Error("Unauthorized")
+src/actions/kelompok.ts:77:  if (!session) throw new Error("Unauthorized")
+src/actions/kelompok.ts:124:  if (!session) throw new Error("Unauthorized")
+src/actions/kelompok.ts:178:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:49:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:228:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:261:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:329:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:389:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:401:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:448:  if (!session) throw new Error("Unauthorized")
+src/actions/nasabah.ts:455:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:27:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:53:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:87:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:112:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:172:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:194:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:265:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:301:  if (!session) throw new Error("Unauthorized")
+src/actions/akuntansi.ts:394:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:41:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:76:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:99:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:118:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:160:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:217:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:377:  if (!session) throw new Error("Unauthorized")
+src/actions/pengajuan.ts:398:  if (!session) throw new Error("Unauthorized")
+src/actions/settings.ts:74:  if (!session) throw new Error("Unauthorized")
+src/actions/settings.ts:106:  if (!session) throw new Error("Unauthorized")
+src/actions/settings.ts:147:  if (!session) throw new Error("Unauthorized")
+src/actions/settings.ts:158:  if (!session) throw new Error("Unauthorized")
+src/actions/settings.ts:182:  if (!session) throw new Error("Unauthorized")
+src/actions/settings.ts:200:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:50:  if (!session) return { error: "Unauthorized" as const }
+src/actions/kas.ts:79:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:129:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:172:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:233:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:277:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:342:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:405:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:495:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:577:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:621:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:644:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:737:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:759:  if (!session) throw new Error("Unauthorized")
+src/actions/kas.ts:820:  if (!session) throw new Error("Unauthorized")
+src/actions/dashboard.ts:21:  if (!session) throw new Error("Unauthorized")
+src/actions/dashboard.ts:123:  if (!session) throw new Error("Unauthorized")
+src/actions/dashboard.ts:160:  if (!session) throw new Error("Unauthorized")
+src/actions/dashboard.ts:292:  if (!session) throw new Error("Unauthorized")
+src/actions/dashboard.ts:405:  if (!session) throw new Error("Unauthorized")
+src/actions/dashboard.ts:434:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:84:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:116:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:215:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:310:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:382:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:591:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:607:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:698:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:839:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:1041:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:1068:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:1122:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:1149:  if (!session) throw new Error("Unauthorized")
+src/actions/pembayaran.ts:1314:  if (!session) throw new Error("Unauthorized")
+src/actions/kolektor.ts:23:  if (!session) throw new Error("Unauthorized")
+src/actions/kolektor.ts:54:  if (!session) throw new Error("Unauthorized")
+src/actions/kolektor.ts:134:  if (!session) throw new Error("Unauthorized")
+src/actions/kolektor.ts:161:  if (!session) throw new Error("Unauthorized")
+src/actions/kolektor.ts:200:  if (!session) throw new Error("Unauthorized")
+src/actions/kolektor.ts:241:  if (!session) throw new Error("Unauthorized")
+src/app/api/upload/pengajuan/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pengajuan/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/nasabah/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/nasabah/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pembayaran/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pembayaran/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/kas/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/kas/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/logo/route.ts:15:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/logo/route.ts:23:    return Response.json({ error: "Tidak ada file logo yang diupload." }, { status: 400 })
+src/lib/tenant.ts:14:  if (!userId) throw new Error("Unauthorized")
+src/lib/roles.ts:20:    throw new Error("Unauthorized")
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && cat package.json' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg --files src | rg -E '\\.test\\.(ts|tsx)"'$|__tests__'"' | head -n 120" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+error: The following required arguments were not provided:
+    <PATTERN>
+
+USAGE:
+    
+    rg [OPTIONS] PATTERN [PATH ...]
+    rg [OPTIONS] -e PATTERN ... [PATH ...]
+    rg [OPTIONS] -f PATTERNFILE ... [PATH ...]
+    rg [OPTIONS] --files [PATH ...]
+    rg [OPTIONS] --type-list
+    command | rg [OPTIONS] PATTERN
+    rg [OPTIONS] --help
+    rg [OPTIONS] --version
+
+For more information try --help
+
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg -n \"vitest|jest|describe\\(|expect\\(\" -g '*.{ts,tsx,js,mjs,cjs}' | head -n 200" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+codex
+Saya menemukan repo ini belum punya setup test runner di `package.json`, jadi saya cek pola test yang sudah ada (kalau ada) agar file test baru bisa dijalankan dengan cara yang konsisten.
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg --files | rg -E '(test|spec)\\.(ts|tsx|js|mjs|cjs)"'$|__tests__|vitest|jest'"' | head -n 200" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+error: The following required arguments were not provided:
+    <PATTERN>
+
+USAGE:
+    
+    rg [OPTIONS] PATTERN [PATH ...]
+    rg [OPTIONS] -e PATTERN ... [PATH ...]
+    rg [OPTIONS] -f PATTERNFILE ... [PATH ...]
+    rg [OPTIONS] --files [PATH ...]
+    rg [OPTIONS] --type-list
+    command | rg [OPTIONS] PATTERN
+    rg [OPTIONS] --help
+    rg [OPTIONS] --version
+
+For more information try --help
+
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg --files | grep -E '(test|spec)\\.(ts|tsx|js|mjs|cjs)"'$|__tests__|vitest|jest'"' | head -n 200" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && cat tsconfig.json' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg -n \"api/upload/nasabah|upload/nasabah|files\\]\" src/app src/components src/actions | head -n 200" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:99:      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+src/app/(dashboard)/nasabah/baru/page.tsx:92:      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && rg -n "5 MB|file|dokumen|pdf|jpeg|jpg|png|webp|max" src/app src/components src/lib | rg -n "nasabah|upload" | head -n 200' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+3:src/lib/blob-upload.ts:5:const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+4:src/lib/blob-upload.ts:7:  "image/jpeg",
+5:src/lib/blob-upload.ts:8:  "image/png",
+6:src/lib/blob-upload.ts:9:  "image/webp",
+7:src/lib/blob-upload.ts:10:  "application/pdf",
+8:src/lib/blob-upload.ts:18:export function validateUploadFile(file: File): string | null {
+9:src/lib/blob-upload.ts:19:  if (!ALLOWED_TYPES.has(file.type)) {
+10:src/lib/blob-upload.ts:20:    return `Tipe file tidak didukung: ${file.name}`
+11:src/lib/blob-upload.ts:22:  if (file.size > MAX_FILE_SIZE) {
+12:src/lib/blob-upload.ts:23:    return `Ukuran file melebihi 5 MB: ${file.name}`
+13:src/lib/blob-upload.ts:29:  maxFileSize?: number
+14:src/lib/blob-upload.ts:33:export function validateUploadFileWithPolicy(file: File, policy?: UploadPolicy): string | null {
+15:src/lib/blob-upload.ts:36:  const maxFileSize = policy?.maxFileSize ?? MAX_FILE_SIZE
+16:src/lib/blob-upload.ts:38:  if (!allowedTypes.has(file.type)) {
+17:src/lib/blob-upload.ts:39:    return `Tipe file tidak didukung: ${file.name}`
+18:src/lib/blob-upload.ts:41:  if (file.size > maxFileSize) {
+19:src/lib/blob-upload.ts:42:    const maxMb = Math.round((maxFileSize / 1024 / 1024) * 10) / 10
+20:src/lib/blob-upload.ts:43:    return `Ukuran file melebihi ${maxMb} MB: ${file.name}`
+21:src/lib/blob-upload.ts:49:export async function uploadFilesToBlob(files: File[], folder: string, policy?: UploadPolicy): Promise<string[]> {
+22:src/lib/blob-upload.ts:53:  for (const file of files) {
+23:src/lib/blob-upload.ts:54:    const error = validateUploadFileWithPolicy(file, policy)
+24:src/lib/blob-upload.ts:57:    const ext = path.extname(file.name) || ".bin"
+25:src/lib/blob-upload.ts:60:    const blob = await put(key, file, {
+28:src/lib/validations/nasabah.ts:17:  dokumenUrls: z.array(z.string().min(3)).optional(),
+76:src/app/(marketing)/_components/marketing-data.ts:23:    image: "/snitch/project/master_nasabah_client_data_management/nasabah.png",
+138:src/app/(dashboard)/pengajuan/baru/page.tsx:434:                  <Upload className="size-3" /> {isUploadingDokumen ? "Sedang upload..." : "Upload dokumen (jpg/png/webp/pdf, max 5MB per file)."}
+143:src/app/(dashboard)/nasabah/page.tsx:25:  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+144:src/app/(dashboard)/nasabah/[id]/page.tsx:36:  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+145:src/app/(dashboard)/nasabah/[id]/page.tsx:111:    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+146:src/app/(dashboard)/nasabah/[id]/page.tsx:173:    <div className="p-6 max-w-4xl mx-auto space-y-6">
+147:src/app/(dashboard)/nasabah/[id]/page.tsx:199:          <a href="#dokumen">Dokumen ({nasabah.dokumenUrls.length})</a>
+148:src/app/(dashboard)/nasabah/[id]/page.tsx:273:                <TooltipContent className="max-w-sm">
+149:src/app/(dashboard)/nasabah/[id]/page.tsx:339:      <Card id="dokumen" className="scroll-mt-24">
+150:src/app/(dashboard)/nasabah/[id]/page.tsx:344:          {nasabah.dokumenUrls.length === 0 ? (
+151:src/app/(dashboard)/nasabah/[id]/page.tsx:345:            <p className="text-sm text-muted-foreground">Belum ada dokumen terlampir.</p>
+152:src/app/(dashboard)/nasabah/[id]/page.tsx:348:              {nasabah.dokumenUrls.map((url) => (
+153:src/app/(dashboard)/nasabah/[id]/page.tsx:426:                          href={`/dokumen/kartu-angsuran/${p.pinjaman.id}`}
+154:src/app/(dashboard)/nasabah/[id]/edit/page.tsx:23:    <div className="p-6 max-w-3xl mx-auto space-y-6">
+155:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:37:  dokumenUrls: string[]
+156:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:54:  const [dokumenText, setDokumenText] = useState("")
+157:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:55:  const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+158:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:72:      dokumenUrls: nasabah.dokumenUrls ?? [],
+159:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:88:    setValue("dokumenUrls", merged, { shouldValidate: true })
+160:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:91:  async function handleUploadDokumen(files: FileList | null) {
+161:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:92:    if (!files || files.length === 0) return
+162:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:97:      Array.from(files).forEach((file) => formData.append("files", file))
+163:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:103:        throw new Error(json.error ?? "Upload dokumen gagal.")
+164:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:108:      syncDokumenValue(dokumenText, nextUploaded)
+165:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:111:      toast.error("Upload dokumen gagal.")
+166:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:147:              <Input id="nik" {...register("nik")} maxLength={16} />
+167:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:248:            <Label htmlFor="dokumenPendukung">Dokumen Pendukung</Label>
+168:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:250:              id="dokumenPendukung"
+169:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:251:              placeholder="Masukkan URL dokumen manual (1 baris 1 URL)"
+170:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:253:              value={dokumenText}
+171:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:261:              id="dokumenFile"
+172:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:262:              type="file"
+173:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:264:              accept=".jpg,.jpeg,.png,.webp,.pdf"
+174:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:266:                void handleUploadDokumen(e.target.files)
+175:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:272:              <Upload className="size-3" /> {isUploadingDokumen ? "Sedang upload..." : "Upload file dokumen (max 5MB per file)."}
+176:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:288:                        syncDokumenValue(dokumenText, nextUploaded)
+177:src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:297:            {errors.dokumenUrls && <p className="text-xs text-red-500">Dokumen pendukung tidak valid.</p>}
+182:src/app/(dashboard)/nasabah/baru/page.tsx:42:  const [dokumenText, setDokumenText] = useState("")
+183:src/app/(dashboard)/nasabah/baru/page.tsx:58:    defaultValues: { status: "AKTIF", dokumenUrls: [] },
+184:src/app/(dashboard)/nasabah/baru/page.tsx:81:    setValue("dokumenUrls", merged, { shouldValidate: true })
+185:src/app/(dashboard)/nasabah/baru/page.tsx:84:  async function handleUploadDokumen(files: FileList | null) {
+186:src/app/(dashboard)/nasabah/baru/page.tsx:85:    if (!files || files.length === 0) return
+187:src/app/(dashboard)/nasabah/baru/page.tsx:90:      Array.from(files).forEach((file) => formData.append("files", file))
+188:src/app/(dashboard)/nasabah/baru/page.tsx:96:        throw new Error(json.error ?? "Upload dokumen gagal.")
+189:src/app/(dashboard)/nasabah/baru/page.tsx:101:      syncDokumenValue(dokumenText, nextUploaded)
+190:src/app/(dashboard)/nasabah/baru/page.tsx:104:      toast.error("Upload dokumen gagal.")
+191:src/app/(dashboard)/nasabah/baru/page.tsx:168:          } else if (result.error.kelompokId || result.error.kolektorId || result.error.dokumenUrls) {
+192:src/app/(dashboard)/nasabah/baru/page.tsx:187:    <div className="p-6 max-w-2xl mx-auto space-y-6">
+193:src/app/(dashboard)/nasabah/baru/page.tsx:219:                <Input id="nik" {...register("nik")} placeholder="Nomor KTP" maxLength={16} />
+194:src/app/(dashboard)/nasabah/baru/page.tsx:323:                <Label htmlFor="dokumenPendukung">Dokumen Pendukung Pelanggan Baru</Label>
+195:src/app/(dashboard)/nasabah/baru/page.tsx:325:                  id="dokumenPendukung"
+196:src/app/(dashboard)/nasabah/baru/page.tsx:326:                  placeholder="Masukkan URL dokumen (1 baris 1 URL):\nhttps://.../ktp.jpg\nhttps://.../kk.jpg"
+197:src/app/(dashboard)/nasabah/baru/page.tsx:328:                  value={dokumenText}
+198:src/app/(dashboard)/nasabah/baru/page.tsx:336:                  <Label htmlFor="dokumenFile">Upload File Dokumen (jpg/png/webp/pdf, max 5MB)</Label>
+199:src/app/(dashboard)/nasabah/baru/page.tsx:338:                    id="dokumenFile"
+200:src/app/(dashboard)/nasabah/baru/page.tsx:339:                    type="file"
+201:src/app/(dashboard)/nasabah/baru/page.tsx:341:                    accept=".jpg,.jpeg,.png,.webp,.pdf"
+202:src/app/(dashboard)/nasabah/baru/page.tsx:343:                      void handleUploadDokumen(e.target.files)
+203:src/app/(dashboard)/nasabah/baru/page.tsx:349:                    <Upload className="size-3" /> {isUploadingDokumen ? "Sedang upload..." : "Bisa pilih lebih dari satu file."}
+204:src/app/(dashboard)/nasabah/baru/page.tsx:368:                              syncDokumenValue(dokumenText, nextUploaded)
+205:src/app/(dashboard)/nasabah/baru/page.tsx:379:                {errors.dokumenUrls && <p className="text-xs text-red-500">Dokumen pendukung tidak valid.</p>}
+208:src/app/(dashboard)/docs/panduan-pengguna/page.tsx:91:                    src="/snitch/project/master_nasabah_client_data_management/nasabah.png" 
+216:src/app/(dashboard)/pembayaran/edit-button.tsx:20:async function uploadBuktiPembayaran(file: File) {
+220:src/app/(dashboard)/pembayaran/edit-button.tsx:77:      const url = await uploadBuktiPembayaran(file)
+226:src/app/(dashboard)/pembayaran/edit-button.tsx:142:                  <Upload className="size-3" /> {isUploading ? "Sedang upload..." : "Upload file bukti pembayaran (max 5MB)."}
+232:src/app/(dashboard)/pembayaran/bayar-button.tsx:24:async function uploadBuktiPembayaran(file: File) {
+236:src/app/(dashboard)/pembayaran/bayar-button.tsx:101:      const url = await uploadBuktiPembayaran(file)
+242:src/app/(dashboard)/pembayaran/bayar-button.tsx:202:                <Upload className="size-3" /> {isUploading ? "Sedang upload..." : "Upload file bukti pembayaran (max 5MB)."}
+273:src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:33:  const uploadBukti = async (files: FileList | null) => {
+283:src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:153:              void uploadBukti(e.target.files)
+284:src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:158:            <Upload className="size-3" /> {isUploading ? "Sedang upload..." : "Upload bukti (max 5MB)."}
+291:src/app/(dashboard)/settings/company-settings-form.tsx:14:async function uploadLogo(file: File): Promise<string> {
+300:src/app/(dashboard)/settings/company-settings-form.tsx:178:                      const logoUrl = await uploadLogo(file)
+306:src/app/(dashboard)/kas/kas-client.tsx:119:  const uploadBukti = async (files: FileList | null) => {
+318:src/app/(dashboard)/kas/kas-client.tsx:598:                    void uploadBukti(e.target.files)
+319:src/app/(dashboard)/kas/kas-client.tsx:606:                     {isUploadingBukti ? "Sedang upload..." : "Upload bukti (jpg/png/pdf, max 5MB)"}
+342:src/app/api/upload/pengajuan/route.ts:11:  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+343:src/app/api/upload/pengajuan/route.ts:13:  if (files.length === 0) {
+344:src/app/api/upload/pengajuan/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+345:src/app/api/upload/pengajuan/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pengajuan")
+346:src/app/api/upload/pengajuan/route.ts:21:    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+347:src/app/api/upload/nasabah/route.ts:11:  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+348:src/app/api/upload/nasabah/route.ts:13:  if (files.length === 0) {
+349:src/app/api/upload/nasabah/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+350:src/app/api/upload/nasabah/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+351:src/app/api/upload/nasabah/route.ts:21:    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+352:src/app/api/upload/pembayaran/route.ts:11:  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+353:src/app/api/upload/pembayaran/route.ts:13:  if (files.length === 0) {
+354:src/app/api/upload/pembayaran/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+355:src/app/api/upload/pembayaran/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pembayaran")
+356:src/app/api/upload/pembayaran/route.ts:21:    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+357:src/app/api/upload/kas/route.ts:11:  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+358:src/app/api/upload/kas/route.ts:13:  if (files.length === 0) {
+359:src/app/api/upload/kas/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+360:src/app/api/upload/kas/route.ts:18:    const uploadedUrls = await uploadFilesToBlob(files, "uploads/kas")
+361:src/app/api/upload/kas/route.ts:21:    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+362:src/app/api/upload/logo/route.ts:6:  "image/jpeg",
+363:src/app/api/upload/logo/route.ts:7:  "image/png",
+364:src/app/api/upload/logo/route.ts:8:  "image/webp",
+365:src/app/api/upload/logo/route.ts:19:  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+366:src/app/api/upload/logo/route.ts:20:  const file = files[0]
+367:src/app/api/upload/logo/route.ts:22:  if (!file) {
+368:src/app/api/upload/logo/route.ts:23:    return Response.json({ error: "Tidak ada file logo yang diupload." }, { status: 400 })
+369:src/app/api/upload/logo/route.ts:27:    const uploadedUrls = await uploadFilesToBlob([file], "uploads/logo", {
+370:src/app/api/upload/logo/route.ts:28:      maxFileSize: LOGO_MAX_FILE_SIZE,
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && sed -n '1,220p' src/lib/tenant.ts" in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+export function requireCompanyId(session: SessionLike) {
+  const userId = session?.user?.id
+  if (!userId) throw new Error("Unauthorized")
+
+  const companyId = session.user?.companyId
+  if (!companyId) {
+    // SUPER_ADMIN is allowed to exist without a company context.
+    const roles = session.user?.roles ?? []
+    if (roles.includes(RoleType.SUPER_ADMIN)) {
+      throw new Error("Company context required")
+    }
+    throw new Error("Akun belum terhubung ke company.")
+  }
+
+  return { userId, companyId }
+}
+
+export function requireCompanyRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const { userId } = requireRoles(session, allowedRoles)
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+  return { userId, companyId }
+}
+
+
+codex
+Rencana implementasi saya:
+1. Refactor `route.ts` agar punya factory handler yang bisa di-test tanpa mocking framework, sambil mempertahankan `POST` default dan shape response lama (`{ error }` / `{ urls }`).
+2. Tambahkan guard di route untuk:
+- auth + company context,
+- jumlah file maksimum,
+- MIME/type whitelist,
+- ukuran per file 5MB,
+- path upload tenant-aware (`uploads/{companyId}/nasabah`).
+3. Buat test terfokus di `__tests__/route.test.ts` untuk 6 skenario wajib: unauthorized, no-files, invalid-type, too-many, too-large, success.
+4. Jalankan test file tersebut, lalu commit bertahap per scope selesai.
+codex
+Saya mulai edit `route.ts` dulu: menambah validasi count/type/size, company-scoped upload path, dan export factory handler agar test bisa fokus tanpa dependency mocking eksternal.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/route.ts
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && git add src/app/api/upload/nasabah/route.ts && git commit -m "feat(upload): enforce nasabah upload limits and tenant-scoped path"' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+[codex_20260423_1736_p1d-upload-tests fe6455b] feat(upload): enforce nasabah upload limits and tenant-scoped path
+ 1 file changed, 71 insertions(+), 15 deletions(-)
+
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+codex
+Perubahan guard utama sudah saya commit. Sekarang saya buat test file baru dengan 6 kasus wajib plus verifikasi path tenant di skenario sukses.
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && mkdir -p src/app/api/upload/nasabah/__tests__ && cat > src/app/api/upload/nasabah/__tests__/route.test.ts <<'EOF'
+import assert from \"node:assert/strict\"
+import test from \"node:test\"
+import { createNasabahUploadHandler } from \"../route\"
+
+const FIVE_MB = 5 * 1024 * 1024
+
+function createRequest(files: File[] = []) {
+  const formData = new FormData()
+  for (const file of files) {
+    formData.append(\"files\", file)
+  }
+  return new Request(\"http://localhost/api/upload/nasabah\", {
+    method: \"POST\",
+    body: formData,
+  })
+}
+
+test(\"returns 401 when unauthorized\", async () => {
+  let uploadCalled = false
+  const handler = createNasabahUploadHandler({
+    auth: async () => null,
+    uploadFilesToBlob: async () => {
+      uploadCalled = true
+      return [\"https://blob.example/doc-1.pdf\"]
+    },
+  })
+
+  const res = await handler(createRequest())
+  const json = (await res.json()) as { error: string }
+
+  assert.equal(res.status, 401)
+  assert.deepEqual(json, { error: \"Unauthorized\" })
+  assert.equal(uploadCalled, false)
+})
+
+test(\"returns 400 when no files provided\", async () => {
+  let uploadCalled = false
+  const handler = createNasabahUploadHandler({
+    auth: async () => ({ user: { companyId: \"cmp-01\" } }),
+    uploadFilesToBlob: async () => {
+      uploadCalled = true
+      return [\"https://blob.example/doc-1.pdf\"]
+    },
+  })
+
+  const res = await handler(createRequest())
+  const json = (await res.json()) as { error: string }
+
+  assert.equal(res.status, 400)
+  assert.deepEqual(json, { error: \"Tidak ada file yang diupload.\" })
+  assert.equal(uploadCalled, false)
+})
+
+test(\"returns 400 when file mime type is invalid\", async () => {
+  let uploadCalled = false
+  const handler = createNasabahUploadHandler({
+    auth: async () => ({ user: { companyId: \"cmp-01\" } }),
+    uploadFilesToBlob: async () => {
+      uploadCalled = true
+      return [\"https://blob.example/doc-1.pdf\"]
+    },
+  })
+
+  const invalidFile = new File([\"hello\"], \"catatan.txt\", { type: \"text/plain\" })
+
+  const res = await handler(createRequest([invalidFile]))
+  const json = (await res.json()) as { error: string }
+
+  assert.equal(res.status, 400)
+  assert.equal(json.error, \"Tipe file tidak didukung: catatan.txt\")
+  assert.equal(uploadCalled, false)
+})
+
+test(\"returns 400 when file count exceeds maximum\", async () => {
+  let uploadCalled = false
+  const handler = createNasabahUploadHandler({
+    auth: async () => ({ user: { companyId: \"cmp-01\" } }),
+    uploadFilesToBlob: async () => {
+      uploadCalled = true
+      return [\"https://blob.example/doc-1.pdf\"]
+    },
+  })
+
+  const files = Array.from({ length: 11 }, (_, i) => {
+    return new File(["'`img-${i}`], `dokumen-${i}.png`, { type: "image/png" })
+  })
+
+  const res = await handler(createRequest(files))
+  const json = (await res.json()) as { error: string }
+
+  assert.equal(res.status, 400)
+  assert.equal(json.error, "Maksimal 10 file per upload.")
+  assert.equal(uploadCalled, false)
+})
+
+test("returns 400 when file is too large", async () => {
+  let uploadCalled = false
+  const handler = createNasabahUploadHandler({
+    auth: async () => ({ user: { companyId: "cmp-01" } }),
+    uploadFilesToBlob: async () => {
+      uploadCalled = true
+      return ["https://blob.example/doc-1.pdf"]
+    },
+  })
+
+  const tooLargeFile = new File([new Uint8Array(FIVE_MB + 1)], "ktp.pdf", {
+    type: "application/pdf",
+  })
+
+  const res = await handler(createRequest([tooLargeFile]))
+  const json = (await res.json()) as { error: string }
+
+  assert.equal(res.status, 400)
+  assert.equal(json.error, "Ukuran file melebihi 5 MB: ktp.pdf")
+  assert.equal(uploadCalled, false)
+})
+
+test("returns urls and uses tenant-aware upload path on success", async () => {
+  let capturedFolder = ""
+  let capturedFilesLength = 0
+
+  const handler = createNasabahUploadHandler({
+    auth: async () => ({ user: { companyId: "cmp-tenant-123" } }),
+    uploadFilesToBlob: async (files, folder) => {
+      capturedFilesLength = files.length
+      capturedFolder = folder
+      return ["https://blob.example/1.pdf", "https://blob.example/2.png"]
+    },
+  })
+
+  const validFiles = [
+    new File(["one"], "ktp.pdf", { type: "application/pdf" }),
+    new File(["two"], "kk.png", { type: "image/png" }),
+  ]
+
+  const res = await handler(createRequest(validFiles))
+  const json = (await res.json()) as { urls: string[] }
+
+  assert.equal(res.status, 200)
+  assert.deepEqual(json, { urls: ["https://blob.example/1.pdf", "https://blob.example/2.png"] })
+  assert.equal(capturedFilesLength, 2)
+  assert.equal(capturedFolder, "uploads/cmp-tenant-123/nasabah")
+})
+EOF' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+codex
+Test file sudah dibuat. Saya lanjut eksekusi test terfokus untuk memastikan keenam skenario lewat sebelum commit berikutnya.
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && npx --yes tsx --test src/app/api/upload/nasabah/__tests__/route.test.ts' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+ succeeded in 13865ms:
+TAP version 13
+# Subtest: returns 401 when unauthorized
+ok 1 - returns 401 when unauthorized
+  ---
+  duration_ms: 15.869785
+  type: 'test'
+  ...
+# Subtest: returns 400 when no files provided
+ok 2 - returns 400 when no files provided
+  ---
+  duration_ms: 3.755588
+  type: 'test'
+  ...
+# Subtest: returns 400 when file mime type is invalid
+ok 3 - returns 400 when file mime type is invalid
+  ---
+  duration_ms: 10.259723
+  type: 'test'
+  ...
+# Subtest: returns 400 when file count exceeds maximum
+ok 4 - returns 400 when file count exceeds maximum
+  ---
+  duration_ms: 13.344989
+  type: 'test'
+  ...
+# Subtest: returns 400 when file is too large
+ok 5 - returns 400 when file is too large
+  ---
+  duration_ms: 36.219738
+  type: 'test'
+  ...
+# Subtest: returns urls and uses tenant-aware upload path on success
+ok 6 - returns urls and uses tenant-aware upload path on success
+  ---
+  duration_ms: 4.654591
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6473.500902
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && git add src/app/api/upload/nasabah/__tests__/route.test.ts && git commit -m "test(upload): add focused nasabah route validation coverage"' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+[codex_20260423_1736_p1d-upload-tests c8b0649] test(upload): add focused nasabah route validation coverage
+ 1 file changed, 143 insertions(+)
+ create mode 100644 dashboard/src/app/api/upload/nasabah/__tests__/route.test.ts
+
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard && git status --short && git log --oneline -n 3' in /tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+c8b0649 test(upload): add focused nasabah route validation coverage
+fe6455b feat(upload): enforce nasabah upload limits and tenant-scoped path
+1cf4435 Harden superadmin actions when acting as company context
+
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+codex
+Implemented and committed in 2 scoped commits:
+
+1. `fe6455b` `feat(upload): enforce nasabah upload limits and tenant-scoped path`
+2. `c8b0649` `test(upload): add focused nasabah route validation coverage`
+
+Changes made:
+
+- Updated [route.ts](/tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/route.ts) to enforce:
+  - auth check (`401`, `{ error: "Unauthorized" }`)
+  - no-files check (`400`)
+  - max file count (10 files, `400`)
+  - MIME whitelist (`jpeg/png/webp/pdf`, `400`)
+  - max per-file size (`5 MB`, `400`)
+  - tenant-aware upload folder: `uploads/{companyId}/nasabah`
+- Kept response shape backward-compatible (`{ error }` / `{ urls }`).
+- Added focused tests in [route.test.ts](/tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/__tests__/route.test.ts) for:
+  - unauthorized
+  - no files
+  - invalid type
+  - too many files
+  - too large file
+  - success (+ asserts tenant-aware path)
+
+Test run:
+
+- Command: `npx --yes tsx --test src/app/api/upload/nasabah/__tests__/route.test.ts`
+- Result: `6 passed, 0 failed`
+diff --git a/dashboard/src/app/api/upload/nasabah/route.ts b/dashboard/src/app/api/upload/nasabah/route.ts
+index 418b279210610ba12ea748193e288926716967f5..4a3b5f4d6aacd72f9c8f4bedeceaef3290108a71
+--- a/dashboard/src/app/api/upload/nasabah/route.ts
++++ b/dashboard/src/app/api/upload/nasabah/route.ts
+@@ -1,24 +1,80 @@
+ import { auth } from "@/lib/auth"
+ import { uploadFilesToBlob } from "@/lib/blob-upload"
+ 
+-export async function POST(req: Request) {
+-  const session = await auth()
+-  if (!session) {
+-    return Response.json({ error: "Unauthorized" }, { status: 401 })
++const NASABAH_UPLOAD_ALLOWED_TYPES = new Set([
++  "image/jpeg",
++  "image/png",
++  "image/webp",
++  "application/pdf",
++])
++const NASABAH_UPLOAD_MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
++const NASABAH_UPLOAD_MAX_FILE_COUNT = 10
++
++type NasabahUploadDeps = {
++  auth: typeof auth
++  uploadFilesToBlob: typeof uploadFilesToBlob
++}
++
++function getUploadValidationError(file: File): string | null {
++  if (!NASABAH_UPLOAD_ALLOWED_TYPES.has(file.type)) {
++    return `Tipe file tidak didukung: ${file.name}`
+   }
+ 
+-  const formData = await req.formData()
+-  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
++  if (file.size > NASABAH_UPLOAD_MAX_FILE_SIZE) {
++    return `Ukuran file melebihi 5 MB: ${file.name}`
++  }
++
++  return null
++}
++
++function resolveTenantNasabahUploadPath(companyId: string) {
++  return `uploads/${companyId}/nasabah`
++}
++
++export function createNasabahUploadHandler(deps: NasabahUploadDeps) {
++  return async function POST(req: Request) {
++    const session = await deps.auth()
++    if (!session) {
++      return Response.json({ error: "Unauthorized" }, { status: 401 })
++    }
++
++    const companyId = session.user?.companyId?.trim()
++    if (!companyId) {
++      return Response.json({ error: "Company context required" }, { status: 400 })
++    }
++
++    const formData = await req.formData()
++    const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+ 
+-  if (files.length === 0) {
+-    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+-  }
++    if (files.length === 0) {
++      return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
++    }
+ 
+-  try {
+-    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+-    return Response.json({ urls: uploadedUrls })
+-  } catch (error) {
+-    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+-    return Response.json({ error: message }, { status: 400 })
++    if (files.length > NASABAH_UPLOAD_MAX_FILE_COUNT) {
++      return Response.json(
++        { error: `Maksimal ${NASABAH_UPLOAD_MAX_FILE_COUNT} file per upload.` },
++        { status: 400 },
++      )
++    }
++
++    for (const file of files) {
++      const error = getUploadValidationError(file)
++      if (error) {
++        return Response.json({ error }, { status: 400 })
++      }
++    }
++
++    try {
++      const uploadedUrls = await deps.uploadFilesToBlob(files, resolveTenantNasabahUploadPath(companyId), {
++        maxFileSize: NASABAH_UPLOAD_MAX_FILE_SIZE,
++        allowedTypes: NASABAH_UPLOAD_ALLOWED_TYPES,
++      })
++      return Response.json({ urls: uploadedUrls })
++    } catch (error) {
++      const message = error instanceof Error ? error.message : "Upload dokumen gagal."
++      return Response.json({ error: message }, { status: 400 })
++    }
+   }
+ }
++
++export const POST = createNasabahUploadHandler({ auth, uploadFilesToBlob })
+
+tokens used
+38,178
+Implemented and committed in 2 scoped commits:
+
+1. `fe6455b` `feat(upload): enforce nasabah upload limits and tenant-scoped path`
+2. `c8b0649` `test(upload): add focused nasabah route validation coverage`
+
+Changes made:
+
+- Updated [route.ts](/tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/route.ts) to enforce:
+  - auth check (`401`, `{ error: "Unauthorized" }`)
+  - no-files check (`400`)
+  - max file count (10 files, `400`)
+  - MIME whitelist (`jpeg/png/webp/pdf`, `400`)
+  - max per-file size (`5 MB`, `400`)
+  - tenant-aware upload folder: `uploads/{companyId}/nasabah`
+- Kept response shape backward-compatible (`{ error }` / `{ urls }`).
+- Added focused tests in [route.test.ts](/tmp/codex-fanout/20260423_172356/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/__tests__/route.test.ts) for:
+  - unauthorized
+  - no files
+  - invalid type
+  - too many files
+  - too large file
+  - success (+ asserts tenant-aware path)
+
+Test run:
+
+- Command: `npx --yes tsx --test src/app/api/upload/nasabah/__tests__/route.test.ts`
+- Result: `6 passed, 0 failed`

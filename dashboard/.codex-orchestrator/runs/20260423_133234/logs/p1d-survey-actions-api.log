@@ -1,0 +1,2514 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba8a-e90f-7c20-9698-a9018b620cd0
+--------
+user
+You are Worker p1d-survey-actions-api. Ownership: src/actions/nasabah-survey.ts (new), src/app/api/nasabah/[id]/survey/route.ts (new). Task: implement list/create survey note API scoped by companyId and role guard; validation non-empty note and sensible max length; stable JSON responses. If schema model names differ, adapt cleanly. Add concise error handling. Run lint/build targeted checks and commit. You are not alone in codebase; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+2026-04-23T13:32:40.133570Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+Saya akan implement dua file baru untuk survey nasabah (action + API route), tenant-scoped lewat `companyId` dan role guard, lalu validasi input note + response JSON stabil. Saya mulai dengan membaca skill/instruksi lokal dan konteks schema/action yang sudah ada supaya naming model dan guard konsisten.
+exec
+/bin/bash -lc "ls -la /home/kotacom/.codex/skills/using-superpowers && sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+total 20
+drwxr-xr-x 3 kotacom kotacom 4096 Apr 19 14:17 .
+drwxr-xr-x 4 kotacom kotacom 4096 Apr 19 14:17 ..
+-rw-r--r-- 1 kotacom kotacom 5421 Apr 19 14:17 SKILL.md
+drwxr-xr-x 2 kotacom kotacom 4096 Apr 19 14:17 references
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+codex
+Saya sudah cek instruksi skill global dan karena ini sesi subagent, saya lanjut langsung ke implementasi. Berikutnya saya baca dokumentasi Next.js lokal untuk Route Handler lalu meniru pola action/response/error handling yang sudah ada di project.
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 13:32 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:32 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 13:32 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:32 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 13:32 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 13:32 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 13:32 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 13:32 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 13:32 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 13:32 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 13:32 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 13:32 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 13:32 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 13:32 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 13:32 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 13:32 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 13:32 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 13:32 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 13:32 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 13:32 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:32 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 13:32 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 13:32 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 13:32 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 13:32 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 13:32 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 13:32 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 13:32 tsconfig.json
+
+exec
+/bin/bash -lc 'rg --files src/actions src/app/api | head -n 200' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/app/api/auth/[...nextauth]/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/actions/company-users.ts
+src/actions/kelompok.ts
+src/app/api/upload/nasabah/route.ts
+src/actions/nasabah.ts
+src/app/api/upload/kas/route.ts
+src/app/api/upload/logo/route.ts
+src/actions/akuntansi.ts
+src/actions/maintenance.ts
+src/actions/auth-registration.ts
+src/actions/pengajuan.ts
+src/actions/settings.ts
+src/actions/kas.ts
+src/actions/platform-admin.ts
+src/actions/dashboard.ts
+src/actions/pembayaran.ts
+src/actions/kolektor.ts
+
+exec
+/bin/bash -lc 'find node_modules/next/dist/docs -maxdepth 3 -type f | head -n 80' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+find: ‘node_modules/next/dist/docs’: No such file or directory
+
+codex
+Saya menemukan `node_modules/next/dist/docs/` belum ada di workspace ini (kemungkinan dependency belum terpasang). Saya lanjut baca pola internal project dulu, lalu kalau perlu saya install dependency agar bisa cek docs Next.js lokal sekaligus menjalankan lint/build.
+exec
+/bin/bash -lc "sed -n '1,240p' src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let lastPaymentAt: Date | null = null
+    let nextDueAt: Date | null = null
+    let overdueCount = 0
+    let overdueOldestDueAt: Date | null = null
+    let overdueOldestDaysLate = 0
+    let overdueMaxDaysLate = 0
+    let aktifPinjaman = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+
+      const pembayaranTagMap = new Map<string, number>()
+      for (const p of pinjaman.pembayaran) {
+        if (p.tanggalBayar) {
+          if (!lastPaymentAt || p.tanggalBayar > lastPaymentAt) lastPaymentAt = p.tanggalBayar
+        }
+        const tags = parseJadwalTags(p.catatan)
+        if (tags.length === 0) continue
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (!nextDueAt || jadwal.tanggalJatuhTempo < nextDueAt) nextDueAt = jadwal.tanggalJatuhTempo
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+          overdueCount += 1
+          if (!overdueOldestDueAt || jadwal.tanggalJatuhTempo < overdueOldestDueAt) {
+            overdueOldestDueAt = jadwal.tanggalJatuhTempo
+          }
+          const daysLate = Math.max(
+            0,
+            Math.floor((now.getTime() - jadwal.tanggalJatuhTempo.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          if (daysLate > overdueMaxDaysLate) overdueMaxDaysLate = daysLate
+        }
+      }
+    }
+
+    if (overdueOldestDueAt) {
+      overdueOldestDaysLate = Math.max(
+        0,
+        Math.floor((now.getTime() - overdueOldestDueAt.getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      ...nasabah,
+      indikator: {
+        ranking,
+        telat,
+        belumBayar,
+        belumJatuhTempo,
+        kurangAngsuran: tunggakanNominal, // Mapping for UI compatibility if needed, but semantic is tunggakan
+        tunggakanNominal,
+        outstanding,
+        lastPaymentAt,
+        nextDueAt,
+        overdueCount,
+        overdueOldestDueAt,
+        overdueOldestDaysLate,
+        overdueMaxDaysLate,
+        aktifPinjaman,
+      },
+    }
+  })
+
+  return serializeData({ data: withIndicators, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getNasabahById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.nasabah.findFirst({
+    where: { id, companyId },
+    include: {
+      kelompok: true,
+      kolektor: { select: { id: true, name: true, email: true } },
+      pengajuan: {
+        orderBy: { tanggalPengajuan: "desc" },
+        include: {
+          pinjaman: {
+            include: {
+              jadwalAngsuran: {
+
+exec
+/bin/bash -lc 'ls -la node_modules | head -n 40' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+ls: cannot access 'node_modules': No such file or directory
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/actions/company-users.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import bcrypt from "bcryptjs"
+import { revalidatePath } from "next/cache"
+import { RoleType } from "@prisma/client"
+import { z } from "zod"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+const manageableRoles = [
+  RoleType.ADMIN,
+  RoleType.TELLER,
+  RoleType.KOLEKTOR,
+  RoleType.SURVEYOR,
+  RoleType.MANAGER,
+  RoleType.PIMPINAN,
+  RoleType.AKUNTANSI,
+] as const
+
+const createCompanyUserSchema = z.object({
+  name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
+  email: z.string().trim().toLowerCase().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter").max(100),
+  role: z.enum(manageableRoles, { message: "Role tidak valid" }),
+})
+
+export type CompanyUserRow = {
+  id: string
+  name: string
+  email: string
+  isActive: boolean
+  roles: string[]
+}
+
+export type CreateCompanyUserState = {
+  success?: boolean
+  message?: string
+  errors?: Partial<Record<"name" | "email" | "password" | "role", string[]>>
+}
+
+function getCompanyId(session: SessionLike) {
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Company belum terhubung ke akun ini.")
+  return companyId
+}
+
+export async function getCompanyUsers(): Promise<CompanyUserRow[]> {
+  const session = await auth()
+  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])
+  const companyId = getCompanyId(session as unknown as SessionLike)
+
+  const users = await prisma.user.findMany({
+    where: { companyId },
+    orderBy: [{ createdAt: "asc" }, { name: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      isActive: true,
+      roles: { select: { role: true }, orderBy: { role: "asc" } },
+    },
+  })
+
+  return users.map((user) => ({
+    ...user,
+    roles: user.roles.map((item) => item.role),
+  }))
+}
+
+export async function createCompanyUser(
+  _state: CreateCompanyUserState,
+  formData: FormData,
+): Promise<CreateCompanyUserState> {
+  const session = await auth()
+  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])
+  const companyId = getCompanyId(session as unknown as SessionLike)
+
+  const parsed = createCompanyUserSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role: formData.get("role"),
+  })
+
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors }
+  }
+
+  const existing = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { id: true },
+  })
+
+  if (existing) {
+    return {
+      errors: { email: ["Email sudah terdaftar"] },
+      message: "Gunakan email lain untuk user baru.",
+    }
+  }
+
+  const hashedPassword = await bcrypt.hash(parsed.data.password, 12)
+
+  await prisma.user.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      password: hashedPassword,
+      companyId,
+      isActive: true,
+      roles: {
+        create: [{ role: parsed.data.role }],
+      },
+    },
+  })
+
+  revalidatePath("/settings")
+  return { success: true, message: "User company berhasil dibuat." }
+}
+
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/actions/kas.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { z } from "zod"
+import { ApprovalEntityType, ApprovalStatus, Prisma, RoleType } from "@prisma/client"
+import { hasAnyRole, requireRoles } from "@/lib/roles"
+import { writeAuditLog } from "@/lib/audit"
+import { ensureAccountingAccounts, getCashBalanceByJenis, postKasTransactionJournal } from "@/lib/accounting"
+import { resolveReportPeriod, type ReportPeriodInput } from "@/lib/report-period"
+import { serializeData } from "@/lib/utils"
+import { requireCompanyId } from "@/lib/tenant"
+
+function normalizeKasCategoryKey(raw: string) {
+  return raw.trim().toUpperCase().replace(/\s+/g, "_")
+}
+
+const kasKategoriSchema = z.object({
+  jenis: z.enum(["MASUK", "KELUAR"]),
+  nama: z.string().min(2, "Nama kategori minimal 2 karakter"),
+})
+
+const kasSchema = z.object({
+  jenis: z.enum(["MASUK", "KELUAR"]),
+  kategori: z.string().min(1),
+  deskripsi: z.string().min(3),
+  jumlah: z.coerce.number().min(1),
+  kasJenis: z.enum(["TUNAI", "BANK"]).default("TUNAI"),
+  buktiUrl: z.string().min(3).optional(),
+  tanggal: z.string().optional(),
+})
+
+function parseDateOnly(input: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return date
+}
+
+export async function ensureKasKategori(params: { jenis: "MASUK" | "KELUAR"; kategori: string }) {
+  const session = await auth()
+  if (!session) return { error: "Unauthorized" as const }
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const key = normalizeKasCategoryKey(params.kategori)
+  if (!key) return { error: "Kategori tidak boleh kosong." as const }
+
+  const existing = await prisma.kasKategori.findUnique({ where: { companyId_key: { companyId, key } } })
+  if (existing && existing.jenis !== params.jenis) {
+    return { error: `Kategori "${existing.nama}" sudah terpakai untuk jenis ${existing.jenis}. Kategori masuk dan keluar tidak boleh sama.` as const }
+  }
+
+  if (!existing) {
+    const created = await prisma.kasKategori.create({
+      data: {
+        companyId,
+        nama: params.kategori.trim(),
+        key,
+        jenis: params.jenis,
+        isActive: true,
+      },
+    })
+    return { key, kategoriId: created.id }
+  }
+
+  return { key, kategoriId: existing.id }
+}
+
+export async function getKasKategoriList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const defaults: Array<{ jenis: "MASUK" | "KELUAR"; nama: string }> = [
+    { jenis: "MASUK", nama: "ANGSURAN" },
+    { jenis: "MASUK", nama: "PELUNASAN" },
+    { jenis: "MASUK", nama: "SIMPANAN" },
+    { jenis: "MASUK", nama: "MODAL" },
+    { jenis: "MASUK", nama: "ADMIN" },
+    { jenis: "MASUK", nama: "DENDA" },
+    { jenis: "MASUK", nama: "LAINNYA" },
+    { jenis: "MASUK", nama: "LAINNYA_MASUK" },
+    { jenis: "KELUAR", nama: "PENCAIRAN" },
+    { jenis: "KELUAR", nama: "PEMBATALAN_ANGSURAN" },
+    { jenis: "KELUAR", nama: "GAJI" },
+    { jenis: "KELUAR", nama: "OPERASIONAL" },
+    { jenis: "KELUAR", nama: "LAINNYA_KELUAR" },
+  ]
+
+  // Sequential seeding with upsert to avoid race conditions and duplicates
+  for (const d of defaults) {
+    const key = normalizeKasCategoryKey(d.nama)
+    try {
+      await prisma.kasKategori.upsert({
+        where: { companyId_key: { companyId, key } },
+        update: {},
+        create: {
+          companyId,
+          nama: d.nama,
+          key,
+          jenis: d.jenis,
+          isActive: true,
+        },
+      })
+    } catch (err) {
+      console.error(`Error seeding category ${d.nama}:`, err)
+    }
+  }
+
+  const rows = await prisma.kasKategori.findMany({
+    where: { companyId, isActive: true },
+    select: { id: true, nama: true, key: true, jenis: true },
+    orderBy: [{ jenis: "asc" }, { nama: "asc" }],
+  })
+
+  return rows
+}
+
+export async function createKasKategori(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk menambah kategori kas." }
+  }
+
+  const parsed = kasKategoriSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const key = normalizeKasCategoryKey(parsed.data.nama)
+  const existing = await prisma.kasKategori.findUnique({ where: { companyId_key: { companyId, key } } })
+  if (existing) {
+    return { error: `Kategori "${existing.nama}" sudah ada (jenis ${existing.jenis}). Kategori masuk dan keluar tidak boleh sama.` }
+  }
+
+  const row = await prisma.kasKategori.create({
+    data: {
+      companyId,
+      nama: parsed.data.nama.trim(),
+      key,
+      jenis: parsed.data.jenis,
+      isActive: true,
+    },
+    select: { id: true, nama: true, key: true, jenis: true },
+  })
+
+  revalidatePath("/kas")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "KAS_KATEGORI",
+    entityId: row.id,
+    action: "CREATE",
+    afterData: { key: row.key, nama: row.nama, jenis: row.jenis },
+  })
+  return { success: true, data: row }
+}
+
+export async function updateKasKategori(id: string, input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk mengubah kategori kas." }
+  }
+
+  const parsed = kasKategoriSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const existing = await prisma.kasKategori.findUnique({ where: { id } })
+  if (!existing) return { error: "Kategori tidak ditemukan." }
+  if (existing.companyId !== companyId) return { error: "Forbidden" }
+
+  const newKey = normalizeKasCategoryKey(parsed.data.nama)
+  
+  if (newKey !== existing.key) {
+    const collision = await prisma.kasKategori.findFirst({
+      where: { companyId, key: newKey, id: { not: id } }
+    })
+    if (collision) {
+      return { error: `Kategori dengan nama "${parsed.data.nama}" sudah ada.` }
+    }
+  }
+
+  const row = await prisma.$transaction(async (tx) => {
+    // Keep denormalized display key in sync for existing transactions.
+    if (newKey !== existing.key) {
+      await tx.kasTransaksi.updateMany({
+        where: { companyId, kategoriId: existing.id },
+        data: { kategoriKey: newKey },
+      })
+    }
+
+    return await tx.kasKategori.update({
+      where: { id },
+      data: {
+        nama: parsed.data.nama.trim(),
+        key: newKey,
+        jenis: parsed.data.jenis,
+      },
+    })
+  })
+
+  revalidatePath("/kas")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "KAS_KATEGORI",
+    entityId: row.id,
+    action: "UPDATE",
+    beforeData: { key: existing.key, nama: existing.nama, jenis: existing.jenis },
+    afterData: { key: row.key, nama: row.nama, jenis: row.jenis },
+  })
+  return { success: true, data: row }
+}
+
+export async function deleteKasKategori(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk menghapus kategori kas." }
+  }
+
+  const existing = await prisma.kasKategori.findUnique({
+    where: { id },
+  })
+  if (!existing) return { error: "Kategori tidak ditemukan." }
+  if (existing.companyId !== companyId) return { error: "Forbidden" }
+
+  const transaksiCount = await prisma.kasTransaksi.count({
+    where: { companyId, kategoriId: existing.id },
+  })
+
+  if (transaksiCount > 0) {
+    // Soft delete if there are transactions
+    await prisma.kasKategori.update({
+      where: { id },
+      data: { isActive: false },
+    })
+  } else {
+    // Hard delete if no transactions
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/kas/route.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/kas")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,200p' src/lib/roles.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+  }
+} | null
+
+export function extractRoles(session: SessionLike): RoleType[] {
+  const roles = session?.user?.roles ?? []
+  return roles.filter((role): role is RoleType =>
+    Object.values(RoleType).includes(role as RoleType)
+  )
+}
+
+export function requireRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const userId = session?.user?.id
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const roles = extractRoles(session)
+  const allowed = roles.some((role) => allowedRoles.includes(role))
+
+  if (!allowed) {
+    throw new Error("Forbidden")
+  }
+
+  return { userId, roles }
+}
+
+export function hasAnyRole(session: SessionLike, allowedRoles: RoleType[]) {
+  const roles = extractRoles(session)
+  return roles.some((role) => allowedRoles.includes(role))
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/tenant.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+export function requireCompanyId(session: SessionLike) {
+  const userId = session?.user?.id
+  if (!userId) throw new Error("Unauthorized")
+
+  const companyId = session.user?.companyId
+  if (!companyId) {
+    // SUPER_ADMIN is allowed to exist without a company context.
+    const roles = session.user?.roles ?? []
+    if (roles.includes(RoleType.SUPER_ADMIN)) {
+      throw new Error("Company context required")
+    }
+    throw new Error("Akun belum terhubung ke company.")
+  }
+
+  return { userId, companyId }
+}
+
+export function requireCompanyRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const { userId } = requireRoles(session, allowedRoles)
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+  return { userId, companyId }
+}
+
+
+codex
+Saya lanjut memetakan model Prisma yang terkait survey agar nama relasi/table tepat, lalu saya susun action reusable untuk list/create supaya API route tipis dan konsisten.
+exec
+/bin/bash -lc 'rg -n "survey|survei|catatan" prisma/schema.prisma src | head -n 200' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/schema.prisma:79:  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+prisma/schema.prisma:172:  catatanApproval      String?
+prisma/schema.prisma:177:  surveyorId           String?
+prisma/schema.prisma:182:  catatanPengajuan     String?
+prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+prisma/schema.prisma:255:  catatan        String?
+prisma/schema.prisma:351:  catatan        String?
+prisma/schema.prisma:434:  catatan       String?
+src/actions/nasabah.ts:20:function parseJadwalTags(catatan?: string | null) {
+src/actions/nasabah.ts:21:  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/actions/nasabah.ts:107:                    catatan: true,
+src/actions/nasabah.ts:147:        const tags = parseJadwalTags(p.catatan)
+src/actions/akuntansi.ts:166:  catatan: z.string().optional(),
+src/actions/akuntansi.ts:228:      catatan: parsed.data.catatan?.trim() || null,
+src/actions/akuntansi.ts:237:      catatan: parsed.data.catatan?.trim() || null,
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/actions/pengajuan.ts:172:  const { pengajuanId, aksi, plafonDisetujui, catatanApproval } = parsed.data
+src/actions/pengajuan.ts:183:        catatanApproval: catatanApproval,
+src/actions/pengajuan.ts:197:    catatan: catatanApproval,
+src/actions/pengajuan.ts:520:      const previous = pengajuan.catatanApproval?.trim()
+src/actions/pengajuan.ts:527:          catatanApproval: nextNote,
+src/actions/kas.ts:462:            catatan: "Menunggu persetujuan transaksi kas.",
+src/actions/kas.ts:642:export async function approveKasTransaksi(input: { id: string; action: "APPROVE" | "REJECT"; catatan?: string }) {
+src/actions/kas.ts:667:    select: { id: true, catatan: true },
+src/actions/kas.ts:671:  const catatan = input.catatan?.trim()
+src/actions/kas.ts:700:          catatan: catatan
+src/actions/kas.ts:701:            ? `${pending.catatan ?? ""}\n${input.action === "APPROVE" ? "Approve" : "Reject"}: ${catatan}`.trim()
+src/actions/kas.ts:702:            : pending.catatan,
+src/actions/kas.ts:713:          catatan: catatan ?? (input.action === "APPROVE" ? "Disetujui." : "Ditolak."),
+src/actions/kas.ts:729:    metadata: { catatan: catatan ?? null },
+src/actions/pembayaran.ts:60:      catatan: { contains: tag },
+src/actions/pembayaran.ts:378:  catatan?: string
+src/actions/pembayaran.ts:456:  if (input.catatan?.trim()) metaCatatan.push(input.catatan.trim())
+src/actions/pembayaran.ts:457:  const catatanFinal = metaCatatan.join(" ")
+src/actions/pembayaran.ts:475:        catatan: catatanFinal,
+src/actions/pembayaran.ts:640:      // catatan menyimpan tag [JADWAL:<id>]
+src/actions/pembayaran.ts:661:        .map((p) => p.catatan?.match(/\[JADWAL:([^\]]+)\]/)?.[1])
+src/actions/pembayaran.ts:685:    const jadwalId = p.catatan?.match(/\[JADWAL:([^\]]+)\]/)?.[1]
+src/actions/pembayaran.ts:740:                    catatan: true,
+src/actions/pembayaran.ts:772:        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/actions/pembayaran.ts:879:                    catatan: true,
+src/actions/pembayaran.ts:920:        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/actions/pembayaran.ts:1100:      catatan: input.alasan,
+src/actions/pembayaran.ts:1146:  catatan?: string
+src/actions/pembayaran.ts:1182:        catatan: input.catatan ? `${approval.catatan ?? ""}\nReject: ${input.catatan}`.trim() : approval.catatan,
+src/actions/pembayaran.ts:1193:        catatan: input.catatan,
+src/actions/pembayaran.ts:1216:        alasanBatal: input.catatan ?? approval.catatan ?? "Pembatalan disetujui manager",
+src/actions/pembayaran.ts:1220:    const tagMatch = pembayaran.catatan?.match(/\[JADWAL:([^\]]+)\]/)
+src/actions/pembayaran.ts:1280:        catatan: input.catatan ? `${approval.catatan ?? ""}\nApprove: ${input.catatan}`.trim() : approval.catatan,
+src/actions/pembayaran.ts:1295:      catatan: input.catatan,
+src/actions/pembayaran.ts:1311:  catatan?: string
+src/actions/pembayaran.ts:1330:    catatan?: string | null
+src/actions/pembayaran.ts:1335:  if (input.catatan !== undefined) updateData.catatan = input.catatan
+src/actions/maintenance.ts:316:        catatanPengajuan: "Data demo lengkap",
+src/actions/maintenance.ts:318:        catatanApproval: "Disetujui untuk kebutuhan demo",
+src/actions/maintenance.ts:379:            catatan: `[JADWAL:${jadwal.id}] mode=FULL Demo pembayaran angsuran ${installment}`,
+src/actions/maintenance.ts:459:    ["MASUK", "ADMIN", "Demo biaya survei nasabah baru", 450_000, "TUNAI", 18],
+src/actions/maintenance.ts:460:    ["KELUAR", "OPERASIONAL", "Demo transport survei lapangan", 360_000, "TUNAI", 17],
+src/lib/validations/pengajuan.ts:13:  catatanPengajuan: z.string().optional(),
+src/lib/validations/pengajuan.ts:23:  catatanApproval: z.string().optional(),
+src/lib/validations/pembayaran.ts:9:  catatan: z.string().optional(),
+src/lib/pembayaran-notes.ts:13:export function parsePembayaranCatatan(catatan?: string | null): ParsedPembayaranCatatan {
+src/lib/pembayaran-notes.ts:14:  const source = catatan?.trim() ?? ""
+src/lib/audit.ts:45:  catatan?: string
+src/lib/audit.ts:65:        catatan: input.catatan,
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:115:            {(pengajuan.catatanPengajuan || pengajuan.dokumenPendukungUrls.length > 0) && (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:118:                {pengajuan.catatanPengajuan && (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:121:                    <p className="text-sm bg-muted/40 rounded-md p-3">{pengajuan.catatanPengajuan}</p>
+src/app/(dashboard)/pengajuan/[id]/page.tsx:146:            {pengajuan.catatanApproval && (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:151:                  <p className="text-sm bg-muted/40 rounded-md p-3">{pengajuan.catatanApproval}</p>
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx:17:  const [catatan, setCatatan] = useState("")
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx:30:      const result = await approvePengajuan({ pengajuanId, aksi, plafonDisetujui, catatanApproval: catatan })
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx:59:            value={catatan}
+src/app/(dashboard)/roadmap/roadmap-client.tsx:95:    description: "Arus kas sederhana untuk pencatatan pemasukan dan pengeluaran.",
+src/app/(dashboard)/nasabah/[id]/page.tsx:73:        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/app/(dashboard)/nasabah/[id]/page.tsx:307:              <span className="text-muted-foreground text-xs">Anomali pencatatan</span>
+src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx:32:  const parsedCatatan = parsePembayaranCatatan(pembayaran.catatan)
+src/app/(dashboard)/pembayaran/edit-button.tsx:17:  catatan?: string | null
+src/app/(dashboard)/pembayaran/edit-button.tsx:45:  const [catatan, setCatatan] = useState(data.catatan || "")
+src/app/(dashboard)/pembayaran/edit-button.tsx:57:          catatan: catatan.trim() || undefined,
+src/app/(dashboard)/pembayaran/edit-button.tsx:101:                Anda hanya dapat mengubah rincian metode, tanggal, dan catatan penerimaan kas (tidak dapat mengubah nominal tagihan demi integritas data).
+src/app/(dashboard)/pembayaran/edit-button.tsx:166:                  value={catatan}
+src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx:58:    const catatan = prompt(action === "APPROVE" ? "Catatan approval (opsional):" : "Catatan penolakan (opsional):")
+src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx:63:        catatan: catatan ?? undefined,
+src/app/(dashboard)/pengajuan/baru/page.tsx:411:                <FieldLabel htmlFor="catatanPengajuan">Catatan</FieldLabel>
+src/app/(dashboard)/pengajuan/baru/page.tsx:413:                  id="catatanPengajuan"
+src/app/(dashboard)/pengajuan/baru/page.tsx:414:                  {...register("catatanPengajuan")}
+src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx:117:                    <TableCell className="max-w-sm whitespace-pre-wrap text-sm">{item.catatan ?? "-"}</TableCell>
+src/app/(dashboard)/pembayaran/page.tsx:151:                            {p.catatan?.includes("mode=PELUNASAN") ? " · Pelunasan" : p.catatan?.includes("mode=PARSIAL") ? " · Parsial" : p.catatan?.includes("mode=FULL") ? " · Penuh" : ""}
+src/app/(dashboard)/pembayaran/page.tsx:168:                              catatan: p.catatan,
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx:332:                    <p className="text-muted-foreground">Pilih Simple untuk pencatatan dasar atau Proper untuk double-entry dan COA.</p>
+src/app/(dashboard)/settings/accounting-mode-card.tsx:34:          Pilih mode akuntansi yang digunakan oleh aplikasi. Simple untuk pencatatan ringkas, Proper
+src/app/(dashboard)/settings/accounting-mode-card.tsx:35:          untuk pencatatan akuntansi yang lebih lengkap.
+src/app/(dashboard)/settings/accounting/page.tsx:17:          Atur mode pencatatan akuntansi aplikasi.
+src/app/(dashboard)/settings/page.tsx:39:    description: "Mode akuntansi simple/proper dan konfigurasi pencatatan.",
+src/app/(dashboard)/laporan/rekonsiliasi/page.tsx:50:                      {r.catatan ? <p className="mt-2 text-sm text-muted-foreground">{r.catatan}</p> : null}
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:30:  const [catatan, setCatatan] = useState("")
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:78:        catatan,
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:143:          <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan periode, nomor statement, dll." />
+src/app/(dashboard)/kas/kas-client.tsx:444:                                  const catatan = window.prompt("Catatan approval (opsional):", "")
+src/app/(dashboard)/kas/kas-client.tsx:446:                                    const res = await approveKasTransaksi({ id: row.id, action: "APPROVE", catatan: catatan ?? undefined })
+src/app/(dashboard)/kas/kas-client.tsx:465:                                  const catatan = window.prompt("Alasan reject (opsional):", "")
+src/app/(dashboard)/kas/kas-client.tsx:467:                                    const res = await approveKasTransaksi({ id: row.id, action: "REJECT", catatan: catatan ?? undefined })
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(dashboard)/akuntansi/akun/page.tsx:35:              menjaga alur pencatatan tetap ringkas.
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+
+exec
+/bin/bash -lc "sed -n '1,320p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserRole {
+  id     String   @id @default(cuid())
+  userId String
+  role   RoleType
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model Company {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  address         String?
+  phone           String?
+  email           String?
+  isActive        Boolean           @default(true)
+  ownerId         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  status          CompanyStatus     @default(ACTIVE)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  suspendedUntil  DateTime?
+  deletedAt       DateTime?
+  deletedReason   String?
+  accounts        Account[]
+  owner           User              @relation("CompanyOwner", fields: [ownerId], references: [id])
+  settings        CompanySetting[]
+  jadwalAngsuran  JadwalAngsuran[]
+  journalEntries  JournalEntry[]
+  kasKategori     KasKategori[]
+  kasTransaksi    KasTransaksi[]
+  kelompok        Kelompok[]
+  kolektorTargets KolektorTarget[]
+  nasabah         Nasabah[]
+  notifikasi      Notifikasi[]
+  pembayaran      Pembayaran[]
+  pengajuan       Pengajuan[]
+  penjamin        Penjamin[]
+  pinjaman        Pinjaman[]
+  rekonsiliasi    RekonsiliasiKas[]
+  simpanan        Simpanan[]
+  users           User[]            @relation("UserCompany")
+
+  @@index([ownerId])
+  @@map("companies")
+}
+
+model User {
+  id                     String            @id @default(cuid())
+  name                   String
+  email                  String            @unique
+  password               String
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  companyId              String?
+  approvalApproved       ApprovalLog[]     @relation("ApprovalApprover")
+  approvalRequested      ApprovalLog[]     @relation("ApprovalRequester")
+  auditLogs              AuditLog[]        @relation("AuditActor")
+  ownedCompanies         Company[]         @relation("CompanyOwner")
+  journalPosted          JournalEntry[]    @relation("JournalPostedBy")
+  kasDiinput             KasTransaksi[]
+  kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+  notifikasi             Notifikasi[]      @relation("UserNotifikasi")
+  pembayaranDiinput      Pembayaran[]
+  pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+  rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  roles                  UserRole[]
+  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model Nasabah {
+  id            String        @id @default(cuid())
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  id              String      @id @default(cuid())
+  kode            String
+  nama            String
+  ketua           String?
+  wilayah         String?
+  jadwalPertemuan String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh      User        @relation(fields: [inputOlehId], references: [id])
+  pinjaman       Pinjaman    @relation(fields: [pinjamanId], references: [id])
+
+  @@index([companyId])
+  @@map("pembayaran")
+}
+
+model Simpanan {
+  id        String   @id @default(cuid())
+  nasabahId String
+  jenis     String
+  jumlah    Decimal  @db.Decimal(15, 2)
+  tanggal   DateTime @default(now())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id])
+
+  @@index([companyId])
+  @@map("simpanan")
+}
+
+model Account {
+  id           String            @id @default(cuid())
+  code         String
+  name         String
+  type         AccountType
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  companyId    String
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  kasKategori  KasKategori[]
+  rekonsiliasi RekonsiliasiKas[]
+
+  @@unique([companyId, code])
+  @@index([type, isActive])
+  @@index([companyId])
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id          String            @id @default(cuid())
+  entryNo     String            @unique @default(cuid())
+  entryDate   DateTime
+  description String
+  sourceType  JournalSourceType
+  sourceId    String?
+  status      JournalStatus     @default(POSTED)
+  postedById  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  postedBy    User?             @relation("JournalPostedBy", fields: [postedById], references: [id])
+  lines       JournalLine[]
+
+  @@unique([sourceType, sourceId])
+
+exec
+/bin/bash -lc "sed -n '320,760p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+  @@unique([sourceType, sourceId])
+  @@index([entryDate])
+  @@index([sourceType, sourceId])
+  @@index([companyId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal      @default(0) @db.Decimal(15, 2)
+  credit         Decimal      @default(0) @db.Decimal(15, 2)
+  memo           String?
+  createdAt      DateTime     @default(now())
+  account        Account      @relation(fields: [accountId], references: [id])
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}
+
+model RekonsiliasiKas {
+  id             String             @id @default(cuid())
+  accountId      String
+  periodMonth    Int
+  periodYear     Int
+  saldoStatement Decimal            @db.Decimal(15, 2)
+  saldoBook      Decimal            @db.Decimal(15, 2)
+  selisih        Decimal            @db.Decimal(15, 2)
+  catatan        String?
+  buktiUrl       String?
+  status         RekonsiliasiStatus @default(DRAFT)
+  createdById    String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  companyId      String
+  account        Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy      User               @relation("RekonsiliasiCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, periodMonth, periodYear], map: "rekonsiliasi_kas_account_period_key")
+  @@index([companyId])
+  @@index([periodYear, periodMonth], map: "rekonsiliasi_kas_period_idx")
+  @@map("rekonsiliasi_kas")
+}
+
+model KasKategori {
+  id           String         @id @default(cuid())
+  nama         String
+  key          String
+  jenis        JenisKas
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  accountId    String?
+  companyId    String
+  account      Account?       @relation(fields: [accountId], references: [id])
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kasTransaksi KasTransaksi[]
+
+  @@unique([companyId, key])
+  @@index([companyId])
+  @@map("kas_kategori")
+}
+
+model KasTransaksi {
+  id          String      @id @default(cuid())
+  tanggal     DateTime    @default(now())
+  jenis       JenisKas
+  kategoriKey String
+  deskripsi   String
+  jumlah      Decimal     @db.Decimal(15, 2)
+  kasJenis    String      @default("TUNAI")
+  buktiUrl    String?
+  inputOlehId String
+  isApproved  Boolean     @default(true)
+  referensiId String?
+  createdAt   DateTime    @default(now())
+  companyId   String
+  kategoriId  String
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh   User        @relation(fields: [inputOlehId], references: [id])
+  kat         KasKategori @relation(fields: [kategoriId], references: [id])
+
+  @@index([companyId])
+  @@index([kategoriId])
+  @@map("kas_transaksi")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  entityType String
+  entityId   String?
+  action     AuditAction
+  beforeData Json?
+  afterData  Json?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model ApprovalLog {
+  id            String             @id @default(cuid())
+  entityType    ApprovalEntityType
+  entityId      String
+  status        ApprovalStatus     @default(PENDING)
+  catatan       String?
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  approvedBy    User?              @relation("ApprovalApprover", fields: [approvedById], references: [id])
+  requestedBy   User               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([requestedById, createdAt])
+  @@map("approval_logs")
+}
+
+model KolektorTarget {
+  id                 String   @id @default(cuid())
+  kolektorId         String
+  periodMonth        Int
+  periodYear         Int
+  targetTagihan      Decimal  @db.Decimal(15, 2)
+  realisasiTagihan   Decimal  @default(0) @db.Decimal(15, 2)
+  targetKunjungan    Int      @default(0)
+  realisasiKunjungan Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kolektor           User     @relation("KolektorTargetUser", fields: [kolektorId], references: [id], onDelete: Cascade)
+
+  @@unique([kolektorId, periodMonth, periodYear])
+  @@index([periodYear, periodMonth])
+  @@index([companyId])
+  @@map("kolektor_targets")
+}
+
+model Notifikasi {
+  id        String          @id @default(cuid())
+  userId    String?
+  jenis     NotifikasiJenis
+  judul     String
+  pesan     String
+  link      String?
+  isRead    Boolean         @default(false)
+  readAt    DateTime?
+  createdAt DateTime        @default(now())
+  companyId String
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User?           @relation("UserNotifikasi", fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@index([companyId])
+  @@map("notifikasi")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
+
+model CompanySetting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum StatusNasabah {
+  AKTIF
+  NON_AKTIF
+  KELUAR
+}
+
+enum JenisPinjaman {
+  REGULAR
+  MIKRO
+  USAHA
+}
+
+enum TenorType {
+  BULANAN
+  MINGGUAN
+}
+
+enum StatusPengajuan {
+  DRAFT
+  DIAJUKAN
+  DISURVEY
+  DISETUJUI
+  DITOLAK
+  DICAIRKAN
+  SELESAI
+}
+
+enum StatusPinjaman {
+  AKTIF
+  MENUNGGAK
+  MACET
+  LUNAS
+}
+
+enum MetodeBayar {
+  TUNAI
+  TRANSFER
+}
+
+enum JenisKas {
+  MASUK
+  KELUAR
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalSourceType {
+  PEMBAYARAN
+  PENCAIRAN
+  KAS
+  SIMPANAN
+  ADJUSTMENT
+  REVERSAL
+  DEMO_IMPORT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum RekonsiliasiStatus {
+  DRAFT
+  SELESAI
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  DISBURSE
+  PAYMENT
+  CASH
+  LOGIN
+  LOGOUT
+}
+
+enum ApprovalEntityType {
+  PENGAJUAN
+  PEMBAYARAN
+  KAS
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotifikasiJenis {
+  JATUH_TEMPO
+  TUNGGAKAN
+  APPROVAL
+  KAS
+  REMINDER
+  SYSTEM
+}
+
+exec
+/bin/bash -lc 'rg -n "hasilSurvey|survey note|survey" src prisma | head -n 200' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/migrations/20260418204642_init/migration.sql:111:    "hasilSurvey" TEXT,
+prisma/migrations/20260418204642_init/migration.sql:117:    "surveyorId" TEXT,
+prisma/migrations/20260418204642_init/migration.sql:260:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_surveyorId_fkey" FOREIGN KEY ("surveyorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+prisma/schema.prisma:79:  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+prisma/schema.prisma:171:  hasilSurvey          String?
+prisma/schema.prisma:177:  surveyorId           String?
+prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+
+codex
+Saya cek schema saat ini: belum ada model khusus `survey note` (tidak ada tabel relasi catatan survey), jadi saya akan adaptasi lewat sumber yang paling relevan dan persistable (`Pengajuan.hasilSurvey`) dengan format catatan berbaris JSON agar tetap bisa `list/create` tanpa ubah schema. Setelah ini saya implement action + API dengan fallback aman jika nanti model khusus ternyata ada.
+exec
+/bin/bash -lc "rg -n \"CREATE TABLE .*survey|nasabah_survey|survey_note|hasilSurvey|pengajuan\" prisma/migrations -g '*.sql' | head -n 200" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql:9:ALTER TABLE "pengajuan"
+prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql:2:ALTER TABLE "pengajuan"
+prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql:5:ALTER TABLE "pengajuan"
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:85:ALTER TABLE "pengajuan" ADD COLUMN IF NOT EXISTS "companyId" TEXT;
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:86:UPDATE "pengajuan" p SET "companyId" = n."companyId" FROM "nasabah" n WHERE p."nasabahId" = n.id AND p."companyId" IS NULL;
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:87:UPDATE "pengajuan" SET "companyId" = 'company_demo_default' WHERE "companyId" IS NULL;
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:88:ALTER TABLE "pengajuan" ALTER COLUMN "companyId" SET NOT NULL;
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:90:  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pengajuan_companyId_fkey') THEN
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:91:    ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_companyId_fkey"
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:95:CREATE INDEX IF NOT EXISTS "pengajuan_companyId_idx" ON "pengajuan"("companyId");
+prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql:98:UPDATE "pinjaman" p SET "companyId" = pj."companyId" FROM "pengajuan" pj WHERE p."pengajuanId" = pj.id AND p."companyId" IS NULL;
+prisma/migrations/20260418204642_init/migration.sql:99:CREATE TABLE "pengajuan" (
+prisma/migrations/20260418204642_init/migration.sql:111:    "hasilSurvey" TEXT,
+prisma/migrations/20260418204642_init/migration.sql:122:    CONSTRAINT "pengajuan_pkey" PRIMARY KEY ("id")
+prisma/migrations/20260418204642_init/migration.sql:129:    "pengajuanId" TEXT NOT NULL,
+prisma/migrations/20260418204642_init/migration.sql:230:CREATE UNIQUE INDEX "pengajuan_nomorPengajuan_key" ON "pengajuan"("nomorPengajuan");
+prisma/migrations/20260418204642_init/migration.sql:236:CREATE UNIQUE INDEX "pinjaman_pengajuanId_key" ON "pinjaman"("pengajuanId");
+prisma/migrations/20260418204642_init/migration.sql:254:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_nasabahId_fkey" FOREIGN KEY ("nasabahId") REFERENCES "nasabah"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+prisma/migrations/20260418204642_init/migration.sql:257:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_kelompokId_fkey" FOREIGN KEY ("kelompokId") REFERENCES "kelompok"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+prisma/migrations/20260418204642_init/migration.sql:260:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_surveyorId_fkey" FOREIGN KEY ("surveyorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+prisma/migrations/20260418204642_init/migration.sql:263:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_approverId_fkey" FOREIGN KEY ("approverId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+prisma/migrations/20260418204642_init/migration.sql:266:ALTER TABLE "pinjaman" ADD CONSTRAINT "pinjaman_pengajuanId_fkey" FOREIGN KEY ("pengajuanId") REFERENCES "pengajuan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/actions/pengajuan.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { pengajuanSchema, approvalSchema, pencairanSchema } from "@/lib/validations/pengajuan"
+import { addMonths, addWeeks } from "date-fns"
+import { ApprovalStatus, Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { writeApprovalLog, writeAuditLog } from "@/lib/audit"
+import { ensureKasKategori } from "./kas"
+import { serializeData } from "@/lib/utils"
+import { ensureAccountingAccounts, getCashBalanceByJenis, postJournalEntry, postPencairanJournal } from "@/lib/accounting"
+import { requireCompanyId } from "@/lib/tenant"
+import { z } from "zod"
+
+function parseDateOnly(input: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return date
+}
+
+// ========================
+// PENGAJUAN
+// ========================
+
+export async function getPengajuanList(params: {
+  page?: number
+  status?: string
+  search?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const page = params.page ?? 1
+  const limit = 20
+
+  const where = {
+    AND: [
+      { companyId },
+      params.status ? { status: params.status as "DRAFT" | "DIAJUKAN" | "DISURVEY" | "DISETUJUI" | "DITOLAK" | "DICAIRKAN" | "SELESAI" } : {},
+      params.search ? {
+        nasabah: { namaLengkap: { contains: params.search, mode: "insensitive" as const } }
+      } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.pengajuan.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { tanggalPengajuan: "desc" },
+      include: {
+        nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+        kelompok: { select: { nama: true } },
+      },
+    }),
+    prisma.pengajuan.count({ where }),
+  ])
+
+  return serializeData({ data, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getPengajuanById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.pengajuan.findFirst({
+    where: { id, companyId },
+    include: {
+      nasabah: true,
+      kelompok: true,
+      surveyor: { select: { name: true } },
+      approver: { select: { name: true } },
+      pinjaman: {
+        include: {
+          jadwalAngsuran: { take: 5, orderBy: { angsuranKe: "asc" } },
+          _count: { select: { pembayaran: { where: { isBatalkan: false } } } },
+        },
+      },
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function getNasabahPengajuanOptions() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.nasabah.findMany({
+    where: { companyId, status: "AKTIF" },
+    select: {
+      id: true,
+      nomorAnggota: true,
+      namaLengkap: true,
+      kelompokId: true,
+      kelompok: { select: { nama: true } },
+      kolektor: { select: { name: true } },
+    },
+    orderBy: { namaLengkap: "asc" },
+  })
+}
+
+export async function createPengajuan(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const userId = session.user?.id
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = pengajuanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { bungaPerBulan, plafonDiajukan, dokumenPendukungUrls, ...rest } = parsed.data
+
+  const nasabah = await prisma.nasabah.findUnique({
+    where: { id: parsed.data.nasabahId },
+    select: { id: true, kelompokId: true },
+  })
+  if (!nasabah) {
+    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+  }
+
+  const pengajuan = await prisma.pengajuan.create({
+    data: {
+      companyId,
+      ...rest,
+      kelompokId: rest.kelompokId || nasabah.kelompokId || null,
+      plafonDiajukan: new Prisma.Decimal(plafonDiajukan),
+      bungaPerBulan: new Prisma.Decimal(bungaPerBulan / 100),
+      dokumenPendukungUrls: dokumenPendukungUrls ?? [],
+      status: "DIAJUKAN",
+    },
+  })
+
+  revalidatePath("/pengajuan")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PENGAJUAN",
+    entityId: pengajuan.id,
+    action: "CREATE",
+    afterData: { status: pengajuan.status, nasabahId: pengajuan.nasabahId },
+  })
+  return { success: true, data: pengajuan }
+}
+
+export async function approvePengajuan(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.MANAGER, RoleType.PIMPINAN, RoleType.ADMIN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk menyetujui pengajuan." }
+  }
+
+  const parsed = approvalSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, aksi, plafonDisetujui, catatanApproval } = parsed.data
+
+  let updated;
+  try {
+    updated = await prisma.pengajuan.update({
+      where: { id: pengajuanId },
+      data: {
+        status: aksi === "SETUJU" ? "DISETUJUI" : "DITOLAK",
+        approverId: userId,
+        tanggalApproval: new Date(),
+        plafonDisetujui: plafonDisetujui ? new Prisma.Decimal(plafonDisetujui) : undefined,
+        catatanApproval: catatanApproval,
+      },
+    })
+  } catch (err) {
+    console.error("[approvePengajuan][error]", err)
+    return { error: "Terjadi kesalahan database. Silakan coba login ulang (mungkin sesi kadaluarsa setelah reset database)." }
+  }
+
+  revalidatePath("/pengajuan")
+  revalidatePath(`/pengajuan/${pengajuanId}`)
+  await writeApprovalLog({
+    entityType: "PENGAJUAN",
+    entityId: pengajuanId,
+    status: aksi === "SETUJU" ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED,
+    catatan: catatanApproval,
+    requestedById: userId,
+    approvedById: userId,
+  })
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PENGAJUAN",
+    entityId: pengajuanId,
+    action: aksi === "SETUJU" ? "APPROVE" : "REJECT",
+    afterData: { status: updated.status, plafonDisetujui: updated.plafonDisetujui?.toString() },
+  })
+  return { success: true }
+}
+
+// ========================
+// PENCAIRAN
+// ========================
+
+export async function cairkanPinjaman(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(
+    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+  )
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk mencairkan pinjaman." }
+  }
+
+  const parsed = pencairanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, potonganAdmin, potonganProvisi, tanggalCair, kasJenis } = parsed.data
+
+  const pengajuan = await prisma.pengajuan.findFirst({
+    where: { id: pengajuanId, companyId, status: "DISETUJUI" },
+  })
+  if (!pengajuan) return { error: "Pengajuan tidak ditemukan atau belum disetujui." }
+
+  const plafon = Number(pengajuan.plafonDisetujui ?? pengajuan.plafonDiajukan)
+  const bunga = Number(pengajuan.bungaPerBulan)
+  const tenor = pengajuan.tenor
+  const tenorType = pengajuan.tenorType
+
+  const angsuranPokok = plafon / tenor
+  const angsuranBunga = plafon * bunga
+  const totalAngsuran = angsuranPokok + angsuranBunga
+  const nilaiCair = plafon - potonganAdmin - potonganProvisi
+
+  const tglCair = parseDateOnly(tanggalCair)
+  if (!tglCair) return { error: "Tanggal pencairan tidak valid." }
+  const tglCairEndOfDay = new Date(tglCair)
+  tglCairEndOfDay.setHours(23, 59, 59, 999)
+  const tglJatuhTempo = tenorType === "MINGGUAN" ? addWeeks(tglCair, tenor) : addMonths(tglCair, tenor)
+  const nomorKontrak = `KNT-${Date.now().toString(36).toUpperCase()}`
+
+  await ensureAccountingAccounts(companyId)
+  const saldoKas = await getCashBalanceByJenis(companyId, kasJenis, tglCairEndOfDay)
+  if (saldoKas < nilaiCair) {
+    const pendingMasuk = await prisma.kasTransaksi.aggregate({
+      where: {
+
+exec
+/bin/bash -lc "rg -n \"SURVEYOR|requireRoles\\(|requireCompanyRoles\\(\" src/actions src/app | head -n 220" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/company-users.ts:23:  RoleType.SURVEYOR,
+src/actions/company-users.ts:58:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])
+src/actions/company-users.ts:84:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])
+src/actions/kelompok.ts:182:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/nasabah.ts:405:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/akuntansi.ts:22:  return requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:54:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:113:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/maintenance.ts:105:  const { userId, companyId } = requireCompanyRoles(session as unknown as SessionLike, [
+src/actions/pengajuan.ts:163:    const required = requireRoles(session, [RoleType.MANAGER, RoleType.PIMPINAN, RoleType.ADMIN])
+src/actions/pengajuan.ts:223:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pengajuan.ts:405:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/settings.ts:110:    requireRoles(session, [RoleType.ADMIN, RoleType.PIMPINAN])
+src/actions/settings.ts:162:    requireRoles(session, [RoleType.ADMIN])
+src/actions/settings.ts:204:    requireRoles(session, [RoleType.ADMIN, RoleType.PIMPINAN])
+src/actions/kas.ts:133:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:176:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:237:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:410:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/kas.ts:499:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:581:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:625:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:649:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/platform-admin.ts:69:  return requireRoles(session, [RoleType.SUPER_ADMIN]).userId
+src/actions/pembayaran.ts:389:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/pembayaran.ts:1075:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.TELLER, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:1156:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:1317:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/kolektor.ts:136:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:163:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:202:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:243:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/app/(dashboard)/platform/page.tsx:14:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN])
+src/app/(dashboard)/platform/companies/[id]/page.tsx:20:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN])
+src/app/(dashboard)/platform/companies/page.tsx:20:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN])
+src/app/(dashboard)/platform/users/page.tsx:18:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN])
+src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx:25:  requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN])
+src/app/(dashboard)/settings/user-management-card.tsx:25:  { value: "SURVEYOR", label: "Surveyor" },
+src/app/(dashboard)/settings/user-management-card.tsx:37:  SURVEYOR: "Surveyor",
+src/app/(dashboard)/settings/settings-profile-card.tsx:13:  SURVEYOR: { label: "Surveyor", color: "bg-cyan-100 text-cyan-700" },
+
+exec
+/bin/bash -lc "sed -n '260,620p' src/actions/pengajuan.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+      where: {
+        companyId,
+        jenis: "MASUK",
+        kasJenis,
+        isApproved: false,
+      },
+      _count: { id: true },
+      _sum: { jumlah: true },
+    })
+    const pendingCount = pendingMasuk._count.id
+    const pendingAmount = Number(pendingMasuk._sum.jumlah ?? 0)
+
+    return {
+      error: `Saldo ${kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${nilaiCair.toLocaleString("id-ID")}.${pendingCount > 0 ? ` Ada ${pendingCount} transaksi kas masuk pending (Rp ${pendingAmount.toLocaleString("id-ID")}) yang belum dihitung ke saldo.` : ""} Setor modal/simpanan dan pastikan approval kas selesai sebelum pencairan.`,
+    }
+  }
+
+  // Pastikan kategori kas tersedia sebelum transaksi
+  const ensured = await ensureKasKategori({ jenis: "KELUAR", kategori: "PENCAIRAN" })
+  if ("error" in ensured) return { error: ensured.error }
+
+  // Buat pinjaman + jadwal angsuran dalam 1 transaksi
+  const pinjaman = await prisma.$transaction(async (tx) => {
+    const pin = await tx.pinjaman.create({
+      data: {
+        companyId,
+        nomorKontrak,
+        pengajuanId,
+        pokokPinjaman: new Prisma.Decimal(plafon),
+        tenorType,
+        tenor,
+        bungaPerBulan: new Prisma.Decimal(bunga),
+        angsuranPokok: new Prisma.Decimal(angsuranPokok),
+        angsuranBunga: new Prisma.Decimal(angsuranBunga),
+        totalAngsuran: new Prisma.Decimal(totalAngsuran),
+        potonganAdmin: new Prisma.Decimal(potonganAdmin),
+        potonganProvisi: new Prisma.Decimal(potonganProvisi),
+        nilaiCair: new Prisma.Decimal(nilaiCair),
+        tanggalCair: tglCair,
+        tanggalJatuhTempo: tglJatuhTempo,
+        sisaPinjaman: new Prisma.Decimal(plafon),
+        status: "AKTIF",
+      },
+    })
+
+    // Generate jadwal angsuran
+    const jadwals = Array.from({ length: tenor }, (_, i) => {
+      const tanggalJatuhTempo = tenorType === "MINGGUAN" ? addWeeks(tglCair, i + 1) : addMonths(tglCair, i + 1)
+      return {
+        companyId,
+        pinjamanId: pin.id,
+        angsuranKe: i + 1,
+        tanggalJatuhTempo,
+        pokok: new Prisma.Decimal(angsuranPokok),
+        bunga: new Prisma.Decimal(angsuranBunga),
+        total: new Prisma.Decimal(totalAngsuran),
+      }
+    })
+
+    await tx.jadwalAngsuran.createMany({ data: jadwals })
+
+    // Update status pengajuan
+    await tx.pengajuan.update({
+      where: { id: pengajuanId },
+      data: { status: "DICAIRKAN" },
+    })
+
+    // Catat di kas keluar
+    await tx.kasTransaksi.create({
+      data: {
+        companyId,
+        jenis: "KELUAR",
+        kategoriId: ensured.kategoriId,
+        kategoriKey: ensured.key,
+        deskripsi: `Pencairan pinjaman ${nomorKontrak}`,
+        jumlah: new Prisma.Decimal(nilaiCair),
+        kasJenis,
+        inputOlehId: userId,
+        tanggal: tglCair,
+        referensiId: pin.id,
+      },
+    })
+
+    await postPencairanJournal(tx, {
+      companyId,
+      pinjamanId: pin.id,
+      tanggalCair: tglCair,
+      kasJenis,
+      pokokPinjaman: plafon,
+      nilaiCair,
+      potonganAdmin,
+      potonganProvisi,
+      description: `Pencairan pinjaman ${nomorKontrak}`,
+      postedById: userId,
+    }, { ensureAccounts: false })
+
+    return pin
+  })
+
+  revalidatePath("/pengajuan")
+  revalidatePath("/pencairan")
+  revalidatePath("/kas")
+  revalidatePath("/laporan/buku-besar")
+  revalidatePath("/laporan/neraca")
+  revalidatePath("/laporan/laba-rugi")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PINJAMAN",
+    entityId: pinjaman.id,
+    action: "DISBURSE",
+    metadata: { pengajuanId, nomorKontrak: pinjaman.nomorKontrak, nilaiCair },
+  })
+  return { success: true, data: pinjaman }
+}
+
+export async function getPengajuanSiapCair() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.pengajuan.findMany({
+    where: { companyId, status: "DISETUJUI" },
+    include: {
+      nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+      kelompok: { select: { nama: true } },
+    },
+    orderBy: { tanggalApproval: "desc" },
+  })
+
+  return serializeData(result)
+}
+
+const batalkanPencairanSchema = z.object({
+  pengajuanId: z.string().min(1),
+  alasan: z.string().trim().min(10, "Alasan minimal 10 karakter"),
+})
+
+export async function batalkanPencairanPinjaman(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(
+    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+  )
+
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Hanya admin/manager/pimpinan yang dapat membatalkan pencairan." }
+  }
+
+  const parsed = batalkanPencairanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, alasan } = parsed.data
+
+  const pengajuan = await prisma.pengajuan.findFirst({
+    where: { id: pengajuanId, companyId },
+    include: {
+      pinjaman: {
+        include: {
+          _count: { select: { pembayaran: { where: { isBatalkan: false } } } },
+        },
+      },
+    },
+  })
+
+  if (!pengajuan || !pengajuan.pinjaman) return { error: "Data pencairan pinjaman tidak ditemukan." }
+  if (pengajuan.status !== "DICAIRKAN") {
+    return { error: "Hanya pengajuan berstatus DICAIRKAN yang bisa dibatalkan." }
+  }
+  if (pengajuan.pinjaman._count.pembayaran > 0) {
+    return { error: "Pencairan tidak dapat dibatalkan karena sudah ada pembayaran angsuran." }
+  }
+
+  const pinjaman = pengajuan.pinjaman
+  const nilaiCair = Number(pinjaman.nilaiCair)
+  const potonganAdmin = Number(pinjaman.potonganAdmin) + Number(pinjaman.potonganProvisi)
+
+  const ensured = await ensureKasKategori({ jenis: "MASUK", kategori: "PEMBATALAN_PENCAIRAN" })
+  if ("error" in ensured) return { error: ensured.error }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const existingReversal = await tx.journalEntry.findUnique({
+        where: {
+          sourceType_sourceId: {
+            sourceType: "REVERSAL",
+            sourceId: pinjaman.id,
+          },
+        },
+        select: { id: true },
+      })
+      if (existingReversal) throw new Error("Pencairan sudah dibatalkan sebelumnya.")
+
+      const kasPencairan = await tx.kasTransaksi.findFirst({
+        where: {
+          companyId,
+          referensiId: pinjaman.id,
+          jenis: "KELUAR",
+          kategoriKey: "PENCAIRAN",
+        },
+        orderBy: { createdAt: "desc" },
+      })
+      if (!kasPencairan) throw new Error("Transaksi kas pencairan tidak ditemukan.")
+
+      await tx.kasTransaksi.create({
+        data: {
+          companyId,
+          jenis: "MASUK",
+          kategoriId: ensured.kategoriId,
+          kategoriKey: ensured.key,
+          deskripsi: `Pembatalan pencairan ${pinjaman.nomorKontrak}`,
+          jumlah: new Prisma.Decimal(nilaiCair),
+          kasJenis: kasPencairan.kasJenis,
+          inputOlehId: userId,
+          tanggal: new Date(),
+          referensiId: pinjaman.id,
+        },
+      })
+
+      await postJournalEntry(
+        tx,
+        {
+          companyId,
+          sourceType: "REVERSAL",
+          sourceId: pinjaman.id,
+          entryDate: new Date(),
+          description: `Pembatalan pencairan ${pinjaman.nomorKontrak}`,
+          postedById: userId,
+          lines: [
+            {
+              accountCode: kasPencairan.kasJenis === "BANK" ? "CASH_BANK" : "CASH_TUNAI",
+              debit: nilaiCair,
+              memo: "Kas masuk pembatalan pencairan",
+            },
+            { accountCode: "PENDAPATAN_ADMIN", debit: potonganAdmin, memo: "Reversal admin/provisi" },
+            { accountCode: "PIUTANG_PINJAMAN", credit: Number(pinjaman.pokokPinjaman), memo: "Reversal piutang pinjaman" },
+          ],
+        },
+        { ensureAccounts: false },
+      )
+
+      await tx.jadwalAngsuran.updateMany({
+        where: { companyId, pinjamanId: pinjaman.id },
+        data: {
+          sudahDibayar: true,
+          tanggalBayar: new Date(),
+        },
+      })
+
+      await tx.pinjaman.update({
+        where: { id: pinjaman.id },
+        data: {
+          status: "LUNAS",
+          sisaPinjaman: new Prisma.Decimal(0),
+        },
+      })
+
+      const note = `[PEMBATALAN PENCAIRAN] ${alasan}`
+      const previous = pengajuan.catatanApproval?.trim()
+      const nextNote = previous ? `${previous}\n${note}` : note
+
+      await tx.pengajuan.update({
+        where: { id: pengajuanId },
+        data: {
+          status: "SELESAI",
+          catatanApproval: nextNote,
+        },
+      })
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Gagal membatalkan pencairan."
+    return { error: message }
+  }
+
+  revalidatePath("/pengajuan")
+  revalidatePath(`/pengajuan/${pengajuanId}`)
+  revalidatePath("/pencairan")
+  revalidatePath("/pembayaran")
+  revalidatePath("/monitoring/tunggakan")
+  revalidatePath("/kas")
+  revalidatePath("/laporan/buku-besar")
+  revalidatePath("/laporan/neraca")
+  revalidatePath("/laporan/laba-rugi")
+
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PINJAMAN",
+    entityId: pinjaman.id,
+    action: "UPDATE",
+    metadata: {
+      event: "CANCEL_DISBURSEMENT",
+      pengajuanId,
+      nomorKontrak: pinjaman.nomorKontrak,
+      nilaiCair,
+      alasan,
+    },
+  })
+
+  return { success: true }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/audit.ts" in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { AuditAction, ApprovalEntityType, ApprovalStatus, Prisma } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
+
+type JsonPayload = Prisma.InputJsonValue | undefined
+
+export async function writeAuditLog(input: {
+  actorId?: string
+  entityType: string
+  entityId?: string
+  action: AuditAction
+  beforeData?: JsonPayload
+  afterData?: JsonPayload
+  metadata?: JsonPayload
+  ipAddress?: string
+}) {
+  try {
+    let finalActorId = input.actorId
+    if (finalActorId) {
+      const user = await prisma.user.findUnique({ where: { id: finalActorId }, select: { id: true } })
+      if (!user) finalActorId = undefined
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: finalActorId,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        action: input.action,
+        beforeData: input.beforeData,
+        afterData: input.afterData,
+        metadata: input.metadata,
+        ipAddress: input.ipAddress,
+      },
+    })
+  } catch (error) {
+    // Non-blocking while migration rollout is in progress.
+    console.warn("Audit log write skipped:", error)
+  }
+}
+
+export async function writeApprovalLog(input: {
+  entityType: ApprovalEntityType
+  entityId: string
+  status?: ApprovalStatus
+  catatan?: string
+  requestedById: string
+  approvedById?: string
+}) {
+  try {
+    // Basic existence checks to avoid foreign key violations
+    const requester = await prisma.user.findUnique({ where: { id: input.requestedById }, select: { id: true } })
+    if (!requester) return // Cannot log without valid requester
+
+    let finalApprovedById = input.approvedById
+    if (finalApprovedById) {
+      const approver = await prisma.user.findUnique({ where: { id: finalApprovedById }, select: { id: true } })
+      if (!approver) finalApprovedById = undefined
+    }
+
+    await prisma.approvalLog.create({
+      data: {
+        entityType: input.entityType,
+        entityId: input.entityId,
+        status: input.status ?? ApprovalStatus.PENDING,
+        catatan: input.catatan,
+        requestedById: input.requestedById,
+        approvedById: finalApprovedById,
+      },
+    })
+  } catch (error) {
+    console.warn("Approval log write skipped:", error)
+  }
+}
+
+codex
+Rencana implementasi saya:
+
+1. Install dependency agar `node_modules/next/dist/docs/` tersedia, lalu baca panduan Route Handlers lokal sesuai instruksi AGENTS.
+2. Tambah [`src/actions/nasabah-survey.ts`] dengan 2 fungsi:
+   - `listNasabahSurveyNotes(nasabahId)`
+   - `createNasabahSurveyNote(nasabahId, input)`
+   Keduanya akan:
+   - auth + `requireCompanyId`
+   - role guard yang eksplisit
+   - validasi note (trim non-empty + max length masuk akal)
+   - tenant scoping pada query (`companyId`)
+   - output object stabil (`ok`, `data`, `error`)
+3. Tambah [`src/app/api/nasabah/[id]/survey/route.ts`] untuk `GET` dan `POST` yang memanggil action di atas dan mengembalikan JSON stabil + status code konsisten.
+4. Jalankan cek terarah (`npm run lint` dan `npm run build`), perbaiki jika ada issue.
+5. Commit bertahap sesuai cadence:
+   - commit 1: action
+   - commit 2: API route
+   - commit 3: verifikasi/fix akhir.
+exec
+/bin/bash -lc 'npm install' in /tmp/codex-fanout/20260423_133234/p1d-survey-actions-api/dashboard
+2026-04-23T14:06:34.397712Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 2/5
+2026-04-23T14:07:50.889715Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 3/5
+2026-04-23T14:08:54.923632Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 4/5
+2026-04-23T14:10:17.051259Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 5/5
+2026-04-23T14:11:41.332587Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: tls handshake eof, url: wss://chatgpt.com/backend-api/codex/responses
+ERROR: Reconnecting... 1/5

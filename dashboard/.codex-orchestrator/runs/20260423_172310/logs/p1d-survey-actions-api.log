@@ -1,0 +1,3093 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dbb5d-ff62-7b63-b256-d435fc088619
+--------
+user
+You are Worker p1d-survey-actions-api. Ownership: src/actions/nasabah-survey.ts (new), src/app/api/nasabah/[id]/survey/route.ts (new). Task: implement list/create survey note API scoped by companyId and role guard; validation non-empty note and sensible max length; stable JSON responses. If schema model names differ, adapt cleanly. Add concise error handling. Run lint/build targeted checks and commit. You are not alone in codebase; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+codex
+Saya akan kerjakan endpoint survey nasabah dengan 2 file baru sesuai ownership: action layer tenant-aware + route API GET/POST dengan role guard, validasi catatan, dan response JSON konsisten. Langkah pertama saya cek struktur model Prisma/action existing agar naming dan pola error handling selaras sebelum implementasi.
+exec
+/bin/bash -lc "pwd && ls -la && rg --files src/actions src/app/api | sed -n '1,200p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 17:23 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 17:23 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 17:23 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 17:23 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 17:23 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 17:23 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 17:23 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 17:23 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 17:23 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 17:23 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 17:23 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 17:23 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 17:23 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 17:23 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 17:23 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 17:23 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 17:23 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 17:23 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 17:23 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 17:23 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 17:23 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 17:23 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 17:23 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 17:23 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 17:23 tsconfig.json
+src/actions/platform-admin.ts
+src/actions/pengajuan.ts
+src/actions/settings.ts
+src/actions/kas.ts
+src/actions/company-users.ts
+src/actions/kelompok.ts
+src/actions/nasabah.ts
+src/actions/akuntansi.ts
+src/actions/maintenance.ts
+src/actions/auth-registration.ts
+src/actions/dashboard.ts
+src/actions/pembayaran.ts
+src/actions/kolektor.ts
+src/app/api/auth/[...nextauth]/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/kas/route.ts
+src/app/api/upload/logo/route.ts
+
+exec
+/bin/bash -lc "rg -n \"model Nasabah|Survey|Catatan|Note|companyId\" prisma/schema.prisma && sed -n '1,260p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+67:  companyId              String?
+79:  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+82:  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+84:  @@index([companyId])
+88:model Nasabah {
+110:  companyId     String
+111:  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+118:  @@unique([companyId, nomorAnggota])
+119:  @@unique([companyId, nik])
+120:  @@index([companyId])
+132:  companyId   String
+133:  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+136:  @@index([companyId])
+149:  companyId       String
+150:  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+154:  @@unique([companyId, kode])
+155:  @@index([companyId])
+171:  hasilSurvey          String?
+175:  tanggalSurvey        DateTime?
+184:  companyId            String
+186:  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+192:  @@index([companyId])
+216:  companyId         String
+219:  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+222:  @@index([companyId])
+237:  companyId         String
+238:  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+241:  @@index([companyId])
+261:  companyId      String
+262:  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+266:  @@index([companyId])
+276:  companyId String
+277:  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+280:  @@index([companyId])
+292:  companyId    String
+293:  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+298:  @@unique([companyId, code])
+300:  @@index([companyId])
+315:  companyId   String
+316:  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+323:  @@index([companyId])
+357:  companyId      String
+359:  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+363:  @@index([companyId])
+377:  companyId    String
+379:  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+382:  @@unique([companyId, key])
+383:  @@index([companyId])
+400:  companyId   String
+402:  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+406:  @@index([companyId])
+458:  companyId          String
+459:  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+464:  @@index([companyId])
+478:  companyId String
+479:  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+483:  @@index([companyId])
+497:  companyId String
+501:  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+503:  @@unique([companyId, key])
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserRole {
+  id     String   @id @default(cuid())
+  userId String
+  role   RoleType
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model Company {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  address         String?
+  phone           String?
+  email           String?
+  isActive        Boolean           @default(true)
+  ownerId         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  status          CompanyStatus     @default(ACTIVE)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  suspendedUntil  DateTime?
+  deletedAt       DateTime?
+  deletedReason   String?
+  accounts        Account[]
+  owner           User              @relation("CompanyOwner", fields: [ownerId], references: [id])
+  settings        CompanySetting[]
+  jadwalAngsuran  JadwalAngsuran[]
+  journalEntries  JournalEntry[]
+  kasKategori     KasKategori[]
+  kasTransaksi    KasTransaksi[]
+  kelompok        Kelompok[]
+  kolektorTargets KolektorTarget[]
+  nasabah         Nasabah[]
+  notifikasi      Notifikasi[]
+  pembayaran      Pembayaran[]
+  pengajuan       Pengajuan[]
+  penjamin        Penjamin[]
+  pinjaman        Pinjaman[]
+  rekonsiliasi    RekonsiliasiKas[]
+  simpanan        Simpanan[]
+  users           User[]            @relation("UserCompany")
+
+  @@index([ownerId])
+  @@map("companies")
+}
+
+model User {
+  id                     String            @id @default(cuid())
+  name                   String
+  email                  String            @unique
+  password               String
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  companyId              String?
+  approvalApproved       ApprovalLog[]     @relation("ApprovalApprover")
+  approvalRequested      ApprovalLog[]     @relation("ApprovalRequester")
+  auditLogs              AuditLog[]        @relation("AuditActor")
+  ownedCompanies         Company[]         @relation("CompanyOwner")
+  journalPosted          JournalEntry[]    @relation("JournalPostedBy")
+  kasDiinput             KasTransaksi[]
+  kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+  notifikasi             Notifikasi[]      @relation("UserNotifikasi")
+  pembayaranDiinput      Pembayaran[]
+  pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+  rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  roles                  UserRole[]
+  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model Nasabah {
+  id            String        @id @default(cuid())
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  id              String      @id @default(cuid())
+  kode            String
+  nama            String
+  ketua           String?
+  wilayah         String?
+  jadwalPertemuan String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+
+exec
+/bin/bash -lc "rg -n \"survey|nasabah|requireCompanyId|role|NextResponse|route.ts|zod|validation|error\" src | sed -n '1,260p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/company-users.ts:6:import { z } from "zod"
+src/actions/company-users.ts:9:import { requireRoles } from "@/lib/roles"
+src/actions/company-users.ts:14:    roles?: string[]
+src/actions/company-users.ts:33:  role: z.enum(manageableRoles, { message: "Role tidak valid" }),
+src/actions/company-users.ts:41:  roles: string[]
+src/actions/company-users.ts:47:  errors?: Partial<Record<"name" | "email" | "password" | "role", string[]>>
+src/actions/company-users.ts:69:      roles: { select: { role: true }, orderBy: { role: "asc" } },
+src/actions/company-users.ts:75:    roles: user.roles.map((item) => item.role),
+src/actions/company-users.ts:91:    role: formData.get("role"),
+src/actions/company-users.ts:95:    return { errors: parsed.error.flatten().fieldErrors }
+src/actions/company-users.ts:105:      errors: { email: ["Email sudah terdaftar"] },
+src/actions/company-users.ts:119:      roles: {
+src/actions/company-users.ts:120:        create: [{ role: parsed.data.role }],
+src/actions/kelompok.ts:6:import { kelompokSchema } from "@/lib/validations/kelompok"
+src/actions/kelompok.ts:7:import { requireRoles } from "@/lib/roles"
+src/actions/kelompok.ts:9:import { requireCompanyId } from "@/lib/tenant"
+src/actions/kelompok.ts:14:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:34:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:39:      nasabah: {
+src/actions/kelompok.ts:53:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:55:  return prisma.nasabah.findMany({
+src/actions/kelompok.ts:68:  const ketuaNasabah = await prisma.nasabah.findFirst({
+src/actions/kelompok.ts:78:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:81:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kelompok.ts:87:  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+src/actions/kelompok.ts:108:      await tx.nasabah.updateMany({
+src/actions/kelompok.ts:118:  revalidatePath("/nasabah")
+src/actions/kelompok.ts:125:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:128:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kelompok.ts:134:  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+src/actions/kelompok.ts:157:    await tx.nasabah.updateMany({
+src/actions/kelompok.ts:163:      await tx.nasabah.updateMany({
+src/actions/kelompok.ts:172:  revalidatePath("/nasabah")
+src/actions/kelompok.ts:179:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:184:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus kelompok." }
+src/actions/kelompok.ts:193:          nasabah: true,
+src/actions/kelompok.ts:201:    return { success: false, error: "Kelompok tidak ditemukan." }
+src/actions/kelompok.ts:207:      error: "Kelompok sudah dipakai di histori pengajuan. Edit atau kosongkan anggota, jangan hapus histori kelompok.",
+src/actions/kelompok.ts:212:    if (kelompok._count.nasabah > 0) {
+src/actions/kelompok.ts:213:      await tx.nasabah.updateMany({
+src/actions/kelompok.ts:222:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:6:import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+src/actions/nasabah.ts:11:import { requireRoles } from "@/lib/roles"
+src/actions/nasabah.ts:12:import { requireCompanyId } from "@/lib/tenant"
+src/actions/nasabah.ts:16:  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+src/actions/nasabah.ts:17:  | { error: NasabahActionError }
+src/actions/nasabah.ts:18:type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+src/actions/nasabah.ts:26:  const count = await prisma.nasabah.count({ where: { companyId } })
+src/actions/nasabah.ts:32:function getUniqueConstraintFields(error: unknown): string[] {
+src/actions/nasabah.ts:33:  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+src/actions/nasabah.ts:34:    const target = error.meta?.target
+src/actions/nasabah.ts:50:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:77:    prisma.nasabah.findMany({
+src/actions/nasabah.ts:116:    prisma.nasabah.count({ where }),
+src/actions/nasabah.ts:119:  const withIndicators = data.map((nasabah) => {
+src/actions/nasabah.ts:134:    const pinjamanList = nasabah.pengajuan
+src/actions/nasabah.ts:203:      ...nasabah,
+src/actions/nasabah.ts:229:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:230:  const result = await prisma.nasabah.findFirst({
+src/actions/nasabah.ts:262:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:264:  const parsed = nasabahSchema.safeParse(input)
+src/actions/nasabah.ts:266:    return { error: parsed.error.flatten().fieldErrors }
+src/actions/nasabah.ts:270:  const existingNik = await prisma.nasabah.findFirst({
+src/actions/nasabah.ts:277:      error: {
+src/actions/nasabah.ts:286:      return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+src/actions/nasabah.ts:295:      const nasabah = await prisma.nasabah.create({
+src/actions/nasabah.ts:308:      revalidatePath("/nasabah")
+src/actions/nasabah.ts:309:      return { success: true, data: nasabah }
+src/actions/nasabah.ts:310:    } catch (error) {
+src/actions/nasabah.ts:311:      const fields = getUniqueConstraintFields(error)
+src/actions/nasabah.ts:313:        return { error: { nik: ["NIK sudah terdaftar."] } }
+src/actions/nasabah.ts:317:        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:320:      throw error
+src/actions/nasabah.ts:324:  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:330:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:332:  const current = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/nasabah.ts:333:  if (!current) return { error: { nik: ["Nasabah tidak ditemukan."] } }
+src/actions/nasabah.ts:341:    const existingNik = await prisma.nasabah.findFirst({
+src/actions/nasabah.ts:352:        error: {
+src/actions/nasabah.ts:361:    if (!kelompok) return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+src/actions/nasabah.ts:365:    await prisma.nasabah.update({
+src/actions/nasabah.ts:373:  } catch (error) {
+src/actions/nasabah.ts:374:    const fields = getUniqueConstraintFields(error)
+src/actions/nasabah.ts:376:      return { error: { nik: ["NIK sudah terdaftar."] } }
+src/actions/nasabah.ts:379:    throw error
+src/actions/nasabah.ts:382:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:383:  revalidatePath(`/nasabah/${id}`)
+src/actions/nasabah.ts:390:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:392:  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/nasabah.ts:393:  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+src/actions/nasabah.ts:394:  await prisma.nasabah.update({ where: { id }, data: { status } })
+src/actions/nasabah.ts:395:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:402:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:407:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+src/actions/nasabah.ts:410:  const nasabah = await prisma.nasabah.findUnique({
+src/actions/nasabah.ts:424:  if (!nasabah) {
+src/actions/nasabah.ts:425:    return { success: false, error: "Nasabah tidak ditemukan." }
+src/actions/nasabah.ts:428:  const nasabahCompany = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/nasabah.ts:429:  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+src/actions/nasabah.ts:431:  if (nasabah._count.pengajuan > 0 || nasabah._count.simpanan > 0) {
+src/actions/nasabah.ts:434:      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+src/actions/nasabah.ts:438:  await prisma.nasabah.delete({ where: { id } })
+src/actions/nasabah.ts:440:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:449:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:456:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:458:    where: { companyId, roles: { some: { role: "KOLEKTOR" } }, isActive: true },
+src/actions/auth-registration.ts:5:import { z } from "zod"
+src/actions/auth-registration.ts:25:  errors?: Partial<Record<"name" | "companyName" | "email" | "password" | "confirmPassword", string[]>>
+src/actions/auth-registration.ts:66:    return { errors: parsed.error.flatten().fieldErrors }
+src/actions/auth-registration.ts:76:      errors: { email: ["Email sudah terdaftar"] },
+src/actions/auth-registration.ts:91:        roles: {
+src/actions/auth-registration.ts:92:          create: [{ role: RoleType.OWNER }, { role: RoleType.ADMIN }],
+src/actions/maintenance.ts:17:import { requireRoles } from "@/lib/roles"
+src/actions/maintenance.ts:85:type SessionLike = { user?: { id?: string; roles?: string[]; companyId?: string | null } } | null
+src/actions/maintenance.ts:86:type MaintenanceActionResult = { success: true; message: string } | { success: false; error: string }
+src/actions/maintenance.ts:88:function errorMessage(error: unknown) {
+src/actions/maintenance.ts:89:  if (error instanceof Error) return error.message
+src/actions/maintenance.ts:132:    await prisma.nasabah.deleteMany({ where: { companyId } })
+src/actions/maintenance.ts:153:    "/nasabah",
+src/actions/maintenance.ts:179:  roles: RoleType[]
+src/actions/maintenance.ts:202:    data: params.roles.map((role) => ({ userId: user.id, role })),
+src/actions/maintenance.ts:281:  nasabahId: string
+src/actions/maintenance.ts:307:        nasabahId: params.nasabahId,
+src/actions/maintenance.ts:459:    ["MASUK", "ADMIN", "Demo biaya survei nasabah baru", 450_000, "TUNAI", 18],
+src/actions/maintenance.ts:579:    include: { nasabah: { select: { namaLengkap: true } } },
+src/actions/maintenance.ts:587:      description: `Backfill simpanan ${simpanan.jenis} ${simpanan.nasabah.namaLengkap}`,
+src/actions/maintenance.ts:618:  const nasabahRows = []
+src/actions/maintenance.ts:623:    const nasabah = await prisma.nasabah.upsert({
+src/actions/maintenance.ts:643:    nasabahRows.push(nasabah)
+src/actions/maintenance.ts:645:    const simpananCount = await prisma.simpanan.count({ where: { companyId, nasabahId: nasabah.id } })
+src/actions/maintenance.ts:649:          { companyId, nasabahId: nasabah.id, jenis: "POKOK", jumlah: new Prisma.Decimal(100_000) },
+src/actions/maintenance.ts:650:          { companyId, nasabahId: nasabah.id, jenis: "WAJIB", jumlah: new Prisma.Decimal(50_000 + index * 5_000) },
+src/actions/maintenance.ts:651:          { companyId, nasabahId: nasabah.id, jenis: "SUKARELA", jumlah: new Prisma.Decimal(index * 25_000) },
+src/actions/maintenance.ts:657:  for (const [index, nasabah] of nasabahRows.slice(0, DEMO_LOAN_COUNT).entries()) {
+src/actions/maintenance.ts:662:      nasabahId: nasabah.id,
+src/actions/maintenance.ts:663:      kelompokId: nasabah.kelompokId ?? undefined,
+src/actions/maintenance.ts:684:      return { success: false, error: "Ketik BERSIHKAN untuk menjalankan cleanup database." }
+src/actions/maintenance.ts:687:      return { success: false, error: "Pilih minimal satu scope cleanup." }
+src/actions/maintenance.ts:699:  } catch (error) {
+src/actions/maintenance.ts:700:    console.error("[maintenance] cleanup failed", error)
+src/actions/maintenance.ts:701:    return { success: false, error: errorMessage(error) }
+src/actions/maintenance.ts:711:      return { success: false, error: "Ketik DEMO untuk import data demo." }
+src/actions/maintenance.ts:723:  } catch (error) {
+src/actions/maintenance.ts:724:    console.error("[maintenance] import demo failed", error)
+src/actions/maintenance.ts:725:    return { success: false, error: errorMessage(error) }
+src/actions/maintenance.ts:735:      return { success: false, error: "Ketik JURNAL untuk backfill jurnal akuntansi." }
+src/actions/maintenance.ts:747:  } catch (error) {
+src/actions/maintenance.ts:748:    console.error("[maintenance] backfill journals failed", error)
+src/actions/maintenance.ts:749:    return { success: false, error: errorMessage(error) }
+src/actions/settings.ts:4:import { z } from "zod"
+src/actions/settings.ts:7:import { requireRoles } from "@/lib/roles"
+src/actions/settings.ts:11:import { requireCompanyId } from "@/lib/tenant"
+src/actions/settings.ts:75:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:107:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:112:    return { error: "Hanya admin/pimpinan yang dapat mengubah pengaturan ranking." }
+src/actions/settings.ts:116:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:148:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:159:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:164:    return { error: "Hanya admin yang dapat mengubah mode akuntansi." }
+src/actions/settings.ts:168:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:183:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:201:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/settings.ts:206:    return { error: "Hanya admin/pimpinan yang dapat mengubah informasi perusahaan." }
+src/actions/settings.ts:210:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:6:import { pengajuanSchema, approvalSchema, pencairanSchema } from "@/lib/validations/pengajuan"
+src/actions/pengajuan.ts:9:import { requireRoles } from "@/lib/roles"
+src/actions/pengajuan.ts:14:import { requireCompanyId } from "@/lib/tenant"
+src/actions/pengajuan.ts:15:import { z } from "zod"
+src/actions/pengajuan.ts:42:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:52:        nasabah: { namaLengkap: { contains: params.search, mode: "insensitive" as const } }
+src/actions/pengajuan.ts:64:        nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+src/actions/pengajuan.ts:77:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:81:      nasabah: true,
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/actions/pengajuan.ts:100:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:102:  return prisma.nasabah.findMany({
+src/actions/pengajuan.ts:120:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:123:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:127:  const nasabah = await prisma.nasabah.findUnique({
+src/actions/pengajuan.ts:128:    where: { id: parsed.data.nasabahId },
+src/actions/pengajuan.ts:131:  if (!nasabah) {
+src/actions/pengajuan.ts:132:    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+src/actions/pengajuan.ts:139:      kelompokId: rest.kelompokId || nasabah.kelompokId || null,
+src/actions/pengajuan.ts:153:    afterData: { status: pengajuan.status, nasabahId: pengajuan.nasabahId },
+src/actions/pengajuan.ts:166:    return { error: "Tidak memiliki hak akses untuk menyetujui pengajuan." }
+src/actions/pengajuan.ts:170:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:187:    console.error("[approvePengajuan][error]", err)
+src/actions/pengajuan.ts:188:    return { error: "Terjadi kesalahan database. Silakan coba login ulang (mungkin sesi kadaluarsa setelah reset database)." }
+src/actions/pengajuan.ts:218:  const { companyId } = requireCompanyId(
+src/actions/pengajuan.ts:219:    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+src/actions/pengajuan.ts:226:    return { error: "Tidak memiliki hak akses untuk mencairkan pinjaman." }
+src/actions/pengajuan.ts:230:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:237:  if (!pengajuan) return { error: "Pengajuan tidak ditemukan atau belum disetujui." }
+src/actions/pengajuan.ts:250:  if (!tglCair) return { error: "Tanggal pencairan tidak valid." }
+src/actions/pengajuan.ts:273:      error: `Saldo ${kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${nilaiCair.toLocaleString("id-ID")}.${pendingCount > 0 ? ` Ada ${pendingCount} transaksi kas masuk pending (Rp ${pendingAmount.toLocaleString("id-ID")}) yang belum dihitung ke saldo.` : ""} Setor modal/simpanan dan pastikan approval kas selesai sebelum pencairan.`,
+src/actions/pengajuan.ts:279:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pengajuan.ts:378:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/pengajuan.ts:382:      nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+src/actions/pengajuan.ts:399:  const { companyId } = requireCompanyId(
+src/actions/pengajuan.ts:400:    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+src/actions/pengajuan.ts:408:    return { error: "Hanya admin/manager/pimpinan yang dapat membatalkan pencairan." }
+src/actions/pengajuan.ts:412:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:427:  if (!pengajuan || !pengajuan.pinjaman) return { error: "Data pencairan pinjaman tidak ditemukan." }
+src/actions/pengajuan.ts:429:    return { error: "Hanya pengajuan berstatus DICAIRKAN yang bisa dibatalkan." }
+src/actions/pengajuan.ts:432:    return { error: "Pencairan tidak dapat dibatalkan karena sudah ada pembayaran angsuran." }
+src/actions/pengajuan.ts:440:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pengajuan.ts:531:  } catch (error) {
+src/actions/pengajuan.ts:532:    const message = error instanceof Error ? error.message : "Gagal membatalkan pencairan."
+src/actions/pengajuan.ts:533:    return { error: message }
+src/actions/kas.ts:6:import { z } from "zod"
+src/actions/kas.ts:8:import { hasAnyRole, requireRoles } from "@/lib/roles"
+src/actions/kas.ts:13:import { requireCompanyId } from "@/lib/tenant"
+src/actions/kas.ts:50:  if (!session) return { error: "Unauthorized" as const }
+src/actions/kas.ts:51:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:54:  if (!key) return { error: "Kategori tidak boleh kosong." as const }
+src/actions/kas.ts:58:    return { error: `Kategori "${existing.nama}" sudah terpakai untuk jenis ${existing.jenis}. Kategori masuk dan keluar tidak boleh sama.` as const }
+src/actions/kas.ts:80:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:114:      console.error(`Error seeding category ${d.nama}:`, err)
+src/actions/kas.ts:130:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:136:    return { error: "Tidak memiliki hak akses untuk menambah kategori kas." }
+src/actions/kas.ts:140:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:145:    return { error: `Kategori "${existing.nama}" sudah ada (jenis ${existing.jenis}). Kategori masuk dan keluar tidak boleh sama.` }
+src/actions/kas.ts:173:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:179:    return { error: "Tidak memiliki hak akses untuk mengubah kategori kas." }
+src/actions/kas.ts:183:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:186:  if (!existing) return { error: "Kategori tidak ditemukan." }
+src/actions/kas.ts:187:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:196:      return { error: `Kategori dengan nama "${parsed.data.nama}" sudah ada.` }
+src/actions/kas.ts:234:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:240:    return { error: "Tidak memiliki hak akses untuk menghapus kategori kas." }
+src/actions/kas.ts:246:  if (!existing) return { error: "Kategori tidak ditemukan." }
+src/actions/kas.ts:247:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:278:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:343:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:406:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:414:    return { error: "Tidak memiliki hak akses untuk input transaksi kas." }
+src/actions/kas.ts:418:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:423:  if ("error" in ensured) return { error: ensured.error }
+src/actions/kas.ts:426:  if (!tanggalTransaksi) return { error: "Tanggal transaksi tidak valid." }
+src/actions/kas.ts:432:        error: `Saldo ${rest.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${jumlah.toLocaleString("id-ID")}.`,
+src/actions/kas.ts:472:  } catch (error) {
+src/actions/kas.ts:473:    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+src/actions/kas.ts:474:      return { error: "Gagal menyimpan kas. Silakan ulangi beberapa saat lagi." }
+src/actions/kas.ts:476:    throw error
+src/actions/kas.ts:496:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:502:    return { error: "Tidak memiliki hak akses." }
+src/actions/kas.ts:506:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:511:  if ("error" in ensured) return { error: ensured.error }
+src/actions/kas.ts:514:  if (!existing) return { error: "Data tidak ditemukan." }
+src/actions/kas.ts:515:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:518:    return { error: "Transaksi kas ini masih menunggu persetujuan. Selesaikan approval sebelum edit." }
+src/actions/kas.ts:522:  if (!tanggalTransaksi) return { error: "Tanggal transaksi tidak valid." }
+src/actions/kas.ts:532:        error: `Saldo ${rest.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup untuk perubahan transaksi ini.`,
+src/actions/kas.ts:578:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:584:    return { error: "Tidak memiliki hak akses." }
+src/actions/kas.ts:588:  if (!existing) return { error: "Data tidak ditemukan." }
+src/actions/kas.ts:589:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:592:    return { error: "Transaksi kas ini masih menunggu persetujuan. Selesaikan approval sebelum hapus." }
+src/actions/kas.ts:622:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kas.ts:627:    return { error: "Tidak memiliki hak akses untuk melihat approval kas." as const }
+
+codex
+Saya sudah cek schema: belum ada model survey terpisah, jadi implementasi akan menempel ke `Pengajuan.hasilSurvey/tanggalSurvey/surveyorId` untuk catatan survey nasabah. Sekarang saya baca pola route handler Next.js lokal + helper auth/roles agar guard dan response format konsisten dengan codebase ini.
+exec
+/bin/bash -lc "ls -la node_modules/next/dist/docs | sed -n '1,120p' && rg -n \"route handler|Route Handler|app/api|request|NextResponse\" node_modules/next/dist/docs -S | sed -n '1,80p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+ls: cannot access 'node_modules/next/dist/docs': No such file or directory
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/nasabah/route.ts && sed -n '1,220p' src/app/api/upload/pengajuan/route.ts" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pengajuan")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/auth.ts && sed -n '1,220p' src/lib/roles.ts && sed -n '1,220p' src/lib/tenant.ts" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
+  logger: {
+    error(error) {
+      // Invalid credentials are expected during login attempts; avoid noisy server error logs.
+      const raw = String(error)
+      if (raw.includes("CredentialsSignin")) return
+      console.error("[auth][error]", error)
+    },
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(6),
+        }).safeParse({
+          email: typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "",
+          password: typeof credentials?.password === "string" ? credentials.password : "",
+        })
+
+        if (!parsed.success) return null
+
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+          },
+        })
+
+        if (!user || !user.isActive) return null
+        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password)
+        if (!passwordMatch) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles.map((r: { role: string }) => r.role),
+          companyId: user.companyId,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      const t = token as typeof token & {
+        id?: string
+        roles?: string[]
+        companyId?: string | null
+        companyName?: string | null
+        companySlug?: string | null
+      }
+
+      if (user) {
+        // @ts-expect-error custom field
+        t.roles = user.roles
+        t.id = user.id
+        // @ts-expect-error custom field
+        t.companyId = user.companyId
+        // @ts-expect-error custom field
+        t.companyName = user.companyName
+        // @ts-expect-error custom field
+        t.companySlug = user.companySlug
+      }
+
+      if (!t.id && token.sub) {
+        t.id = token.sub
+      }
+
+      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+        const next = session as { actingCompanyId?: unknown; clearActingCompany?: unknown } | undefined
+        const clearActing = next?.clearActingCompany === true || next?.actingCompanyId === null || next?.actingCompanyId === ""
+        if (clearActing) {
+          t.companyId = null
+          t.companyName = null
+          t.companySlug = null
+        } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
+          const company = await prisma.company.findUnique({
+            where: { id: next.actingCompanyId },
+            select: { id: true, name: true, slug: true },
+          })
+          if (company) {
+            t.companyId = company.id
+            t.companyName = company.name
+            t.companySlug = company.slug
+          }
+        }
+      }
+
+      const needsHydration =
+        !Array.isArray(t.roles) ||
+        typeof t.id !== "string" ||
+        t.id.length === 0 ||
+        t.companyId === undefined
+
+      if (needsHydration && typeof token.email === "string" && token.email.length > 0) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email.toLowerCase() },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true } },
+          },
+        })
+
+        if (dbUser) {
+          t.id = dbUser.id
+          t.roles = dbUser.roles.map((r) => r.role)
+          t.companyId = dbUser.companyId
+          t.companyName = dbUser.company?.name ?? null
+          t.companySlug = dbUser.company?.slug ?? null
+        }
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        const t = token as typeof token & {
+          id?: string
+          roles?: string[]
+          companyId?: string | null
+          companyName?: string | null
+          companySlug?: string | null
+        }
+        // @ts-expect-error custom field
+        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+        session.user.id = (t.id ?? token.sub ?? "") as string
+        // @ts-expect-error custom field
+        session.user.companyId = (t.companyId ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyName = (t.companyName ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companySlug = (t.companySlug ?? null) as string | null
+      }
+      return session
+    },
+  },
+})
+import { RoleType } from "@prisma/client"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+  }
+} | null
+
+export function extractRoles(session: SessionLike): RoleType[] {
+  const roles = session?.user?.roles ?? []
+  return roles.filter((role): role is RoleType =>
+    Object.values(RoleType).includes(role as RoleType)
+  )
+}
+
+export function requireRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const userId = session?.user?.id
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const roles = extractRoles(session)
+  const allowed = roles.some((role) => allowedRoles.includes(role))
+
+  if (!allowed) {
+    throw new Error("Forbidden")
+  }
+
+  return { userId, roles }
+}
+
+export function hasAnyRole(session: SessionLike, allowedRoles: RoleType[]) {
+  const roles = extractRoles(session)
+  return roles.some((role) => allowedRoles.includes(role))
+}
+import { RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+export function requireCompanyId(session: SessionLike) {
+  const userId = session?.user?.id
+  if (!userId) throw new Error("Unauthorized")
+
+  const companyId = session.user?.companyId
+  if (!companyId) {
+    // SUPER_ADMIN is allowed to exist without a company context.
+    const roles = session.user?.roles ?? []
+    if (roles.includes(RoleType.SUPER_ADMIN)) {
+      throw new Error("Company context required")
+    }
+    throw new Error("Akun belum terhubung ke company.")
+  }
+
+  return { userId, companyId }
+}
+
+export function requireCompanyRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const { userId } = requireRoles(session, allowedRoles)
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+  return { userId, companyId }
+}
+
+
+codex
+Dokumen Next.js lokal yang diminta AGENTS tidak tersedia karena `node_modules` belum ada di workspace ini, jadi saya akan mengikuti pola route handler yang sudah dipakai proyek agar tetap kompatibel. Berikutnya saya cek route dinamis `[id]` dan menyiapkan action util khusus survey supaya logic tenant/role tidak tercecer di route.
+exec
+/bin/bash -lc "rg --files src/app/api | sed -n '1,200p' && rg -n \"\\[id\\]|params\" src/app/api -S | sed -n '1,220p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/app/api/auth/[...nextauth]/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/kas/route.ts
+src/app/api/upload/logo/route.ts
+
+exec
+/bin/bash -lc "sed -n '150,260p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "rg -n \"Response\\.json\\(|NextResponse|success:|error:\" src/app/api src/actions | sed -n '1,220p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/auth-registration.ts:113:    success: true,
+src/actions/company-users.ts:126:  return { success: true, message: "User company berhasil dibuat." }
+src/actions/kelompok.ts:81:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kelompok.ts:87:  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+src/actions/kelompok.ts:119:  return { success: true, data: kelompok }
+src/actions/kelompok.ts:128:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kelompok.ts:134:  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+src/actions/kelompok.ts:173:  return { success: true }
+src/actions/kelompok.ts:184:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus kelompok." }
+src/actions/kelompok.ts:201:    return { success: false, error: "Kelompok tidak ditemukan." }
+src/actions/kelompok.ts:206:      success: false,
+src/actions/kelompok.ts:207:      error: "Kelompok sudah dipakai di histori pengajuan. Edit atau kosongkan anggota, jangan hapus histori kelompok.",
+src/actions/kelompok.ts:224:  return { success: true }
+src/actions/nasabah.ts:16:  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+src/actions/nasabah.ts:17:  | { error: NasabahActionError }
+src/actions/nasabah.ts:18:type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+src/actions/nasabah.ts:32:function getUniqueConstraintFields(error: unknown): string[] {
+src/actions/nasabah.ts:266:    return { error: parsed.error.flatten().fieldErrors }
+src/actions/nasabah.ts:277:      error: {
+src/actions/nasabah.ts:286:      return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+src/actions/nasabah.ts:309:      return { success: true, data: nasabah }
+src/actions/nasabah.ts:313:        return { error: { nik: ["NIK sudah terdaftar."] } }
+src/actions/nasabah.ts:317:        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:324:  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:333:  if (!current) return { error: { nik: ["Nasabah tidak ditemukan."] } }
+src/actions/nasabah.ts:352:        error: {
+src/actions/nasabah.ts:361:    if (!kelompok) return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+src/actions/nasabah.ts:376:      return { error: { nik: ["NIK sudah terdaftar."] } }
+src/actions/nasabah.ts:384:  return { success: true }
+src/actions/nasabah.ts:393:  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+src/actions/nasabah.ts:396:  return { success: true }
+src/actions/nasabah.ts:407:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+src/actions/nasabah.ts:425:    return { success: false, error: "Nasabah tidak ditemukan." }
+src/actions/nasabah.ts:429:  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+src/actions/nasabah.ts:433:      success: false,
+src/actions/nasabah.ts:434:      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+src/actions/nasabah.ts:443:  return { success: true }
+src/actions/akuntansi.ts:58:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/akuntansi.ts:61:  if (existing) return { error: `Kode akun "${existing.code}" sudah ada.` }
+src/actions/akuntansi.ts:82:  return { success: true, data: row }
+src/actions/akuntansi.ts:117:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/akuntansi.ts:120:  if (!existing) return { error: "Kategori kas tidak ditemukan." }
+src/actions/akuntansi.ts:124:    if (!acc) return { error: "Akun tidak ditemukan." }
+src/actions/akuntansi.ts:145:  return { success: true, data: updated }
+src/actions/akuntansi.ts:199:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/akuntansi.ts:202:  if (!account) return { error: "Akun tidak ditemukan." }
+src/actions/akuntansi.ts:204:    return { error: "Rekonsiliasi saat ini hanya untuk akun kas tunai dan kas bank." }
+src/actions/akuntansi.ts:260:  return serializeData({ success: true, data: row })
+src/actions/akuntansi.ts:269:  if (!row) return { error: "Data rekonsiliasi tidak ditemukan." }
+src/actions/akuntansi.ts:284:  return { success: true }
+src/actions/maintenance.ts:86:type MaintenanceActionResult = { success: true; message: string } | { success: false; error: string }
+src/actions/maintenance.ts:88:function errorMessage(error: unknown) {
+src/actions/maintenance.ts:684:      return { success: false, error: "Ketik BERSIHKAN untuk menjalankan cleanup database." }
+src/actions/maintenance.ts:687:      return { success: false, error: "Pilih minimal satu scope cleanup." }
+src/actions/maintenance.ts:698:    return { success: true, message: "Cleanup database company aktif selesai." }
+src/actions/maintenance.ts:701:    return { success: false, error: errorMessage(error) }
+src/actions/maintenance.ts:711:      return { success: false, error: "Ketik DEMO untuk import data demo." }
+src/actions/maintenance.ts:722:    return { success: true, message: "Import demo data selesai." }
+src/actions/maintenance.ts:725:    return { success: false, error: errorMessage(error) }
+src/actions/maintenance.ts:735:      return { success: false, error: "Ketik JURNAL untuk backfill jurnal akuntansi." }
+src/actions/maintenance.ts:746:    return { success: true, message: `Backfill jurnal selesai. ${result.created} jurnal dibuat.` }
+src/actions/maintenance.ts:749:    return { success: false, error: errorMessage(error) }
+src/app/api/upload/kas/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/kas/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/kas/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/kas/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/pembayaran/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pembayaran/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pembayaran/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/pembayaran/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/pengajuan/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pengajuan/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pengajuan/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/pengajuan/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/nasabah/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/nasabah/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/nasabah/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/nasabah/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/actions/pengajuan.ts:123:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:132:    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+src/actions/pengajuan.ts:155:  return { success: true, data: pengajuan }
+src/actions/pengajuan.ts:166:    return { error: "Tidak memiliki hak akses untuk menyetujui pengajuan." }
+src/actions/pengajuan.ts:170:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:188:    return { error: "Terjadi kesalahan database. Silakan coba login ulang (mungkin sesi kadaluarsa setelah reset database)." }
+src/actions/pengajuan.ts:208:  return { success: true }
+src/actions/pengajuan.ts:226:    return { error: "Tidak memiliki hak akses untuk mencairkan pinjaman." }
+src/actions/pengajuan.ts:230:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:237:  if (!pengajuan) return { error: "Pengajuan tidak ditemukan atau belum disetujui." }
+src/actions/pengajuan.ts:250:  if (!tglCair) return { error: "Tanggal pencairan tidak valid." }
+src/actions/pengajuan.ts:273:      error: `Saldo ${kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${nilaiCair.toLocaleString("id-ID")}.${pendingCount > 0 ? ` Ada ${pendingCount} transaksi kas masuk pending (Rp ${pendingAmount.toLocaleString("id-ID")}) yang belum dihitung ke saldo.` : ""} Setor modal/simpanan dan pastikan approval kas selesai sebelum pencairan.`,
+src/actions/pengajuan.ts:279:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pengajuan.ts:372:  return { success: true, data: pinjaman }
+src/actions/pengajuan.ts:408:    return { error: "Hanya admin/manager/pimpinan yang dapat membatalkan pencairan." }
+src/actions/pengajuan.ts:412:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:427:  if (!pengajuan || !pengajuan.pinjaman) return { error: "Data pencairan pinjaman tidak ditemukan." }
+src/actions/pengajuan.ts:429:    return { error: "Hanya pengajuan berstatus DICAIRKAN yang bisa dibatalkan." }
+src/actions/pengajuan.ts:432:    return { error: "Pencairan tidak dapat dibatalkan karena sudah ada pembayaran angsuran." }
+src/actions/pengajuan.ts:440:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pengajuan.ts:533:    return { error: message }
+src/actions/pengajuan.ts:560:  return { success: true }
+src/actions/settings.ts:112:    return { error: "Hanya admin/pimpinan yang dapat mengubah pengaturan ranking." }
+src/actions/settings.ts:116:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:140:  return { success: true }
+src/actions/settings.ts:164:    return { error: "Hanya admin yang dapat mengubah mode akuntansi." }
+src/actions/settings.ts:168:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:177:  return { success: true }
+src/actions/settings.ts:206:    return { error: "Hanya admin/pimpinan yang dapat mengubah informasi perusahaan." }
+src/actions/settings.ts:210:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:221:  return { success: true }
+src/actions/kas.ts:50:  if (!session) return { error: "Unauthorized" as const }
+src/actions/kas.ts:54:  if (!key) return { error: "Kategori tidak boleh kosong." as const }
+src/actions/kas.ts:58:    return { error: `Kategori "${existing.nama}" sudah terpakai untuk jenis ${existing.jenis}. Kategori masuk dan keluar tidak boleh sama.` as const }
+src/actions/kas.ts:136:    return { error: "Tidak memiliki hak akses untuk menambah kategori kas." }
+src/actions/kas.ts:140:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:145:    return { error: `Kategori "${existing.nama}" sudah ada (jenis ${existing.jenis}). Kategori masuk dan keluar tidak boleh sama.` }
+src/actions/kas.ts:167:  return { success: true, data: row }
+src/actions/kas.ts:179:    return { error: "Tidak memiliki hak akses untuk mengubah kategori kas." }
+src/actions/kas.ts:183:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:186:  if (!existing) return { error: "Kategori tidak ditemukan." }
+src/actions/kas.ts:187:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:196:      return { error: `Kategori dengan nama "${parsed.data.nama}" sudah ada.` }
+src/actions/kas.ts:228:  return { success: true, data: row }
+src/actions/kas.ts:240:    return { error: "Tidak memiliki hak akses untuk menghapus kategori kas." }
+src/actions/kas.ts:246:  if (!existing) return { error: "Kategori tidak ditemukan." }
+src/actions/kas.ts:247:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:272:  return { success: true }
+src/actions/kas.ts:414:    return { error: "Tidak memiliki hak akses untuk input transaksi kas." }
+src/actions/kas.ts:418:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:423:  if ("error" in ensured) return { error: ensured.error }
+src/actions/kas.ts:426:  if (!tanggalTransaksi) return { error: "Tanggal transaksi tidak valid." }
+src/actions/kas.ts:432:        error: `Saldo ${rest.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${jumlah.toLocaleString("id-ID")}.`,
+src/actions/kas.ts:474:      return { error: "Gagal menyimpan kas. Silakan ulangi beberapa saat lagi." }
+src/actions/kas.ts:490:  return { success: true, data: { id: kas.id, isApproved: kas.isApproved } }
+src/actions/kas.ts:502:    return { error: "Tidak memiliki hak akses." }
+src/actions/kas.ts:506:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:511:  if ("error" in ensured) return { error: ensured.error }
+src/actions/kas.ts:514:  if (!existing) return { error: "Data tidak ditemukan." }
+src/actions/kas.ts:515:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:518:    return { error: "Transaksi kas ini masih menunggu persetujuan. Selesaikan approval sebelum edit." }
+src/actions/kas.ts:522:  if (!tanggalTransaksi) return { error: "Tanggal transaksi tidak valid." }
+src/actions/kas.ts:532:        error: `Saldo ${rest.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup untuk perubahan transaksi ini.`,
+src/actions/kas.ts:572:  return { success: true }
+src/actions/kas.ts:584:    return { error: "Tidak memiliki hak akses." }
+src/actions/kas.ts:588:  if (!existing) return { error: "Data tidak ditemukan." }
+src/actions/kas.ts:589:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:592:    return { error: "Transaksi kas ini masih menunggu persetujuan. Selesaikan approval sebelum hapus." }
+src/actions/kas.ts:616:  return { success: true }
+src/actions/kas.ts:627:    return { error: "Tidak memiliki hak akses untuk melihat approval kas." as const }
+src/actions/kas.ts:639:  return serializeData({ success: true as const, data: rows })
+src/actions/kas.ts:652:    return { error: "Tidak memiliki hak akses untuk memproses approval kas." }
+src/actions/kas.ts:656:  if (!row) return { error: "Transaksi kas tidak ditemukan." }
+src/actions/kas.ts:657:  if (row.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:658:  if (row.isApproved && input.action === "APPROVE") return { error: "Transaksi kas sudah disetujui." }
+src/actions/kas.ts:679:        error: `Saldo ${row.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup untuk approve transaksi ini.`,
+src/actions/kas.ts:732:  return { success: true }
+src/actions/platform-admin.ts:76:function errorMessage(error: unknown) {
+src/actions/platform-admin.ts:89:  if (!companyId) return { error: "Company tidak valid." as const }
+src/actions/platform-admin.ts:95:  if (!company) return { error: "Company tidak ditemukan." as const }
+src/actions/platform-admin.ts:97:    return { error: `Company berstatus ${company.status}. Context operasional hanya untuk company ACTIVE.` as const }
+src/actions/platform-admin.ts:114:    success: true as const,
+src/actions/platform-admin.ts:130:  return { success: true as const }
+src/actions/platform-admin.ts:327:  | { success: true; message: string }
+src/actions/platform-admin.ts:328:  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+src/actions/platform-admin.ts:336:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status company." }
+src/actions/platform-admin.ts:347:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:354:    if (!before) return { success: false, error: "Company tidak ditemukan." }
+src/actions/platform-admin.ts:393:    return { success: true, message: `Status company diubah menjadi ${nextStatus}.` }
+src/actions/platform-admin.ts:396:    return { success: false, error: errorMessage(error) }
+src/actions/platform-admin.ts:412:      return { success: false, error: "Keluar dulu dari mode company context sebelum soft delete company." }
+src/actions/platform-admin.ts:421:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:428:    if (!company) return { success: false, error: "Company tidak ditemukan." }
+src/actions/platform-admin.ts:432:      return { success: false, error: `Konfirmasi salah. Ketik: ${expected}` }
+src/actions/platform-admin.ts:464:    return { success: true, message: "Company berhasil di-soft delete (status DELETED)." }
+src/actions/platform-admin.ts:467:    return { success: false, error: errorMessage(error) }
+src/actions/platform-admin.ts:521:  | { success: true; message: string; tempPassword?: string }
+src/actions/platform-admin.ts:522:  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+src/actions/platform-admin.ts:530:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status user." }
+src/actions/platform-admin.ts:539:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:546:    if (!before) return { success: false, error: "User tidak ditemukan." }
+src/actions/platform-admin.ts:566:    return { success: true, message: `User ${nextActive ? "diaktifkan" : "dinonaktifkan"}.` }
+src/actions/platform-admin.ts:569:    return { success: false, error: errorMessage(error) }
+src/actions/platform-admin.ts:584:      return { success: false, error: "Keluar dulu dari mode company context sebelum reset password user." }
+src/actions/platform-admin.ts:592:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:599:    if (!user) return { success: false, error: "User tidak ditemukan." }
+src/actions/platform-admin.ts:619:    return { success: true, message: "Password berhasil direset.", tempPassword }
+src/actions/platform-admin.ts:622:    return { success: false, error: errorMessage(error) }
+src/actions/pembayaran.ts:392:    return { error: "Tidak memiliki hak akses untuk input pembayaran." }
+src/actions/pembayaran.ts:397:    return { error: "Akun pengguna tidak ditemukan di database. Silakan login ulang." }
+src/actions/pembayaran.ts:409:  if (!jadwal) return { error: "Data angsuran tidak ditemukan." }
+src/actions/pembayaran.ts:411:    return { error: "Angsuran ini sudah dibayar." }
+src/actions/pembayaran.ts:427:    return { error: "Tidak ada sisa tagihan untuk angsuran ini." }
+src/actions/pembayaran.ts:440:    return { error: "Jumlah pembayaran tidak valid." }
+src/actions/pembayaran.ts:443:    return { error: "Untuk mode parsial, jumlah harus lebih kecil dari total tagihan sisa." }
+src/actions/pembayaran.ts:446:    return { error: "Jumlah pembayaran melebihi total tagihan sisa." }
+src/actions/pembayaran.ts:461:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pembayaran.ts:581:  return { success: true, ...result }
+src/actions/pembayaran.ts:584:      error: error instanceof Error ? error.message : "Gagal memproses pembayaran.",
+src/actions/pembayaran.ts:1078:    return { error: "Tidak memiliki hak akses untuk meminta pembatalan." }
+src/actions/pembayaran.ts:1082:  if (!pembayaran) return { error: "Data pembayaran tidak ditemukan." }
+src/actions/pembayaran.ts:1083:  if (pembayaran.isBatalkan) return { error: "Pembayaran sudah dibatalkan." }
+src/actions/pembayaran.ts:1093:  if (pending) return { error: "Sudah ada approval pembatalan yang masih pending." }
+src/actions/pembayaran.ts:1117:  return { success: true }
+src/actions/pembayaran.ts:1159:    return { error: "Hanya manager/admin/pimpinan yang dapat menyetujui pembatalan." }
+src/actions/pembayaran.ts:1170:    return { error: "Approval pembayaran tidak ditemukan." }
+src/actions/pembayaran.ts:1173:    return { error: "Approval sudah diproses sebelumnya." }
+src/actions/pembayaran.ts:1198:    return { success: true }
+src/actions/pembayaran.ts:1205:  if (!pembayaran) return { error: "Pembayaran tidak ditemukan." }
+src/actions/pembayaran.ts:1206:  if (pembayaran.isBatalkan) return { error: "Pembayaran sudah dibatalkan." }
+src/actions/pembayaran.ts:1209:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pembayaran.ts:1303:  return { success: true }
+src/actions/pembayaran.ts:1319:    return { error: "Tidak memiliki hak akses untuk mengedit." }
+src/actions/pembayaran.ts:1323:  if (!existing) return { error: "Transaksi tidak ditemukan." }
+src/actions/pembayaran.ts:1324:  if (existing.isBatalkan) return { error: "Transaksi batal tidak bisa diedit." }
+src/actions/pembayaran.ts:1345:  return { success: true }
+src/actions/kolektor.ts:139:    return { error: "Nama, email, dan password wajib diisi." }
+src/actions/kolektor.ts:151:  return { success: true }
+src/actions/kolektor.ts:170:  if (!nasabah) return { error: "Nasabah tidak ditemukan." }
+src/actions/kolektor.ts:190:  return { success: true, defaultEmail: generatedEmail }
+src/actions/kolektor.ts:213:  if (!kelompok) return { error: "Kelompok tidak ditemukan." }
+src/actions/kolektor.ts:216:  if (!ketuaNasabah) return { error: "Kelompok belum memiliki anggota untuk dijadikan kolektor." }
+
+codex
+Saya sudah pastikan belum ada contoh route `[id]` lain, jadi saya akan buat pola route handler langsung dengan parser `context.params` dan mapping status yang eksplisit. Sekarang saya tentukan role yang diizinkan dari flow `surveyor` existing agar GET/POST tidak kebuka ke role yang tidak relevan.
+exec
+/bin/bash -lc "rg -n \"surveyor|SURVEY|hasilSurvey|tanggalSurvey|catatan\" src/app src/actions prisma/schema.prisma | sed -n '1,240p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/schema.prisma:171:  hasilSurvey          String?
+prisma/schema.prisma:172:  catatanApproval      String?
+prisma/schema.prisma:175:  tanggalSurvey        DateTime?
+prisma/schema.prisma:177:  surveyorId           String?
+prisma/schema.prisma:182:  catatanPengajuan     String?
+prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+prisma/schema.prisma:255:  catatan        String?
+prisma/schema.prisma:351:  catatan        String?
+prisma/schema.prisma:434:  catatan       String?
+prisma/schema.prisma:512:  SURVEYOR
+prisma/schema.prisma:546:  DISURVEY
+src/actions/company-users.ts:23:  RoleType.SURVEYOR,
+src/actions/akuntansi.ts:166:  catatan: z.string().optional(),
+src/actions/akuntansi.ts:228:      catatan: parsed.data.catatan?.trim() || null,
+src/actions/akuntansi.ts:237:      catatan: parsed.data.catatan?.trim() || null,
+src/actions/nasabah.ts:20:function parseJadwalTags(catatan?: string | null) {
+src/actions/nasabah.ts:21:  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/actions/nasabah.ts:107:                    catatan: true,
+src/actions/nasabah.ts:147:        const tags = parseJadwalTags(p.catatan)
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+src/app/(dashboard)/pengajuan/page.tsx:37:  const STATUS_OPTIONS = ["DIAJUKAN", "DISURVEY", "DISETUJUI", "DITOLAK", "DICAIRKAN"]
+src/app/(dashboard)/roadmap/roadmap-client.tsx:95:    description: "Arus kas sederhana untuk pencatatan pemasukan dan pengeluaran.",
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx:17:  const [catatan, setCatatan] = useState("")
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx:30:      const result = await approvePengajuan({ pengajuanId, aksi, plafonDisetujui, catatanApproval: catatan })
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx:59:            value={catatan}
+src/app/(dashboard)/pengajuan/baru/page.tsx:411:                <FieldLabel htmlFor="catatanPengajuan">Catatan</FieldLabel>
+src/app/(dashboard)/pengajuan/baru/page.tsx:413:                  id="catatanPengajuan"
+src/app/(dashboard)/pengajuan/baru/page.tsx:414:                  {...register("catatanPengajuan")}
+src/app/(dashboard)/nasabah/[id]/page.tsx:28:  DISURVEY: "bg-violet-100 text-violet-700",
+src/app/(dashboard)/nasabah/[id]/page.tsx:73:        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/app/(dashboard)/nasabah/[id]/page.tsx:307:              <span className="text-muted-foreground text-xs">Anomali pencatatan</span>
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx:332:                    <p className="text-muted-foreground">Pilih Simple untuk pencatatan dasar atau Proper untuk double-entry dan COA.</p>
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:46:    { status: "DISURVEY", label: "Survey", date: pengajuan.tanggalSurvey, done: !!pengajuan.tanggalSurvey },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:115:            {(pengajuan.catatanPengajuan || pengajuan.dokumenPendukungUrls.length > 0) && (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:118:                {pengajuan.catatanPengajuan && (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:121:                    <p className="text-sm bg-muted/40 rounded-md p-3">{pengajuan.catatanPengajuan}</p>
+src/app/(dashboard)/pengajuan/[id]/page.tsx:146:            {pengajuan.catatanApproval && (
+src/app/(dashboard)/pengajuan/[id]/page.tsx:151:                  <p className="text-sm bg-muted/40 rounded-md p-3">{pengajuan.catatanApproval}</p>
+src/app/(dashboard)/pembayaran/edit-button.tsx:17:  catatan?: string | null
+src/app/(dashboard)/pembayaran/edit-button.tsx:45:  const [catatan, setCatatan] = useState(data.catatan || "")
+src/app/(dashboard)/pembayaran/edit-button.tsx:57:          catatan: catatan.trim() || undefined,
+src/app/(dashboard)/pembayaran/edit-button.tsx:101:                Anda hanya dapat mengubah rincian metode, tanggal, dan catatan penerimaan kas (tidak dapat mengubah nominal tagihan demi integritas data).
+src/app/(dashboard)/pembayaran/edit-button.tsx:166:                  value={catatan}
+src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx:58:    const catatan = prompt(action === "APPROVE" ? "Catatan approval (opsional):" : "Catatan penolakan (opsional):")
+src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx:63:        catatan: catatan ?? undefined,
+src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx:117:                    <TableCell className="max-w-sm whitespace-pre-wrap text-sm">{item.catatan ?? "-"}</TableCell>
+src/app/(dashboard)/pembayaran/page.tsx:151:                            {p.catatan?.includes("mode=PELUNASAN") ? " · Pelunasan" : p.catatan?.includes("mode=PARSIAL") ? " · Parsial" : p.catatan?.includes("mode=FULL") ? " · Penuh" : ""}
+src/app/(dashboard)/pembayaran/page.tsx:168:                              catatan: p.catatan,
+src/app/(dashboard)/settings/page.tsx:39:    description: "Mode akuntansi simple/proper dan konfigurasi pencatatan.",
+src/app/(dashboard)/settings/user-management-card.tsx:25:  { value: "SURVEYOR", label: "Surveyor" },
+src/app/(dashboard)/settings/user-management-card.tsx:37:  SURVEYOR: "Surveyor",
+src/app/(dashboard)/settings/accounting/page.tsx:17:          Atur mode pencatatan akuntansi aplikasi.
+src/app/(dashboard)/settings/accounting-mode-card.tsx:34:          Pilih mode akuntansi yang digunakan oleh aplikasi. Simple untuk pencatatan ringkas, Proper
+src/app/(dashboard)/settings/accounting-mode-card.tsx:35:          untuk pencatatan akuntansi yang lebih lengkap.
+src/app/(dashboard)/kas/kas-client.tsx:444:                                  const catatan = window.prompt("Catatan approval (opsional):", "")
+src/app/(dashboard)/kas/kas-client.tsx:446:                                    const res = await approveKasTransaksi({ id: row.id, action: "APPROVE", catatan: catatan ?? undefined })
+src/app/(dashboard)/kas/kas-client.tsx:465:                                  const catatan = window.prompt("Alasan reject (opsional):", "")
+src/app/(dashboard)/kas/kas-client.tsx:467:                                    const res = await approveKasTransaksi({ id: row.id, action: "REJECT", catatan: catatan ?? undefined })
+src/app/(dashboard)/settings/settings-profile-card.tsx:13:  SURVEYOR: { label: "Surveyor", color: "bg-cyan-100 text-cyan-700" },
+src/app/(dashboard)/laporan/rekonsiliasi/page.tsx:50:                      {r.catatan ? <p className="mt-2 text-sm text-muted-foreground">{r.catatan}</p> : null}
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:30:  const [catatan, setCatatan] = useState("")
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:78:        catatan,
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx:143:          <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan periode, nomor statement, dll." />
+src/app/(dashboard)/akuntansi/akun/page.tsx:35:              menjaga alur pencatatan tetap ringkas.
+src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx:32:  const parsedCatatan = parsePembayaranCatatan(pembayaran.catatan)
+src/actions/maintenance.ts:316:        catatanPengajuan: "Data demo lengkap",
+src/actions/maintenance.ts:318:        catatanApproval: "Disetujui untuk kebutuhan demo",
+src/actions/maintenance.ts:379:            catatan: `[JADWAL:${jadwal.id}] mode=FULL Demo pembayaran angsuran ${installment}`,
+src/actions/pengajuan.ts:50:      params.status ? { status: params.status as "DRAFT" | "DIAJUKAN" | "DISURVEY" | "DISETUJUI" | "DITOLAK" | "DICAIRKAN" | "SELESAI" } : {},
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/actions/pengajuan.ts:172:  const { pengajuanId, aksi, plafonDisetujui, catatanApproval } = parsed.data
+src/actions/pengajuan.ts:183:        catatanApproval: catatanApproval,
+src/actions/pengajuan.ts:197:    catatan: catatanApproval,
+src/actions/pengajuan.ts:520:      const previous = pengajuan.catatanApproval?.trim()
+src/actions/pengajuan.ts:527:          catatanApproval: nextNote,
+src/actions/platform-admin.ts:256:    prisma.pengajuan.count({ where: { companyId, status: { in: ["DIAJUKAN", "DISURVEY", "DISETUJUI"] } } }),
+src/actions/kas.ts:462:            catatan: "Menunggu persetujuan transaksi kas.",
+src/actions/kas.ts:642:export async function approveKasTransaksi(input: { id: string; action: "APPROVE" | "REJECT"; catatan?: string }) {
+src/actions/kas.ts:667:    select: { id: true, catatan: true },
+src/actions/kas.ts:671:  const catatan = input.catatan?.trim()
+src/actions/kas.ts:700:          catatan: catatan
+src/actions/kas.ts:701:            ? `${pending.catatan ?? ""}\n${input.action === "APPROVE" ? "Approve" : "Reject"}: ${catatan}`.trim()
+src/actions/kas.ts:702:            : pending.catatan,
+src/actions/kas.ts:713:          catatan: catatan ?? (input.action === "APPROVE" ? "Disetujui." : "Ditolak."),
+src/actions/kas.ts:729:    metadata: { catatan: catatan ?? null },
+src/actions/pembayaran.ts:60:      catatan: { contains: tag },
+src/actions/pembayaran.ts:378:  catatan?: string
+src/actions/pembayaran.ts:456:  if (input.catatan?.trim()) metaCatatan.push(input.catatan.trim())
+src/actions/pembayaran.ts:457:  const catatanFinal = metaCatatan.join(" ")
+src/actions/pembayaran.ts:475:        catatan: catatanFinal,
+src/actions/pembayaran.ts:640:      // catatan menyimpan tag [JADWAL:<id>]
+src/actions/pembayaran.ts:661:        .map((p) => p.catatan?.match(/\[JADWAL:([^\]]+)\]/)?.[1])
+src/actions/pembayaran.ts:685:    const jadwalId = p.catatan?.match(/\[JADWAL:([^\]]+)\]/)?.[1]
+src/actions/pembayaran.ts:740:                    catatan: true,
+src/actions/pembayaran.ts:772:        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/actions/pembayaran.ts:879:                    catatan: true,
+src/actions/pembayaran.ts:920:        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+src/actions/pembayaran.ts:1100:      catatan: input.alasan,
+src/actions/pembayaran.ts:1146:  catatan?: string
+src/actions/pembayaran.ts:1182:        catatan: input.catatan ? `${approval.catatan ?? ""}\nReject: ${input.catatan}`.trim() : approval.catatan,
+src/actions/pembayaran.ts:1193:        catatan: input.catatan,
+src/actions/pembayaran.ts:1216:        alasanBatal: input.catatan ?? approval.catatan ?? "Pembatalan disetujui manager",
+src/actions/pembayaran.ts:1220:    const tagMatch = pembayaran.catatan?.match(/\[JADWAL:([^\]]+)\]/)
+src/actions/pembayaran.ts:1280:        catatan: input.catatan ? `${approval.catatan ?? ""}\nApprove: ${input.catatan}`.trim() : approval.catatan,
+src/actions/pembayaran.ts:1295:      catatan: input.catatan,
+src/actions/pembayaran.ts:1311:  catatan?: string
+src/actions/pembayaran.ts:1330:    catatan?: string | null
+src/actions/pembayaran.ts:1335:  if (input.catatan !== undefined) updateData.catatan = input.catatan
+
+exec
+/bin/bash -lc "sed -n '480,620p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+  user      User?           @relation("UserNotifikasi", fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@index([companyId])
+  @@map("notifikasi")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
+
+model CompanySetting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum StatusNasabah {
+  AKTIF
+  NON_AKTIF
+  KELUAR
+}
+
+enum JenisPinjaman {
+  REGULAR
+  MIKRO
+  USAHA
+}
+
+enum TenorType {
+  BULANAN
+  MINGGUAN
+}
+
+enum StatusPengajuan {
+  DRAFT
+  DIAJUKAN
+  DISURVEY
+  DISETUJUI
+  DITOLAK
+  DICAIRKAN
+  SELESAI
+}
+
+enum StatusPinjaman {
+  AKTIF
+  MENUNGGAK
+  MACET
+  LUNAS
+}
+
+enum MetodeBayar {
+  TUNAI
+  TRANSFER
+}
+
+enum JenisKas {
+  MASUK
+  KELUAR
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalSourceType {
+  PEMBAYARAN
+  PENCAIRAN
+  KAS
+  SIMPANAN
+  ADJUSTMENT
+  REVERSAL
+  DEMO_IMPORT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum RekonsiliasiStatus {
+  DRAFT
+  SELESAI
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  DISBURSE
+  PAYMENT
+  CASH
+  LOGIN
+  LOGOUT
+}
+
+enum ApprovalEntityType {
+  PENGAJUAN
+  PEMBAYARAN
+  KAS
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+
+exec
+/bin/bash -lc "rg -n \"model .*Survey|survey\" prisma/schema.prisma src -S | sed -n '1,200p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/schema.prisma:79:  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+prisma/schema.prisma:177:  surveyorId           String?
+prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+
+codex
+Saya akan lanjut implementasi sekarang, lalu setelah itu install dependency untuk menjalankan lint/build dan memastikan kompatibilitas Next.js 16. Karena model survey dedicated tidak ada di schema, implementasi create/list akan dipetakan ke `Pengajuan.hasilSurvey` yang sudah tenant-aware.
+exec
+/bin/bash -lc 'npm install' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 65194ms:
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> dashboard@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.7.0) to ./node_modules/@prisma/client in 771ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+added 862 packages, and audited 863 packages in 1m
+
+255 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+codex
+Dependency sudah terpasang, jadi sekarang saya baca panduan Next.js lokal di `node_modules/next/dist/docs` khusus route handlers sebelum finalisasi implementasi file baru.
+exec
+/bin/bash -lc "ls -la node_modules/next/dist/docs | sed -n '1,120p' && rg -n \"Route Handlers|route handlers|app/api|params\" node_modules/next/dist/docs -S | sed -n '1,120p'" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+total 28
+drwxr-xr-x  6 kotacom kotacom 4096 Apr 23 17:25 .
+drwxr-xr-x 22 kotacom kotacom 4096 Apr 23 17:25 ..
+drwxr-xr-x  5 kotacom kotacom 4096 Apr 23 17:25 01-app
+drwxr-xr-x  6 kotacom kotacom 4096 Apr 23 17:25 02-pages
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 17:25 03-architecture
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 17:25 04-community
+-rw-r--r--  1 kotacom kotacom 3361 Apr 23 17:25 index.md
+node_modules/next/dist/docs/index.md:29:- [API Reference](/docs/app/api-reference): Detailed technical reference for every feature.
+node_modules/next/dist/docs/02-pages/02-guides/draft-mode.md:116:If you’re also using `getStaticPaths`, then `context.params` will also be available.
+node_modules/next/dist/docs/02-pages/02-guides/preview-mode.md:157:If you’re also using `getStaticPaths`, then `context.params` will also be available.
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:298:For pages using `getStaticProps` with [Dynamic Routes](/docs/pages/building-your-application/routing/dynamic-routes), all locale variants of the page desired to be prerendered need to be returned from [`getStaticPaths`](/docs/pages/building-your-application/data-fetching/get-static-paths). Along with the `params` object returned for `paths`, you can also return a `locale` field specifying which locale you want to render. For example:
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:305:      { params: { slug: 'post-1' }, locale: 'en-US' },
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:306:      { params: { slug: 'post-1' }, locale: 'fr' },
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/05-client-side-rendering.md:71:> Keep in mind that CSR can impact SEO. Some search engine crawlers might not execute JavaScript and therefore only see the initial empty or loading state of your application. It can also lead to performance issues for users with slower internet connections or devices, as they need to wait for all the JavaScript to load and run before they can see the full page. Next.js promotes a hybrid approach that allows you to use a combination of [server-side rendering](/docs/pages/building-your-application/rendering/server-side-rendering), [static site generation](/docs/pages/building-your-application/rendering/static-site-generation), and client-side rendering, **depending on the needs of each page** in your application. In the App Router, you can also use [Loading UI with Suspense](/docs/app/api-reference/file-conventions/loading) to show a loading indicator while the page is being rendered.
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:131:    params: { id: post.id },
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:152:export async function getStaticProps({ params }) {
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:153:  // params contains the post `id`.
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:154:  // If the route is like /posts/1, then params.id is 1
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:155:  const res = await fetch(`https://.../posts/${params.id}`)
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md:26:        params: {
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md:55:        params: {
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md:135:    params: { id: post.id },
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md:16:> **Good to know**: If you are using the App Router, you can use [Server Components](/docs/app/getting-started/server-and-client-components) or [Route Handlers](/docs/app/api-reference/file-conventions/route) instead of API Routes.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md:48:> - API Routes can't be used with [static exports](/docs/pages/guides/static-exports). However, [Route Handlers](/docs/app/api-reference/file-conventions/route) in the App Router can.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md:420:While the Pages Router does support streaming responses with API Routes, we recommend incrementally adopting the App Router and using [Route Handlers](/docs/app/api-reference/file-conventions/route) if you are on Next.js 14+.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:3:description: Dynamic Routes are pages that allow you to add custom params to your URLs. Start creating Dynamic Routes and learn more here.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:33:| Route                  | Example URL | `params`        |
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:45:| Route                     | Example URL   | `params`                    |
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:59:| Route                       | Example URL   | `params`                    |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:17:    // Render fallback UI while search params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:36:    // Render fallback UI while search params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:86:For pages that are [statically optimized](/docs/pages/building-your-application/rendering/automatic-static-optimization) (not using `getServerSideProps`), `useSearchParams` will return `null` during prerendering. After hydration, the value will be updated to the actual search params.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:88:This is because search params cannot be known during static generation as they depend on the request.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:97:    // Return a fallback UI while search params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:115:    // Return a fallback UI while search params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:128:When using [`getServerSideProps`](/docs/pages/building-your-application/data-fetching/get-server-side-props), the page is server-rendered on each request and `useSearchParams` will return the actual search params immediately:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:180:### Updating search params
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:182:You can use the [`useRouter`](/docs/pages/api-reference/functions/use-router) hook to update search params:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:195:      const params = new URLSearchParams(searchParams?.toString())
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:196:      params.set(name, value)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:197:      return params.toString()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:239:      const params = new URLSearchParams(searchParams?.toString())
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:240:      params.set(name, value)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:241:      return params.toString()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:312:> **Good to know**: When using this component in the App Router, wrap it in a `<Suspense>` boundary for [prerendering](/docs/app/api-reference/functions/use-search-params#prerendering) support.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:24:        params: {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:53:        params: {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:84:    { params: { id: '1' }},
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:86:      params: { id: '2' },
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:97:The value for each `params` object must match the parameters used in the page name:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:99:- If the page name is `pages/posts/[postId]/[commentId]`, then `params` should contain `postId` and `commentId`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:100:- If the page name uses [catch-all routes](/docs/pages/building-your-application/routing/dynamic-routes#catch-all-segments) like `pages/[...slug]`, then `params` should contain `slug` (which is an array). If this array is `['hello', 'world']`, then Next.js will statically generate the page at `/hello/world`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:103:The `params` strings are **case-sensitive** and ideally should be normalized to ensure the paths are generated correctly. For example, if `WoRLD` is returned for a param it will only match if `WoRLD` is the actual path visited, not `world` or `World`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:105:Separate of the `params` object a `locale` field can be returned when [i18n is configured](/docs/pages/guides/internationalization), which configures the locale for the path being generated.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:128:    params: { id: post.id },
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:137:export async function getStaticProps({ params }) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:138:  // params contains the post `id`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:139:  // If the route is like /posts/1, then params.id is 1
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:140:  const res = await fetch(`https://.../posts/${params.id}`)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:225:    paths: [{ params: { id: '1' } }, { params: { id: '2' } }],
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:233:export async function getStaticProps({ params }) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:234:  // params contains the post `id`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:235:  // If the route is like /posts/1, then params.id is 1
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:236:  const res = await fetch(`https://.../posts/${params.id}`)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:255:| `v13.4.0` | [App Router](/docs/app/getting-started/fetching-data) is now stable with simplified data fetching, including [`generateStaticParams()`](/docs/app/api-reference/functions/generate-static-params) |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/index.md:4:source: app/api-reference/functions
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-server-side-props.md:61:| `params`        | If this page uses a [dynamic route](/docs/pages/building-your-application/routing/dynamic-routes), `params` contains the route parameters. If the page name is `[id].js`, then `params` will look like `{ id: ... }`. |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/userAgent.md:4:source: app/api-reference/functions/userAgent
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:6:`useParams` is a hook that lets you read a route's [dynamic params](/docs/pages/building-your-application/routing/dynamic-routes) filled in by the current URL.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:12:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:14:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:15:    // Render fallback UI while params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:21:  // `params` -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:22:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:30:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:32:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:33:    // Render fallback UI while params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:39:  // `params` -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:40:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:47:const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:76:For pages that are [statically optimized](/docs/pages/building-your-application/rendering/automatic-static-optimization), `useParams` will return `null` on the initial render. After hydration, the value will be updated to the actual params once the router is ready.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:78:This is because params cannot be known during static generation for dynamic routes.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:84:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:86:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:87:    // Return a fallback UI while params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:92:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:100:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:102:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:103:    // Return a fallback UI while params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:108:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:114:When using [`getServerSideProps`](/docs/pages/building-your-application/data-fetching/get-server-side-props), the page is server-rendered on each request and `useParams` will return the actual params immediately:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:120:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:123:  // params is always available on the server. However, keeping
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:126:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:130:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:142:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:145:  // params is always available on the server. However, keeping
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:148:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:152:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:170:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:175:  // params -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:187:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:192:  // params -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:209:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:211:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:216:  return <nav>Home / {params.slug}</nav>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:225:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:227:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:232:  return <nav>Home / {params.slug}</nav>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-response.md:4:source: app/api-reference/functions/next-response
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-request.md:4:source: app/api-reference/functions/next-request
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-props.md:51:| `params`           | Contains the route parameters for pages using [dynamic routes](/docs/pages/building-your-application/routing/dynamic-routes). For example, if the page name is `[id].js`, then `params` will look like `{ id: ... }`. You should use this together with `getStaticPaths`, which we'll explain later.                                                                                                                                 |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md:41:- `asPath`: `String` - The path as shown in the browser including the search params and respecting the `trailingSlash` configuration. `basePath` and `locale` are not included.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md:43:- `basePath`: `String` - The active [basePath](/docs/app/api-reference/config/next-config-js/basePath) (if enabled).
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md:366:> **Good to know**: Here `url` is the URL shown in the browser, including the [`basePath`](/docs/app/api-reference/config/next-config-js/basePath).
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-report-web-vitals.md:4:source: app/api-reference/functions/use-report-web-vitals
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/08-invoking-entrypoints.md:4:source: app/api-reference/adapters/invoking-entrypoints
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/05-routing-with-next-routing.md:4:source: app/api-reference/adapters/routing-with-next-routing
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/01-configuration.md:4:source: app/api-reference/adapters/configuration
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/index.md:4:source: app/api-reference/adapters
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/07-runtime-integration.md:4:source: app/api-reference/adapters/runtime-integration
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/11-use-cases.md:4:source: app/api-reference/adapters/use-cases
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/09-output-types.md:4:source: app/api-reference/adapters/output-types
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/02-creating-an-adapter.md:4:source: app/api-reference/adapters/creating-an-adapter
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/06-implementing-ppr-in-an-adapter.md:4:source: app/api-reference/adapters/implementing-ppr-in-an-adapter
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/03-api-reference.md:4:source: app/api-reference/adapters/api-reference
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/04-testing-adapters.md:4:source: app/api-reference/adapters/testing-adapters
+
+exec
+/bin/bash -lc "rg -n \"file-conventions/route|route handlers|Route Handlers\" node_modules/next/dist/docs/01-app -S | sed -n '1,120p' && find node_modules/next/dist/docs/01-app -maxdepth 5 -type f | rg \"route\\.md|route-handlers|file-conventions\" -n" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/01-app/02-guides/upgrading/codemods.md:220:This codemod transforms [Route Segment Config `runtime`](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config/runtime) value `experimental-edge` to `edge`.
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md:303:- `params` in [`layout.js`](/docs/app/api-reference/file-conventions/layout), [`page.js`](/docs/app/api-reference/file-conventions/page), [`route.js`](/docs/app/api-reference/file-conventions/route), [`default.js`](/docs/app/api-reference/file-conventions/default), [`opengraph-image`](/docs/app/api-reference/file-conventions/metadata/opengraph-image#opengraph-image), [`twitter-image`](/docs/app/api-reference/file-conventions/metadata/opengraph-image#twitter-image), [`icon`](/docs/app/api-reference/file-conventions/metadata/app-icons#icon), and [`apple-icon`](/docs/app/api-reference/file-conventions/metadata/app-icons#apple-icon).
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md:314:- [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper)
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-15.md:67:- `params` in [`layout.js`](/docs/app/api-reference/file-conventions/layout), [`page.js`](/docs/app/api-reference/file-conventions/page), [`route.js`](/docs/app/api-reference/file-conventions/route), [`default.js`](/docs/app/api-reference/file-conventions/default), [`opengraph-image`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), [`twitter-image`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), [`icon`](/docs/app/api-reference/file-conventions/metadata/app-icons), and [`apple-icon`](/docs/app/api-reference/file-conventions/metadata/app-icons).
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-15.md:441:#### Route Handlers
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-15.md:479:The `runtime` [segment configuration](/docs/app/api-reference/file-conventions/route-segment-config/runtime) previously supported a value of `experimental-edge` in addition to `edge`. Both configurations refer to the same thing, and to simplify the options, we will now error if `experimental-edge` is used. To fix this, update your `runtime` configuration to `edge`. A [codemod](/docs/app/guides/upgrading/codemods#app-dir-runtime-config-experimental-edge) is available to automatically do this.
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-15.md:498:To opt all `fetch` requests in a layout or page into caching, you can use the `export const fetchCache = 'default-cache'` [segment config option](/docs/app/api-reference/file-conventions/route-segment-config). If individual `fetch` requests specify a `cache` option, that will be used instead.
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-15.md:513:## Route Handlers
+node_modules/next/dist/docs/01-app/02-guides/upgrading/version-15.md:515:`GET` functions in [Route Handlers](/docs/app/api-reference/file-conventions/route) are no longer cached by default. To opt `GET` methods into caching, you can use a [route config option](/docs/app/api-reference/file-conventions/route-segment-config) such as `export const dynamic = 'force-static'` in your Route Handler file.
+node_modules/next/dist/docs/01-app/02-guides/package-bundling.md:252:Packages imported inside Server Components and Route Handlers are automatically bundled by Next.js.
+node_modules/next/dist/docs/01-app/02-guides/production-checklist.md:65:- **[Route Handlers](/docs/app/api-reference/file-conventions/route):** Use Route Handlers to access your backend resources from Client Components. But do not call Route Handlers from Server Components to avoid an additional server request.
+node_modules/next/dist/docs/01-app/02-guides/production-checklist.md:75:- **[API Routes](/docs/pages/building-your-application/routing/api-routes):** Use Route Handlers to access your backend resources, and prevent sensitive secrets from being exposed to the client.
+node_modules/next/dist/docs/01-app/02-guides/draft-mode.md:18:Create a [Route Handler](/docs/app/api-reference/file-conventions/route). It can have any name, for example, `app/api/draft/route.ts`.
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md:72:The adapter API plus Next.js caching interfaces form the complete platform integration surface. The adapter handles build-time output, while `cacheHandler` and `cacheHandlers` cover different runtime caching paths. `cacheHandler` (singular) covers server cache paths like ISR, route handlers, patched `fetch`/`unstable_cache`, and image optimization. `cacheHandlers` (plural) configures `'use cache'` directive backends.
+node_modules/next/dist/docs/01-app/02-guides/redirecting.md:19:| [`redirect`](#redirect-function)                              | Redirect user after a mutation or event           | Server Components, Server Functions, Route Handlers | 307 (Temporary) or 303 (Server Action) |
+node_modules/next/dist/docs/01-app/02-guides/redirecting.md:20:| [`permanentRedirect`](#permanentredirect-function)            | Redirect user after a mutation or event           | Server Components, Server Functions, Route Handlers | 308 (Permanent)                        |
+node_modules/next/dist/docs/01-app/02-guides/redirecting.md:41:The `redirect` function allows you to redirect the user to another URL. You can call `redirect` in [Server Components](/docs/app/getting-started/server-and-client-components), [Route Handlers](/docs/app/api-reference/file-conventions/route), and [Server Functions](/docs/app/getting-started/mutating-data).
+node_modules/next/dist/docs/01-app/02-guides/redirecting.md:93:The `permanentRedirect` function allows you to **permanently** redirect the user to another URL. You can call `permanentRedirect` in [Server Components](/docs/app/getting-started/server-and-client-components), [Route Handlers](/docs/app/api-reference/file-conventions/route), and [Server Functions](/docs/app/getting-started/mutating-data).
+node_modules/next/dist/docs/01-app/02-guides/redirecting.md:433:If it does, forward the request to a <AppOnly>[Route Handler](/docs/app/api-reference/file-conventions/route)</AppOnly> <PagesOnly>[API Routes](/docs/pages/building-your-application/routing/api-routes)</PagesOnly> which will check the actual file and redirect the user to the appropriate URL. This avoids importing a large redirects file into Proxy, which can slow down every incoming request.
+node_modules/next/dist/docs/01-app/02-guides/incremental-static-regeneration.md:100:6. If `/blog/26` is requested, and it exists, the page will be generated on-demand. This behavior can be changed by using a different [dynamicParams](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams) value. However, if the post does not exist, then 404 is returned.
+node_modules/next/dist/docs/01-app/02-guides/incremental-static-regeneration.md:210:- [`dynamicParams`](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams)
+node_modules/next/dist/docs/01-app/02-guides/incremental-static-regeneration.md:376:You can then use `revalidateTag` in a [Server Actions](/docs/app/getting-started/mutating-data) or [Route Handler](/docs/app/api-reference/file-conventions/route):
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:7:  description: Learn more about Route Handlers, Proxy, and Rewrites
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:9:    - app/api-reference/file-conventions/route
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:42:- [Route Handlers](/docs/app/api-reference/file-conventions/route)
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:48:Route Handlers are public HTTP endpoints. Any client can access them.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:102:Route Handlers let you serve non-UI responses, including JSON, XML, images, files, and plain text.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:383:Route Handlers can transform, filter, and aggregate data from one or more sources. This keeps logic out of the frontend and avoids exposing internal systems.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:508:Next.js extends the [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) Web APIs with methods that simplify common operations. These extensions are available in both Route Handlers and Proxy.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:558:Use Route Handlers to receive event notifications from third-party applications.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:827:- [CORS](/docs/app/api-reference/file-conventions/route#cors)
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:831:Community libraries often use the factory pattern for Route Handlers.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:859:See more examples on using [Router Handlers](/docs/app/api-reference/file-conventions/route#examples) and the [`proxy`](/docs/app/api-reference/file-conventions/proxy#examples) API references.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:861:These examples include, working with [Cookies](/docs/app/api-reference/file-conventions/route#cookies), [Headers](/docs/app/api-reference/file-conventions/route#headers), [Streaming](/docs/app/api-reference/file-conventions/route#streaming), Proxy [negative matching](/docs/app/api-reference/file-conventions/proxy#negative-matching), and other useful code snippets.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:867:Fetch data in Server Components directly from its source, not via Route Handlers.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:869:For Server Components prerendered at build time, using Route Handlers will fail the build step. This is because, while building there is no server listening for these requests.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:871:For Server Components rendered on demand, fetching from Route Handlers is slower due to the extra HTTP round trip between the handler and the render process.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:896:In `export mode`, only `GET` Route Handlers are supported, in combination with the [`dynamic`](/docs/app/guides/caching-without-cache-components#dynamic) route segment config, set to `'force-static'`.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:910:Some hosts deploy Route Handlers as lambda functions. This means:
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:912:- Route Handlers cannot share data between requests.
+node_modules/next/dist/docs/01-app/02-guides/instant-navigation.md:10:    - app/api-reference/file-conventions/route-segment-config/instant
+node_modules/next/dist/docs/01-app/02-guides/instant-navigation.md:68:The [`unstable_instant`](/docs/app/api-reference/file-conventions/route-segment-config/instant) export on line 1 tells Next.js to validate that this page produces an instant [static shell](/docs/app/glossary#static-shell) at every possible entry point. Validation runs during development and at build time. If a component would block navigation, the error overlay tells you exactly which one and suggests a fix.
+node_modules/next/dist/docs/01-app/02-guides/instant-navigation.md:285:- [`instant` API reference](/docs/app/api-reference/file-conventions/route-segment-config/instant) for all configuration options, including runtime prefetching and incremental adoption with `instant = false`
+node_modules/next/dist/docs/01-app/02-guides/migrating/app-router-migration.md:142:- `pages/api/*` API Routes have been replaced with the [`route.js`](/docs/app/api-reference/file-conventions/route) (Route Handler) special file.
+node_modules/next/dist/docs/01-app/02-guides/migrating/app-router-migration.md:827:In the `app` directory the [`config.dynamicParams` property](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams) controls how params outside of [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) are handled:
+node_modules/next/dist/docs/01-app/02-guides/migrating/app-router-migration.md:854:With [`dynamicParams`](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams) set to `true` (the default), when a route segment is requested that hasn't been generated, it will be server-rendered and cached.
+node_modules/next/dist/docs/01-app/02-guides/migrating/app-router-migration.md:903:API Routes continue to work in the `pages/api` directory without any changes. However, they have been replaced by [Route Handlers](/docs/app/api-reference/file-conventions/route) in the `app` directory.
+node_modules/next/dist/docs/01-app/02-guides/migrating/app-router-migration.md:905:Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+node_modules/next/dist/docs/01-app/02-guides/streaming.md:485:## Streaming in Route Handlers
+node_modules/next/dist/docs/01-app/02-guides/streaming.md:487:The patterns above rely on React and Suspense to stream UI. Outside of React rendering, [Route Handlers](/docs/app/api-reference/file-conventions/route) can stream raw responses using the Web Streams API. This is useful for Server-Sent Events, large file generation, or any response where you want data to arrive progressively:
+node_modules/next/dist/docs/01-app/02-guides/streaming.md:573:See the [Route Handler API reference](/docs/app/api-reference/file-conventions/route) for more details on building streaming endpoints.
+node_modules/next/dist/docs/01-app/02-guides/streaming.md:788:- [Streams API on web.dev](https://web.dev/articles/streams) - introduction to the Web Streams API that underpins streaming in Route Handlers
+node_modules/next/dist/docs/01-app/02-guides/authentication.md:1173:You can then invoke the `verifySession()` function in your data requests, Server Actions, Route Handlers:
+node_modules/next/dist/docs/01-app/02-guides/authentication.md:1489:### Route Handlers
+node_modules/next/dist/docs/01-app/02-guides/authentication.md:1491:Treat [Route Handlers](/docs/app/api-reference/file-conventions/route) with the same security considerations as public-facing API endpoints, and verify if the user is allowed to access the Route Handler.
+node_modules/next/dist/docs/01-app/02-guides/static-exports.md:233:### Route Handlers
+node_modules/next/dist/docs/01-app/02-guides/static-exports.md:235:Route Handlers will render a static response when running `next build`. Only the `GET` HTTP verb is supported. This can be used to generate static HTML, JSON, TXT, or other files from cached or uncached data. For example:
+node_modules/next/dist/docs/01-app/02-guides/static-exports.md:282:- [Route Handlers](/docs/app/api-reference/file-conventions/route) that rely on Request
+node_modules/next/dist/docs/01-app/02-guides/static-exports.md:366:| `v13.4.0` | App Router (Stable) adds enhanced static export support, including using React Server Components and Route Handlers. |
+node_modules/next/dist/docs/01-app/02-guides/environment-variables.md:64:> This loads `process.env.DB_HOST`, `process.env.DB_USER`, and `process.env.DB_PASS` into the Node.js environment automatically allowing you to use them in [Route Handlers](/docs/app/api-reference/file-conventions/route).
+node_modules/next/dist/docs/01-app/03-api-reference/06-cli/next.md:50:| [`typegen`](#next-typegen-options)                           | Generates TypeScript definitions for routes, pages, layouts, and route handlers without running a full build. |
+node_modules/next/dist/docs/01-app/03-api-reference/06-cli/create-next-app.md:45:| `--api`                                 | Initialize a project with only route handlers                         |
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:184:1. `rewrite` to a route ([Page](/docs/app/api-reference/file-conventions/page) or [Route Handler](/docs/app/api-reference/file-conventions/route)) that produces a response
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:219:Proxy defaults to using the Node.js runtime. The [`runtime`](/docs/app/api-reference/file-conventions/route-segment-config/runtime) config option is not available in Proxy files. Setting the `runtime` config option in Proxy will throw an error.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:549:> **Good to know:** You can configure CORS headers for individual routes in [Route Handlers](/docs/app/api-reference/file-conventions/route#cors).
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md:36:Dynamic Segments are passed as the `params` prop to [`layout`](/docs/app/api-reference/file-conventions/layout), [`page`](/docs/app/api-reference/file-conventions/page), [`route`](/docs/app/api-reference/file-conventions/route), and [`generateMetadata`](/docs/app/api-reference/functions/generate-metadata#generatemetadata-function) functions.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md:113:When using TypeScript, you can add types for `params` depending on your configured route segment — use [`PageProps<'/route'>`](/docs/app/api-reference/file-conventions/page#page-props-helper), [`LayoutProps<'/route'>`](/docs/app/api-reference/file-conventions/layout#layout-props-helper), or [`RouteContext<'/route'>`](/docs/app/api-reference/file-conventions/route#route-context-helper) to type `params` in `page`, `layout`, and `route` respectively.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md:320:### Dynamic GET Route Handlers with `generateStaticParams`
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md:322:`generateStaticParams` also works with dynamic [Route Handlers](/docs/app/api-reference/file-conventions/route) to statically generate API responses at build time:
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md:375:In this example, route handlers for all blog post IDs returned by `generateStaticParams` will be statically generated at build time. Requests to other IDs will be handled dynamically at request time.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation.md:109:- `context`: The context in which the error occurred. This can be the type of router (App or Pages Router), and/or (Server Components (`'render'`), Route Handlers (`'route'`), Server Actions (`'action'`), or Proxy (`'proxy'`)).
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/layout.md:143:  - Using [route groups](/docs/app/api-reference/file-conventions/route-groups) like `app/(shop)/layout.js` and `app/(marketing)/layout.js`
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md:6:The Route Segment Config options allow you to configure the behavior of a [Page](/docs/app/api-reference/file-conventions/page), [Layout](/docs/app/api-reference/file-conventions/layout), or [Route Handler](/docs/app/api-reference/file-conventions/route) by directly exporting the following variables:
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md:10:| [`dynamicParams`](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams)     | `boolean`                                            | `true`                     |
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md:11:| [`runtime`](/docs/app/api-reference/file-conventions/route-segment-config/runtime)                 | `'nodejs' \| 'edge'`                                 | `'nodejs'`                 |
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md:12:| [`preferredRegion`](/docs/app/api-reference/file-conventions/route-segment-config/preferredRegion) | `'auto' \| 'global' \| 'home' \| string \| string[]` | `'auto'`                   |
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md:13:| [`maxDuration`](/docs/app/api-reference/file-conventions/route-segment-config/maxDuration)         | `number`                                             | Set by deployment platform |
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/manifest.md:24:> Good to know: `manifest.js` is a special Route Handlers that is cached by default unless it uses a [Request-time API](/docs/app/glossary#request-time-apis) or [dynamic config](/docs/app/guides/caching-without-cache-components#dynamic) option.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/index.md:15:> - Special Route Handlers like [`sitemap.ts`](/docs/app/api-reference/file-conventions/metadata/sitemap), [`opengraph-image.tsx`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), and [`icon.tsx`](/docs/app/api-reference/file-conventions/metadata/app-icons), and other [metadata files](/docs/app/api-reference/file-conventions/metadata) are cached by default.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/app-icons.md:172:> - App icons are special Route Handlers that are cached by default unless they use a [Request-time API](/docs/app/glossary#request-time-apis) or [dynamic config](/docs/app/guides/caching-without-cache-components#dynamic) option.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/app-icons.md:261:`icon` and `apple-icon` are specialized [Route Handlers](/docs/app/api-reference/file-conventions/route) that can use the same [route segment configuration](/docs/app/api-reference/file-conventions/route-segment-config) options as Pages and Layouts.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/opengraph-image.md:93:> - `opengraph-image.js` and `twitter-image.js` are special Route Handlers that is cached by default unless it uses a [Request-time API](/docs/app/glossary#request-time-apis) or [dynamic config](/docs/app/guides/caching-without-cache-components#dynamic) option.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/opengraph-image.md:324:`opengraph-image` and `twitter-image` are specialized [Route Handlers](/docs/app/api-reference/file-conventions/route) that can use the same [route segment configuration](/docs/app/api-reference/file-conventions/route-segment-config) options as Pages and Layouts.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:6:Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:314:Route Handlers can use [Dynamic Segments](/docs/app/api-reference/file-conventions/dynamic-routes) to create request handlers from dynamic data.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:339:You can use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) with dynamic Route Handlers to statically generate responses at build time for specified params, while handling other params dynamically at request time.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:343:See the [generateStaticParams with Route Handlers](/docs/app/api-reference/functions/generate-static-params#with-route-handlers) documentation for examples and details.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:557:> - To add CORS headers to multiple Route Handlers, you can use [Proxy](/docs/app/api-reference/file-conventions/proxy#cors) or the [`next.config.js` file](/docs/app/api-reference/config/next-config-js/headers#cors).
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:601:You can use Route Handlers to return non-UI content. Note that [`sitemap.xml`](/docs/app/api-reference/file-conventions/metadata/sitemap#generating-a-sitemap-using-code-js-ts), [`robots.txt`](/docs/app/api-reference/file-conventions/metadata/robots#generate-a-robots-file), [`app icons`](/docs/app/api-reference/file-conventions/metadata/app-icons#generate-icons-using-code-js-ts-tsx), and [open graph images](/docs/app/api-reference/file-conventions/metadata/opengraph-image) all have built-in support.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:642:Route Handlers use the same [route segment configuration](/docs/app/api-reference/file-conventions/route-segment-config) as pages and layouts.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:662:See the [API reference](/docs/app/api-reference/file-conventions/route-segment-config) for more details.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md:670:| `v13.2.0`    | Route Handlers are introduced.                                                                       |
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md:10:`revalidatePath` can be called in Server Functions and Route Handlers.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md:17:> - **Route Handlers**: Marks the path for revalidation. The revalidation is done on the next visit to the specified path. This means calling `revalidatePath` with a dynamic route segment will not immediately trigger many revalidations at once. The invalidation only happens when the path is next visited.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md:36:The path parameter can point to pages, layouts, or route handlers:
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md:40:- **Route Handlers**: Invalidates cached data accessed within route handlers. For example `revalidatePath("/api/data")` invalidates this GET handler:
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidateTag.md:12:`revalidateTag` can be called in Server Functions and Route Handlers.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidateTag.md:136:> **Good to know**: For webhooks or third-party services that need immediate expiration, you can pass `{ expire: 0 }` as the second argument: `revalidateTag(tag, { expire: 0 })`. This pattern is necessary when external systems call your Route Handlers and require data to expire immediately. For all other cases, it's recommended to use [`updateTag`](/docs/app/api-reference/functions/updateTag) in Server Actions for immediate updates instead.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/permanentRedirect.md:9:The `permanentRedirect` function allows you to redirect the user to another URL. `permanentRedirect` can be used in Server Components, Client Components, [Route Handlers](/docs/app/api-reference/file-conventions/route), and [Server Functions](/docs/app/getting-started/mutating-data).
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:12:- [Route Handlers](/docs/app/api-reference/file-conventions/route) (`route.ts`/`route.js`)
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:56:> - You can use the [`dynamicParams`](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams) segment config option to control what happens when a dynamic segment is visited that was not generated with `generateStaticParams`.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:260:Then, by using the [`dynamicParams`](/docs/app/api-reference/file-conventions/route-segment-config/dynamicParams) segment config option, you can control what happens when a dynamic segment is visited that was not generated with `generateStaticParams`.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:316:### With Route Handlers
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:318:You can use `generateStaticParams` with [Route Handlers](/docs/app/api-reference/file-conventions/route) to statically generate API responses at build time:
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:347:### Route Handlers with Cache Components
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-static-params.md:372:See the [Route Handlers documentation](/docs/app/api-reference/file-conventions/route#static-generation-with-generatestaticparams) for more details.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-selected-layout-segments.md:49:> - The returned segments include [Route Groups](/docs/app/api-reference/file-conventions/route-groups), which you might not want to be included in your UI. You can use the [`filter`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter) array method to remove items that start with a bracket.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/updateTag.md:12:`updateTag` can **only** be called from within [Server Actions](/docs/app/getting-started/mutating-data). It cannot be used in Route Handlers, Client Components, or any other context.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/updateTag.md:14:If you need to invalidate cache tags in Route Handlers or other contexts, use [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) instead.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/updateTag.md:60:  - Can be used in Server Actions and Route Handlers
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/updateTag.md:131:  // Use revalidateTag instead in Route Handlers
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/updateTag.md:152:- [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) - For invalidating tags in Route Handlers
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/forbidden.md:34:`forbidden` can be invoked in [Server Components](/docs/app/getting-started/server-and-client-components), [Server Functions](/docs/app/getting-started/mutating-data), and [Route Handlers](/docs/app/api-reference/file-conventions/route).
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/refresh.md:10:`refresh` can **only** be called from within Server Actions. It cannot be used in Route Handlers, Client Components, or any other context.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/image-response.md:56:### Route Handlers
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/image-response.md:58:`ImageResponse` can be used in Route Handlers to generate images dynamically at request time.
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/draft-mode.md:50:To enable Draft Mode, create a new [Route Handler](/docs/app/api-reference/file-conventions/route) and call the `enable()` method:
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/draft-mode.md:76:To disable Draft Mode manually, call the `disable()` method in your [Route Handler](/docs/app/api-reference/file-conventions/route):
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md:8:It can be used in [Server Components](/docs/app/getting-started/server-and-client-components) (including [`generateMetadata`](/docs/app/api-reference/functions/generate-metadata)), [Server Functions](/docs/app/getting-started/mutating-data), [Route Handlers](/docs/app/api-reference/file-conventions/route), and [Proxy](/docs/app/api-reference/file-conventions/proxy).
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md:50:`after` will run for the platform's default or configured max duration of your route. If your platform supports it, you can configure the timeout limit using the [`maxDuration`](/docs/app/api-reference/file-conventions/route-segment-config/maxDuration) route segment config.
+6:node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md
+149:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/error.md
+150:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/intercepting-routes.md
+151:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md
+152:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/public-folder.md
+153:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation-client.md
+154:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route-groups.md
+155:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/robots.md
+156:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/sitemap.md
+157:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/opengraph-image.md
+158:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/app-icons.md
+159:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/index.md
+160:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/manifest.md
+161:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/unauthorized.md
+162:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/mdx-components.md
+163:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/loading.md
+164:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.md
+165:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/preferredRegion.md
+166:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/dynamicParams.md
+167:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/runtime.md
+168:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md
+169:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/maxDuration.md
+170:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/forbidden.md
+171:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/page.md
+172:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/layout.md
+173:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/src-folder.md
+174:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/default.md
+175:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/template.md
+176:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/index.md
+177:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation.md
+178:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md
+179:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md
+180:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/parallel-routes.md
+181:node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/not-found.md
+
+exec
+/bin/bash -lc "sed -n '260,420p' node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+```
+
+```js filename="app/api/route.js" switcher
+export async function GET(request) {
+  const requestHeaders = new Headers(request.headers)
+}
+```
+
+### Revalidating Cached Data
+
+You can [revalidate cached data](/docs/app/guides/incremental-static-regeneration) using the `revalidate` route segment config option.
+
+```ts filename="app/posts/route.ts" switcher
+export const revalidate = 60
+
+export async function GET() {
+  const data = await fetch('https://api.vercel.app/blog')
+  const posts = await data.json()
+
+  return Response.json(posts)
+}
+```
+
+```js filename="app/posts/route.js" switcher
+export const revalidate = 60
+
+export async function GET() {
+  const data = await fetch('https://api.vercel.app/blog')
+  const posts = await data.json()
+
+  return Response.json(posts)
+}
+```
+
+### Redirects
+
+```ts filename="app/api/route.ts" switcher
+import { redirect } from 'next/navigation'
+
+export async function GET(request: Request) {
+  redirect('https://nextjs.org/')
+}
+```
+
+```js filename="app/api/route.js" switcher
+import { redirect } from 'next/navigation'
+
+export async function GET(request) {
+  redirect('https://nextjs.org/')
+}
+```
+
+### Dynamic Route Segments
+
+Route Handlers can use [Dynamic Segments](/docs/app/api-reference/file-conventions/dynamic-routes) to create request handlers from dynamic data.
+
+```ts filename="app/items/[slug]/route.ts" switcher
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await params // 'a', 'b', or 'c'
+}
+```
+
+```js filename="app/items/[slug]/route.js" switcher
+export async function GET(request, { params }) {
+  const { slug } = await params // 'a', 'b', or 'c'
+}
+```
+
+| Route                       | Example URL | `params`                 |
+| --------------------------- | ----------- | ------------------------ |
+| `app/items/[slug]/route.js` | `/items/a`  | `Promise<{ slug: 'a' }>` |
+| `app/items/[slug]/route.js` | `/items/b`  | `Promise<{ slug: 'b' }>` |
+| `app/items/[slug]/route.js` | `/items/c`  | `Promise<{ slug: 'c' }>` |
+
+#### Static Generation with `generateStaticParams`
+
+You can use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) with dynamic Route Handlers to statically generate responses at build time for specified params, while handling other params dynamically at request time.
+
+When using [Cache Components](/docs/app/getting-started/caching), you can combine `generateStaticParams` with `use cache` to enable data caching for both prerendered and runtime params.
+
+See the [generateStaticParams with Route Handlers](/docs/app/api-reference/functions/generate-static-params#with-route-handlers) documentation for examples and details.
+
+### URL Query Parameters
+
+The request object passed to the Route Handler is a `NextRequest` instance, which includes [some additional convenience methods](/docs/app/api-reference/functions/next-request#nexturl), such as those for more easily handling query parameters.
+
+```ts filename="app/api/search/route.ts" switcher
+import { type NextRequest } from 'next/server'
+
+export function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const query = searchParams.get('query')
+  // query is "hello" for /api/search?query=hello
+}
+```
+
+```js filename="app/api/search/route.js" switcher
+export function GET(request) {
+  const searchParams = request.nextUrl.searchParams
+  const query = searchParams.get('query')
+  // query is "hello" for /api/search?query=hello
+}
+```
+
+### Streaming
+
+Streaming is commonly used in combination with Large Language Models (LLMs), such as OpenAI, for AI-generated content. Learn more about the [AI SDK](https://sdk.vercel.ai/docs/introduction).
+
+```ts filename="app/api/chat/route.ts" switcher
+import { openai } from '@ai-sdk/openai'
+import { StreamingTextResponse, streamText } from 'ai'
+
+export async function POST(req: Request) {
+  const { messages } = await req.json()
+  const result = await streamText({
+    model: openai('gpt-4-turbo'),
+    messages,
+  })
+
+  return new StreamingTextResponse(result.toAIStream())
+}
+```
+
+```js filename="app/api/chat/route.js" switcher
+import { openai } from '@ai-sdk/openai'
+import { StreamingTextResponse, streamText } from 'ai'
+
+export async function POST(req) {
+  const { messages } = await req.json()
+  const result = await streamText({
+    model: openai('gpt-4-turbo'),
+    messages,
+  })
+
+  return new StreamingTextResponse(result.toAIStream())
+}
+```
+
+These abstractions use the Web APIs to create a stream. You can also use the underlying Web APIs directly.
+
+```ts filename="app/api/route.ts" switcher
+// https://developer.mozilla.org/docs/Web/API/ReadableStream#convert_async_iterator_to_stream
+function iteratorToStream(iterator: any) {
+  return new ReadableStream({
+    async pull(controller) {
+      const { value, done } = await iterator.next()
+
+      if (done) {
+        controller.close()
+      } else {
+        controller.enqueue(value)
+      }
+    },
+  })
+}
+
+function sleep(time: number) {
+  return new Promise((resolve) => {
+
+exec
+/bin/bash -lc "sed -n '1,220p' node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+---
+title: route.js
+description: API reference for the route.js special file.
+---
+
+Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+
+```ts filename="route.ts" switcher
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+```js filename="route.js" switcher
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+## Reference
+
+### HTTP Methods
+
+A **route** file allows you to create custom request handlers for a given route. The following [HTTP methods](https://developer.mozilla.org/docs/Web/HTTP/Methods) are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
+
+```ts filename="route.ts" switcher
+export async function GET(request: Request) {}
+
+export async function HEAD(request: Request) {}
+
+export async function POST(request: Request) {}
+
+export async function PUT(request: Request) {}
+
+export async function DELETE(request: Request) {}
+
+export async function PATCH(request: Request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request: Request) {}
+```
+
+```js filename="route.js" switcher
+export async function GET(request) {}
+
+export async function HEAD(request) {}
+
+export async function POST(request) {}
+
+export async function PUT(request) {}
+
+export async function DELETE(request) {}
+
+export async function PATCH(request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request) {}
+```
+
+### Parameters
+
+#### `request` (optional)
+
+The `request` object is a [NextRequest](/docs/app/api-reference/functions/next-request) object, which is an extension of the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) API. `NextRequest` gives you further control over the incoming request, including easily accessing `cookies` and an extended, parsed, URL object `nextUrl`.
+
+```ts filename="route.ts" switcher
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const url = request.nextUrl
+}
+```
+
+```js filename="route.js" switcher
+export async function GET(request) {
+  const url = request.nextUrl
+}
+```
+
+#### `context` (optional)
+
+- **`params`**: a promise that resolves to an object containing the [dynamic route parameters](/docs/app/api-reference/file-conventions/dynamic-routes) for the current route.
+
+```ts filename="app/dashboard/[team]/route.ts" switcher
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ team: string }> }
+) {
+  const { team } = await params
+}
+```
+
+```js filename="app/dashboard/[team]/route.js" switcher
+export async function GET(request, { params }) {
+  const { team } = await params
+}
+```
+
+| Example                          | URL            | `params`                           |
+| -------------------------------- | -------------- | ---------------------------------- |
+| `app/dashboard/[team]/route.js`  | `/dashboard/1` | `Promise<{ team: '1' }>`           |
+| `app/shop/[tag]/[item]/route.js` | `/shop/1/2`    | `Promise<{ tag: '1', item: '2' }>` |
+| `app/blog/[...slug]/route.js`    | `/blog/1/2`    | `Promise<{ slug: ['1', '2'] }>`    |
+
+### Route Context Helper
+
+You can type the Route Handler context using `RouteContext` to get strongly typed `params` from a route literal. `RouteContext` is a globally available helper.
+
+```ts filename="app/users/[id]/route.ts"
+import type { NextRequest } from 'next/server'
+
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+  const { id } = await ctx.params
+  return Response.json({ id })
+}
+```
+
+> **Good to know**
+>
+> - Types are generated during `next dev`, `next build` or `next typegen`.
+> - After type generation, the `RouteContext` helper is globally available. It doesn't need to be imported.
+
+## Examples
+
+### Cookies
+
+You can read or set cookies with [`cookies`](/docs/app/api-reference/functions/cookies) from `next/headers`.
+
+```ts filename="route.ts" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request: NextRequest) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+```js filename="route.js" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+Alternatively, you can return a new `Response` using the [`Set-Cookie`](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie) header.
+
+```ts filename="app/api/route.ts" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request: Request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token.value}` },
+  })
+}
+```
+
+```js filename="app/api/route.js" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token.value}` },
+  })
+}
+```
+
+You can also use the underlying Web APIs to read cookies from the request ([`NextRequest`](/docs/app/api-reference/functions/next-request)):
+
+```ts filename="app/api/route.ts" switcher
+import { type NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get('token')
+}
+```
+
+```js filename="app/api/route.js" switcher
+export async function GET(request) {
+  const token = request.cookies.get('token')
+}
+```
+
+### Headers
+
+You can read headers with [`headers`](/docs/app/api-reference/functions/headers) from `next/headers`.
+
+```ts filename="route.ts" switcher
+import { headers } from 'next/headers'
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+}
+```
+
+```js filename="route.js" switcher
+import { headers } from 'next/headers'
+
+export async function GET(request) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+}
+```
+
+exec
+/bin/bash -lc "sed -n '280,360p' node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+export default nextConfig
+```
+
+```js filename="next.config.js" switcher
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+  },
+}
+
+module.exports = nextConfig
+```
+
+## Async Request APIs (Breaking change)
+
+Version 15 introduced [Async Request APIs](https://nextjs.org/docs/app/guides/upgrading/version-15#async-request-apis-breaking-change) as a breaking change, with **temporary** synchronous compatibility.
+
+Starting with **Next.js 16**, synchronous access is fully removed. These APIs can only be accessed asynchronously.
+
+- [`cookies`](/docs/app/api-reference/functions/cookies)
+- [`headers`](/docs/app/api-reference/functions/headers)
+- [`draftMode`](/docs/app/api-reference/functions/draft-mode)
+- `params` in [`layout.js`](/docs/app/api-reference/file-conventions/layout), [`page.js`](/docs/app/api-reference/file-conventions/page), [`route.js`](/docs/app/api-reference/file-conventions/route), [`default.js`](/docs/app/api-reference/file-conventions/default), [`opengraph-image`](/docs/app/api-reference/file-conventions/metadata/opengraph-image#opengraph-image), [`twitter-image`](/docs/app/api-reference/file-conventions/metadata/opengraph-image#twitter-image), [`icon`](/docs/app/api-reference/file-conventions/metadata/app-icons#icon), and [`apple-icon`](/docs/app/api-reference/file-conventions/metadata/app-icons#apple-icon).
+- `searchParams` in [`page.js`](/docs/app/api-reference/file-conventions/page)
+
+Use the [codemod](/docs/app/guides/upgrading/codemods#migrate-to-async-dynamic-apis) to migrate to async Request-time APIs.
+
+### Migrating types for async Request-time APIs
+
+To help migrate to async `params` and `searchParams`, you can run [`npx next typegen`](/docs/app/api-reference/cli/next#next-typegen-options) to automatically generate these globally available types helpers:
+
+- [`PageProps`](/docs/app/api-reference/file-conventions/page#page-props-helper)
+- [`LayoutProps`](/docs/app/api-reference/file-conventions/layout#layout-props-helper)
+- [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper)
+
+> **Good to know**: `typegen` was introduced in Next.js 15.5
+
+This simplifies type-safe migration to the new async API pattern, and enables you to update your components with full type safety, for example:
+
+```tsx filename="/app/blog/[slug]/page.tsx"
+export default async function Page(props: PageProps<'/blog/[slug]'>) {
+  const { slug } = await props.params
+  const query = await props.searchParams
+  return <h1>Blog Post: {slug}</h1>
+}
+```
+
+This approach gives you fully type-safe access to `props.params`, including the `slug`, and to `searchParams`, directly within your page.
+
+## Async parameters for icon, and open-graph Image (Breaking change)
+
+> The props passed to the image generating functions in `opengraph-image`, `twitter-image`, `icon`, and `apple-icon`, are now Promises.
+
+In previous versions, both the `Image` (image generation function), and the `generateImageMetadata` received a `params` object. The `id` returned by `generateImageMetadata` was passed as a string to the image generation function.
+
+```js filename="app/shop/[slug]/opengraph-image.js"
+// Next.js 15 - synchronous params access
+export function generateImageMetadata({ params }) {
+  const { slug } = params
+  return [{ id: '1' }, { id: '2' }]
+}
+
+// Next.js 15 - synchronous params and id access
+export default function Image({ params, id }) {
+  const slug = params.slug
+  const imageId = id // string
+  // ...
+}
+```
+
+Starting with **Next.js 16**, to align with the [Async Request APIs](#async-request-apis-breaking-change) change, the image generating function now receives `params` and `id` as promises. The `generateImageMetadata` function continues to receive synchronous `params`.
+
+```js filename="app/shop/[slug]/opengraph-image.js"
+export async function generateImageMetadata({ params }) {
+  const { slug } = params
+  return [{ id: '1' }, { id: '2' }]
+}
+
+// Next.js 16 - asynchronous params and id access
+export default async function Image({ params, id }) {
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/prisma.ts" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import "dotenv/config"
+import { Pool } from "pg"
+import { PrismaPg } from "@prisma/adapter-pg"
+import { PrismaClient } from "@prisma/client"
+
+type GlobalPrisma = typeof globalThis & {
+  pgPool?: Pool
+  prisma?: PrismaClient
+}
+
+const globalForPrisma = globalThis as GlobalPrisma
+
+const pool =
+  globalForPrisma.pgPool ??
+  new Pool({
+    connectionString: process.env.DATABASE_URL,
+  })
+
+const adapter = new PrismaPg(pool)
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+  })
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.pgPool = pool
+  globalForPrisma.prisma = prisma
+}
+
+exec
+/bin/bash -lc "sed -n '1,120p' src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+
+exec
+/bin/bash -lc 'rg -n "''^'"\\\"use server\\\"\" src/actions/*.ts | sed -n '1,200p' && ls src/actions" in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/settings.ts:1:"use server"
+src/actions/platform-admin.ts:1:"use server"
+src/actions/nasabah.ts:1:"use server"
+src/actions/pengajuan.ts:1:"use server"
+src/actions/pembayaran.ts:1:"use server"
+src/actions/kolektor.ts:1:"use server"
+src/actions/kelompok.ts:1:"use server"
+src/actions/maintenance.ts:1:"use server"
+src/actions/company-users.ts:1:"use server"
+src/actions/dashboard.ts:1:"use server"
+src/actions/auth-registration.ts:1:"use server"
+src/actions/kas.ts:1:"use server"
+src/actions/akuntansi.ts:1:"use server"
+akuntansi.ts
+auth-registration.ts
+company-users.ts
+dashboard.ts
+kas.ts
+kelompok.ts
+kolektor.ts
+maintenance.ts
+nasabah.ts
+pembayaran.ts
+pengajuan.ts
+platform-admin.ts
+settings.ts
+
+codex
+Saya sudah finalkan desain: `GET` list survey notes dari `Pengajuan.hasilSurvey` per nasabah+company, dan `POST` create note ke pengajuan target dengan validasi zod + role guard (`OWNER/ADMIN/MANAGER/PIMPINAN/SURVEYOR`). Saya mulai edit file action dulu sebagai scope commit pertama, lalu commit sebelum lanjut route.
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 433ms:
+exec
+/bin/bash -lc "cat > src/actions/nasabah-survey.ts <<'EOF'
+\"use server\"
+
+import { RoleType, type StatusPengajuan } from \"@prisma/client\"
+import { z } from \"zod\"
+import { auth } from \"@/lib/auth\"
+import { prisma } from \"@/lib/prisma\"
+import { requireRoles } from \"@/lib/roles\"
+import { requireCompanyId } from \"@/lib/tenant\"
+
+const ALLOWED_SURVEY_ROLES: RoleType[] = [
+  RoleType.OWNER,
+  RoleType.ADMIN,
+  RoleType.MANAGER,
+  RoleType.PIMPINAN,
+  RoleType.SURVEYOR,
+]
+
+const createSurveySchema = z.object({
+  note: z.string().trim().min(1, \"Catatan survey wajib diisi.\").max(2000, \"Catatan survey maksimal 2000 karakter.\"),
+  pengajuanId: z.string().trim().min(1).optional(),
+})
+
+type SessionLike = { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null
+
+type SurveyNoteItem = {
+  id: string
+  pengajuanId: string
+  note: string
+  statusPengajuan: StatusPengajuan
+  tanggalSurvey: string | null
+  surveyor: { id: string; name: string | null } | null
+}
+
+type ActionSuccess<T> = { success: true; status: number; data: T }
+type ActionError = { success: false; status: number; error: string; details?: unknown }
+
+function mapAuthError(error: unknown): ActionError {
+  const message = error instanceof Error ? error.message : \"Unauthorized\"
+
+  if (message === \"Unauthorized\") {
+    return { success: false, status: 401, error: \"Unauthorized\" }
+  }
+
+  if (message === \"Forbidden\") {
+    return { success: false, status: 403, error: \"Forbidden\" }
+  }
+
+  return { success: false, status: 400, error: message }
+}
+
+async function resolveContext() {
+  const session = await auth()
+  if ("'!session) return { success: false, status: 401, error: "Unauthorized" } as const
+
+  try {
+    const { userId } = requireRoles(session as SessionLike, ALLOWED_SURVEY_ROLES)
+    const { companyId } = requireCompanyId(session as SessionLike)
+
+    return { success: true, userId, companyId } as const
+  } catch (error) {
+    return mapAuthError(error)
+  }
+}
+
+function toSurveyItem(input: {
+  id: string
+  hasilSurvey: string | null
+  status: StatusPengajuan
+  tanggalSurvey: Date | null
+  surveyor: { id: string; name: string | null } | null
+}): SurveyNoteItem {
+  return {
+    id: input.id,
+    pengajuanId: input.id,
+    note: input.hasilSurvey?.trim() ?? "",
+    statusPengajuan: input.status,
+    tanggalSurvey: input.tanggalSurvey?.toISOString() ?? null,
+    surveyor: input.surveyor,
+  }
+}
+
+export async function listNasabahSurveyNotes(
+  nasabahId: string,
+): Promise<ActionSuccess<{ nasabahId: string; items: SurveyNoteItem[] }> | ActionError> {
+  const ctx = await resolveContext()
+  if (!ctx.success) return ctx
+
+  try {
+    const nasabah = await prisma.nasabah.findFirst({
+      where: { id: nasabahId, companyId: ctx.companyId },
+      select: { id: true },
+    })
+
+    if (!nasabah) {
+      return { success: false, status: 404, error: "Nasabah tidak ditemukan." }
+    }
+
+    const rows = await prisma.pengajuan.findMany({
+      where: {
+        companyId: ctx.companyId,
+        nasabahId,
+        hasilSurvey: { not: null },
+      },
+      orderBy: [{ tanggalSurvey: "desc" }, { updatedAt: "desc" }],
+      select: {
+        id: true,
+        hasilSurvey: true,
+        status: true,
+        tanggalSurvey: true,
+        surveyor: { select: { id: true, name: true } },
+      },
+    })
+
+    const items = rows
+      .map(toSurveyItem)
+      .filter((item) => item.note.length > 0)
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        nasabahId,
+        items,
+      },
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Gagal mengambil catatan survey."
+    return { success: false, status: 500, error: message }
+  }
+}
+
+export async function createNasabahSurveyNote(
+  nasabahId: string,
+  input: unknown,
+): Promise<ActionSuccess<{ item: SurveyNoteItem }> | ActionError> {
+  const ctx = await resolveContext()
+  if (!ctx.success) return ctx
+
+  const parsed = createSurveySchema.safeParse(input)
+  if (!parsed.success) {
+    return {
+      success: false,
+      status: 400,
+      error: "Input tidak valid.",
+      details: parsed.error.flatten().fieldErrors,
+    }
+  }
+
+  try {
+    const nasabah = await prisma.nasabah.findFirst({
+      where: { id: nasabahId, companyId: ctx.companyId },
+      select: { id: true },
+    })
+
+    if (!nasabah) {
+      return { success: false, status: 404, error: "Nasabah tidak ditemukan." }
+    }
+
+    const targetPengajuan = await prisma.pengajuan.findFirst({
+      where: {
+        companyId: ctx.companyId,
+        nasabahId,
+        ...(parsed.data.pengajuanId ? { id: parsed.data.pengajuanId } : {}),
+      },
+      orderBy: parsed.data.pengajuanId ? undefined : [{ createdAt: "desc" }],
+      select: {
+        id: true,
+        hasilSurvey: true,
+        status: true,
+      },
+    })
+
+    if (!targetPengajuan) {
+      return { success: false, status: 404, error: "Pengajuan untuk survey tidak ditemukan." }
+    }
+
+    if (targetPengajuan.hasilSurvey?.trim()) {
+      return {
+        success: false,
+        status: 409,
+        error: "Catatan survey untuk pengajuan ini sudah ada.",
+      }
+    }
+
+    const updated = await prisma.pengajuan.update({
+      where: { id: targetPengajuan.id },
+      data: {
+        hasilSurvey: parsed.data.note,
+        tanggalSurvey: new Date(),
+        surveyorId: ctx.userId,
+        status: targetPengajuan.status === "DRAFT" || targetPengajuan.status === "DIAJUKAN" ? "DISURVEY" : targetPengajuan.status,
+      },
+      select: {
+        id: true,
+        hasilSurvey: true,
+        status: true,
+        tanggalSurvey: true,
+        surveyor: { select: { id: true, name: true } },
+      },
+    })
+
+    return {
+      success: true,
+      status: 201,
+      data: {
+        item: toSurveyItem(updated),
+      },
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Gagal menyimpan catatan survey."
+    return { success: false, status: 500, error: message }
+  }
+}
+EOF' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+codex
+Action file sudah dibuat dengan auth+tenant+role guard, validasi note, dan handling error terstruktur. Saya jalankan lint untuk file ini dulu, perbaiki jika ada, lalu commit scope pertama.
+exec
+/bin/bash -lc 'npx eslint src/actions/nasabah-survey.ts' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 17543ms:
+exec
+/bin/bash -lc 'git add src/actions/nasabah-survey.ts && git commit -m "feat(actions): add tenant-scoped nasabah survey note service"' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 148ms:
+[codex_20260423_1733_p1d-survey-actions-api d0b2423] feat(actions): add tenant-scoped nasabah survey note service
+ 1 file changed, 213 insertions(+)
+ create mode 100644 dashboard/src/actions/nasabah-survey.ts
+
+codex
+Saya lanjut ke file route API untuk mengikat GET/POST ke action tadi dengan `params` async (sesuai Next 16), parsing body aman, dan bentuk response JSON yang konsisten. Setelah itu saya commit scope kedua.
+exec
+/bin/bash -lc "mkdir -p src/app/api/nasabah/[id]/survey && cat > src/app/api/nasabah/[id]/survey/route.ts <<'EOF'
+import { createNasabahSurveyNote, listNasabahSurveyNotes } from \"@/actions/nasabah-survey\"
+
+type RouteContext = {
+  params: Promise<{ id: string }>
+}
+
+function ok<T>(data: T, status = 200) {
+  return Response.json({ success: true, data }, { status })
+}
+
+function fail(error: string, status: number, details?: unknown) {
+  return Response.json(
+    {
+      success: false,
+      error,
+      ...(details "'!== undefined ? { details } : {}),
+    },
+    { status },
+  )
+}
+
+async function resolveNasabahId(ctx: RouteContext) {
+  const { id } = await ctx.params
+  return id?.trim() ?? ""
+}
+
+export async function GET(_request: Request, context: RouteContext) {
+  const nasabahId = await resolveNasabahId(context)
+  if (!nasabahId) return fail("ID nasabah tidak valid.", 400)
+
+  const result = await listNasabahSurveyNotes(nasabahId)
+  if (!result.success) {
+    return fail(result.error, result.status, result.details)
+  }
+
+  return ok(result.data)
+}
+
+export async function POST(request: Request, context: RouteContext) {
+  const nasabahId = await resolveNasabahId(context)
+  if (!nasabahId) return fail("ID nasabah tidak valid.", 400)
+
+  let payload: unknown
+  try {
+    payload = await request.json()
+  } catch {
+    return fail("Body JSON tidak valid.", 400)
+  }
+
+  const result = await createNasabahSurveyNote(nasabahId, payload)
+  if (!result.success) {
+    return fail(result.error, result.status, result.details)
+  }
+
+  return ok(result.data, result.status)
+}
+EOF' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc 'npx eslint src/actions/nasabah-survey.ts src/app/api/nasabah/[id]/survey/route.ts' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 16984ms:
+exec
+/bin/bash -lc 'git add src/app/api/nasabah/[id]/survey/route.ts && git commit -m "feat(api): add nasabah survey note GET/POST route handlers"' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+[codex_20260423_1733_p1d-survey-actions-api 513dd1d] feat(api): add nasabah survey note GET/POST route handlers
+ 1 file changed, 56 insertions(+)
+ create mode 100644 dashboard/src/app/api/nasabah/[id]/survey/route.ts
+
+codex
+Kedua file sudah committed. Saya jalankan verifikasi akhir: lint target + `npm run build` penuh sesuai runbook/checklist, lalu saya laporkan hasilnya beserta hash commit final.
+exec
+/bin/bash -lc 'npm run build' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 166289ms:
+
+> dashboard@0.1.0 build
+> next build
+
+▲ Next.js 16.2.4 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 92s
+  Running TypeScript ...
+  Finished TypeScript in 62s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/53) ...
+  Generating static pages using 3 workers (13/53) 
+  Generating static pages using 3 workers (26/53) 
+  Generating static pages using 3 workers (39/53) 
+✓ Generating static pages using 3 workers (53/53) in 1461ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ƒ /akuntansi/akun
+├ ƒ /akuntansi/mapping-kategori
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/nasabah/[id]/survey
+├ ƒ /api/upload/kas
+├ ƒ /api/upload/logo
+├ ƒ /api/upload/nasabah
+├ ƒ /api/upload/pembayaran
+├ ƒ /api/upload/pengajuan
+├ ○ /blog
+├ ○ /contact
+├ ƒ /dashboard
+├ ƒ /docs/panduan-pengguna
+├ ƒ /docs/using-superpowers
+├ ƒ /dokumen/kartu-angsuran/[id]
+├ ƒ /dokumen/kuitansi/[id]
+├ ƒ /dokumen/pencairan/[id]
+├ ○ /home
+├ ƒ /kas
+├ ƒ /kelompok
+├ ƒ /kelompok/[id]/edit
+├ ƒ /kelompok/baru
+├ ƒ /kolektor
+├ ƒ /laporan/arus-kas
+├ ƒ /laporan/buku-besar
+├ ƒ /laporan/history-pembayaran
+├ ƒ /laporan/laba-rugi
+├ ƒ /laporan/neraca
+├ ƒ /laporan/per-kelompok
+├ ƒ /laporan/rekonsiliasi
+├ ƒ /laporan/transaksi-per-user
+├ ○ /login
+├ ƒ /monitoring/kolektor
+├ ƒ /monitoring/tunggakan
+├ ƒ /nasabah
+├ ƒ /nasabah/[id]
+├ ƒ /nasabah/[id]/edit
+├ ƒ /nasabah/baru
+├ ƒ /pembayaran
+├ ƒ /pembayaran/[id]/pembatalan
+├ ƒ /penawaran
+├ ƒ /pencairan
+├ ƒ /pengajuan
+├ ƒ /pengajuan/[id]
+├ ƒ /pengajuan/[id]/approve
+├ ƒ /pengajuan/baru
+├ ƒ /platform
+├ ƒ /platform/companies
+├ ƒ /platform/companies/[id]
+├ ƒ /platform/companies/[id]/workspace
+├ ƒ /platform/users
+├ ○ /product
+├ ○ /register
+├ ƒ /roadmap
+├ ƒ /settings
+├ ƒ /settings/accounting
+├ ƒ /settings/company
+├ ƒ /settings/maintenance
+├ ƒ /settings/profile
+├ ƒ /settings/ranking
+└ ƒ /settings/users
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+codex
+Implemented and fully committed in 2 scoped commits:
+
+1. `d0b2423` `feat(actions): add tenant-scoped nasabah survey note service`
+2. `513dd1d` `feat(api): add nasabah survey note GET/POST route handlers`
+
+Changes:
+- Added [nasabah-survey.ts](/tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard/src/actions/nasabah-survey.ts)
+- Added [route.ts](/tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard/src/app/api/nasabah/[id]/survey/route.ts)
+
+What’s implemented:
+- Tenant scoping via `requireCompanyId`.
+- Role guard via `requireRoles` with allowed roles: `OWNER`, `ADMIN`, `MANAGER`, `PIMPINAN`, `SURVEYOR`.
+- Validation using Zod:
+  - `note` required, trimmed non-empty.
+  - max length `2000`.
+- Stable JSON response shape:
+  - success: `{ success: true, data: ... }`
+  - error: `{ success: false, error: string, details?: ... }`
+- Concise error handling and status mapping (`400/401/403/404/409/500`).
+- Adapted to current schema (no dedicated survey-note model): uses `Pengajuan.hasilSurvey/tanggalSurvey/surveyorId` scoped by `companyId`.
+
+Checks run:
+- `npx eslint src/actions/nasabah-survey.ts src/app/api/nasabah/[id]/survey/route.ts` ✅
+- `npm run build` ✅ (route `/api/nasabah/[id]/survey` included in build output)
+tokens used
+71,502
+Implemented and fully committed in 2 scoped commits:
+
+1. `d0b2423` `feat(actions): add tenant-scoped nasabah survey note service`
+2. `513dd1d` `feat(api): add nasabah survey note GET/POST route handlers`
+
+Changes:
+- Added [nasabah-survey.ts](/tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard/src/actions/nasabah-survey.ts)
+- Added [route.ts](/tmp/codex-fanout/20260423_172310/p1d-survey-actions-api/dashboard/src/app/api/nasabah/[id]/survey/route.ts)
+
+What’s implemented:
+- Tenant scoping via `requireCompanyId`.
+- Role guard via `requireRoles` with allowed roles: `OWNER`, `ADMIN`, `MANAGER`, `PIMPINAN`, `SURVEYOR`.
+- Validation using Zod:
+  - `note` required, trimmed non-empty.
+  - max length `2000`.
+- Stable JSON response shape:
+  - success: `{ success: true, data: ... }`
+  - error: `{ success: false, error: string, details?: ... }`
+- Concise error handling and status mapping (`400/401/403/404/409/500`).
+- Adapted to current schema (no dedicated survey-note model): uses `Pengajuan.hasilSurvey/tanggalSurvey/surveyorId` scoped by `companyId`.
+
+Checks run:
+- `npx eslint src/actions/nasabah-survey.ts src/app/api/nasabah/[id]/survey/route.ts` ✅
+- `npm run build` ✅ (route `/api/nasabah/[id]/survey` included in build output)

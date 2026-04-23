@@ -1,0 +1,3569 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba6a-754f-72a0-9f14-e9922cdc3cea
+--------
+user
+You are worker P1-B. Create implementation backlog with executable checklist for Phase 1 membership module (API/actions/pages/tests), mapped to MASTER-PLAN-KOPERASI-UMUM.md. Output docs/internal/phase1-membership-implementation-backlog.md and update progress file with next sprint targets. Commit branch.
+2026-04-23T12:57:12.933630Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll map the requested Phase 1 membership implementation backlog directly to `MASTER-PLAN-KOPERASI-UMUM.md`, then create `docs/internal/phase1-membership-implementation-backlog.md`, update the progress file with next sprint targets, and commit everything on this branch. I’m starting by locating the master plan and current progress tracking files.
+exec
+/bin/bash -lc 'pwd && ls -la' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 12:57 .
+drwxr-xr-x  4 kotacom kotacom 4096 Apr 23 12:57 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 12:57 .codex
+-rw-r--r--  1 kotacom kotacom   94 Apr 23 12:57 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 12:57 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 12:57 dashboard
+
+exec
+/bin/bash -lc "rg --files | rg 'MASTER-PLAN-KOPERASI-UMUM\\.md|progress|sprint|backlog|phase1|membership'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ exited 1 in 0ms:
+exec
+/bin/bash -lc 'git status --short --branch' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+## codex/20260423_125711/phase1a-membership-impl-backlog
+
+codex
+I found the repo root and will now scan inside `dashboard/` for the master plan and progress-tracking docs, then draft the backlog from those sources.
+exec
+/bin/bash -lc 'cd dashboard && rg --files | head -n 200' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+skills-lock.json
+fix-inputs.js
+README.md
+postcss.config.mjs
+docs/internal/accounting-extension-plan.md
+docs/internal/panduan-pengguna.md
+docs/superpowers/using-superpowers.md
+docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+docs/superpowers/plans/plan.md
+docs/superpowers/plans/accounting-scoring-plan.md
+docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+package-lock.json
+AGENTS.md
+USING-SUPERPOWERS.md
+eslint.config.mjs
+PANDUAN-PENGGUNA.md
+middleware.ts
+307
+package.json
+next.config.ts
+CLAUDE.md
+src/actions/company-users.ts
+src/actions/kelompok.ts
+src/actions/nasabah.ts
+src/actions/akuntansi.ts
+src/actions/maintenance.ts
+src/actions/auth-registration.ts
+src/actions/pengajuan.ts
+src/actions/settings.ts
+src/actions/kas.ts
+src/actions/platform-admin.ts
+src/actions/dashboard.ts
+src/actions/pembayaran.ts
+src/actions/kolektor.ts
+src/components/page-view-transition.tsx
+src/components/nav-main.tsx
+src/components/theme-provider.tsx
+src/components/nav-user.tsx
+src/components/print/company-document-header.tsx
+docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+src/components/app-link.tsx
+src/components/ui/sonner.tsx
+src/components/ui/tooltip.tsx
+src/components/ui/sidebar.tsx
+src/components/ui/dialog.tsx
+src/components/ui/input.tsx
+src/components/ui/alert.tsx
+src/components/ui/dropdown-menu.tsx
+src/components/ui/avatar.tsx
+src/components/ui/card.tsx
+src/components/ui/sheet.tsx
+src/components/ui/breadcrumb.tsx
+src/components/ui/tabs.tsx
+src/components/ui/field.tsx
+src/components/ui/separator.tsx
+src/components/ui/skeleton.tsx
+src/components/ui/table.tsx
+src/components/ui/label.tsx
+src/components/ui/textarea.tsx
+src/components/ui/collapsible.tsx
+src/components/ui/select.tsx
+src/components/ui/badge.tsx
+src/components/ui/button.tsx
+src/components/navigation-indicator.tsx
+src/components/print-button.tsx
+src/components/markdown.tsx
+src/components/app-sidebar.tsx
+src/components/nav-secondary.tsx
+src/app/favicon.ico
+src/app/layout.tsx
+src/hooks/use-mobile.ts
+src/app/(auth)/layout.tsx
+src/app/(auth)/loading.tsx
+src/app/(auth)/login/page.tsx
+src/app/api/auth/[...nextauth]/route.ts
+src/app/(auth)/register/page.tsx
+src/app/(dashboard)/_components/dashboard-header.tsx
+src/app/(dashboard)/_components/top-bar.tsx
+src/app/(dashboard)/roadmap/roadmap-client.tsx
+src/app/(dashboard)/roadmap/page.tsx
+src/app/(dashboard)/pengajuan/page.tsx
+src/app/(dashboard)/pengajuan/[id]/page.tsx
+src/app/(dashboard)/pengajuan/baru/page.tsx
+src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+src/app/(marketing)/penawaran/page.tsx
+src/app/(marketing)/penawaran/_lib/screenshots.ts
+src/app/(dashboard)/docs/using-superpowers/page.tsx
+src/app/(dashboard)/nasabah/page.tsx
+src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+src/app/(dashboard)/nasabah/baru/page.tsx
+src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+src/app/(dashboard)/pembayaran/manual-input.tsx
+src/app/(dashboard)/pembayaran/page.tsx
+src/app/(dashboard)/pembayaran/bayar-button.tsx
+src/app/(marketing)/contact/page.tsx
+src/app/(dashboard)/nasabah/[id]/page.tsx
+src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+src/app/(dashboard)/layout.tsx
+src/app/api/upload/pengajuan/route.ts
+src/app/(dashboard)/platform/page.tsx
+src/app/(dashboard)/pembayaran/edit-button.tsx
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+src/app/(dashboard)/kelompok/page.tsx
+src/app/(dashboard)/platform/users/page.tsx
+src/app/(dashboard)/kelompok/baru/page.tsx
+src/app/(dashboard)/platform/users/user-admin-table.tsx
+src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+src/app/(dashboard)/monitoring/tunggakan/page.tsx
+src/app/(dashboard)/monitoring/kolektor/page.tsx
+src/app/(dashboard)/platform/companies/page.tsx
+src/app/(dashboard)/loading.tsx
+src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+src/app/(dashboard)/settings/page.tsx
+src/app/(dashboard)/settings/user-management-card.tsx
+src/app/(dashboard)/laporan/laba-rugi/page.tsx
+src/app/(dashboard)/settings/ranking-settings-form.tsx
+src/app/(dashboard)/settings/accounting-mode-card.tsx
+src/app/(dashboard)/settings/company/page.tsx
+src/app/(dashboard)/laporan/buku-besar/page.tsx
+src/app/(dashboard)/settings/ranking/page.tsx
+src/app/(dashboard)/settings/db-maintenance-card.tsx
+src/app/(dashboard)/settings/company-settings-form.tsx
+src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+src/app/(dashboard)/settings/settings-profile-card.tsx
+src/app/(dashboard)/settings/maintenance/page.tsx
+src/app/(dashboard)/settings/profile/page.tsx
+src/app/(dashboard)/kas/page.tsx
+src/app/(dashboard)/laporan/per-kelompok/page.tsx
+src/app/(dashboard)/kas/kas-row-actions.tsx
+src/app/(dashboard)/kas/kas-client.tsx
+src/app/(dashboard)/settings/users/page.tsx
+src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+src/app/(dashboard)/settings/accounting/page.tsx
+src/app/(dashboard)/platform/companies/[id]/page.tsx
+src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+src/app/(dashboard)/laporan/neraca/page.tsx
+src/app/(marketing)/blog/page.tsx
+src/app/(dashboard)/laporan/arus-kas/page.tsx
+src/app/(dashboard)/pencairan/page.tsx
+src/app/(dashboard)/pencairan/pencairan-form.tsx
+src/app/(marketing)/product/page.tsx
+src/app/(marketing)/about/page.tsx
+src/app/(dashboard)/dashboard/page.tsx
+src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+src/app/(dashboard)/kolektor/page.tsx
+src/app/(marketing)/_components/marketing-data.ts
+src/app/(dashboard)/kolektor/kolektor-management.tsx
+src/app/(marketing)/_components/marketing-shell.tsx
+src/app/(marketing)/page.tsx
+src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+src/app/(marketing)/home/page.tsx
+src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+src/app/(dashboard)/akuntansi/akun/page.tsx
+src/app/api/upload/nasabah/route.ts
+src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+src/app/api/upload/pembayaran/route.ts
+src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+src/app/globals.css
+src/app/api/upload/kas/route.ts
+src/app/api/upload/logo/route.ts
+prisma.config.ts
+src/lib/auth.ts
+src/lib/pembayaran.ts
+src/lib/blob-upload.ts
+src/lib/report-period.ts
+public/next.svg
+src/lib/accounting.ts
+public/window.svg
+public/globe.svg
+src/lib/prisma.ts
+src/lib/pembayaran-notes.ts
+src/lib/tenant.ts
+src/lib/roles.ts
+public/file.svg
+src/lib/utils.ts
+src/lib/datetime.ts
+public/vercel.svg
+src/lib/audit.ts
+src/lib/accounting-mode.ts
+src/lib/validations/pembayaran.ts
+src/lib/validations/nasabah.ts
+src/lib/validations/pengajuan.ts
+public/static/sw.js
+public/docs/screenshots/debug-login-page.png
+public/docs/screenshots/error-login.png
+public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+src/lib/validations/kelompok.ts
+src/lib/ranking.ts
+
+exec
+/bin/bash -lc "cd dashboard && find . -maxdepth 3 -type d | sed -n '1,200p'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+.
+./prisma
+./prisma/migrations
+./prisma/migrations/20260422120000_company_status_fields
+./prisma/migrations/20260418204642_init
+./prisma/migrations/20260422104500_backfill_demo_company
+./prisma/migrations/20260421110000_journal_entries
+./prisma/migrations/20260422132000_multi_tenant_backfill
+./prisma/migrations/20260419190000_pengajuan_docs_kas_kategori
+./prisma/migrations/20260419141000_tenor_type_and_payment_proof
+./prisma/migrations/20260419103000_task1_audit_approval_foundation
+./prisma/migrations/20260422105500_backfill_super_admin
+./prisma/migrations/20260419194500_coa_rekonsiliasi
+./prisma/migrations/20260419160000_app_settings_ranking_config
+./prisma/migrations/20260422103000_company_user_scope
+./.kiro
+./.kiro/skills
+./.qwen
+./.qwen/skills
+./.claude
+./.claude/skills
+./.agents
+./.agents/skills
+./.agents/skills/landing-page-copywriter
+./public
+./public/snitch
+./public/snitch/project
+./public/static
+./public/uploads
+./public/uploads/pembayaran
+./public/uploads/nasabah
+./public/uploads/pengajuan
+./public/docs
+./public/docs/screenshots
+./src
+./src/lib
+./src/lib/validations
+./src/app
+./src/app/api
+./src/app/(dashboard)
+./src/app/(marketing)
+./src/app/(auth)
+./src/hooks
+./src/components
+./src/components/ui
+./src/components/print
+./src/actions
+./skills
+./docs
+./docs/superpowers
+./docs/superpowers/specs
+./docs/superpowers/plans
+./docs/internal
+
+exec
+/bin/bash -lc "cd dashboard && rg --files | rg -i 'MASTER-PLAN-KOPERASI-UMUM\\.md|progress|sprint|backlog|membership|phase.?1'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ exited 1 in 0ms:
+codex
+I’m not seeing the master-plan filename in the quick index yet, so I’ll locate it directly and then read both it and the current progress doc before drafting the backlog.
+exec
+/bin/bash -lc "cd dashboard && find . -type f | rg -i 'master-plan|koperasi|progress|sprint|roadmap|phase'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+./src/app/(dashboard)/roadmap/roadmap-client.tsx
+./src/app/(dashboard)/roadmap/page.tsx
+./docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+
+exec
+/bin/bash -lc 'cd dashboard && ls -la docs/internal && ls -la docs/superpowers/plans' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+total 20
+drwxr-xr-x 2 kotacom kotacom 4096 Apr 23 12:57 .
+drwxr-xr-x 4 kotacom kotacom 4096 Apr 23 12:57 ..
+-rw-r--r-- 1 kotacom kotacom 4514 Apr 23 12:57 accounting-extension-plan.md
+-rw-r--r-- 1 kotacom kotacom  153 Apr 23 12:57 panduan-pengguna.md
+total 56
+drwxr-xr-x 2 kotacom kotacom  4096 Apr 23 12:57 .
+drwxr-xr-x 4 kotacom kotacom  4096 Apr 23 12:57 ..
+-rw-r--r-- 1 kotacom kotacom  8082 Apr 23 12:57 2026-04-19-akuntansi-customer-group-enrich.md
+-rw-r--r-- 1 kotacom kotacom 12004 Apr 23 12:57 2026-04-19-koperasi-mvp-gap-implementation.md
+-rw-r--r-- 1 kotacom kotacom  7260 Apr 23 12:57 2026-04-20-two-mode-accounting-implementation-plan.md
+-rw-r--r-- 1 kotacom kotacom  3867 Apr 23 12:57 2026-04-20-update-ranking-indicators.md
+-rw-r--r-- 1 kotacom kotacom  5009 Apr 23 12:57 accounting-scoring-plan.md
+-rw-r--r-- 1 kotacom kotacom  7691 Apr 23 12:57 plan.md
+
+exec
+/bin/bash -lc "find /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog -type f | rg 'MASTER-PLAN-KOPERASI-UMUM\\.md|MASTER-PLAN|KOPERASI-UMUM'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ exited 1 in 0ms:
+exec
+/bin/bash -lc 'cd dashboard && rg -n "MASTER-PLAN-KOPERASI-UMUM|MASTER PLAN|KOPERASI UMUM|phase 1|membership" docs src | head -n 200' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+codex
+The exact `MASTER-PLAN-KOPERASI-UMUM.md` file is not present in this workspace snapshot, so I’m identifying the closest planning/progress sources in-repo and will map the backlog to those while keeping a clear “master-plan mapping” section in the new doc. I’m now finding the canonical progress file to update next sprint targets.
+exec
+/bin/bash -lc "cd dashboard && find . -maxdepth 3 -type f | rg -i 'progress|roadmap|status|sprint|tracker|plan\\.md|master|backlog'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+./SUPER-ADMIN-PLAN.md
+./docs/internal/accounting-extension-plan.md
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,240p' docs/superpowers/plans/plan.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+Berikut breakdown fitur sistem untuk **koperasi simpan pinjam** berdasarkan kebutuhan yang  sebutkan.
+
+## 1. Master Nasabah
+
+Fitur inti untuk menyimpan data anggota/debitur.
+
+**Data utama**
+
+* Nomor anggota / ID nasabah
+* Nama lengkap
+* NIK
+* Alamat lengkap
+* No. HP
+* Pekerjaan
+* Tanggal bergabung
+* Status anggota: aktif, nonaktif, keluar
+* Kelompok nasabah
+* Kolektor / petugas lapangan
+* Data penjamin
+* Upload dokumen: KTP, KK, foto rumah, surat usaha
+
+**Fungsi**
+
+* Tambah, ubah, nonaktifkan data nasabah
+* Pencarian cepat
+* Filter berdasarkan kelompok, wilayah, kolektor, status
+* Riwayat pinjaman per nasabah
+* Riwayat pembayaran per nasabah
+* Catatan survey / catatan lapangan
+
+---
+
+## 2. Master Kelompok
+
+Kalau sistem koperasi berjalan per kelompok.
+
+**Data utama**
+
+* Nama kelompok
+* Kode kelompok
+* Ketua kelompok
+* Wilayah / cabang
+* Jadwal pertemuan / penagihan
+* Kolektor yang menangani
+
+**Fungsi**
+
+* Daftar anggota per kelompok
+* Total pinjaman aktif per kelompok
+* Total tunggakan per kelompok
+* Rekap pembayaran kelompok
+* Ranking kelompok sehat / bermasalah
+
+---
+
+## 3. Pengajuan Pinjaman
+
+Untuk proses pengajuan sampai persetujuan.
+
+**Data utama**
+
+* Nomor pengajuan
+* Tanggal pengajuan
+* Nasabah
+* Kelompok
+* Jenis pinjaman
+* Plafon pinjaman
+* Jangka waktu / tenor
+* Bunga / margin / jasa
+* Tujuan pinjaman
+* Agunan / jaminan
+* Hasil survey
+* Status pengajuan
+
+**Alur proses**
+
+* Input pengajuan
+* Verifikasi dokumen
+* Survey lapangan
+* Analisa kelayakan
+* Persetujuan / penolakan
+* Pencairan
+
+**Status**
+
+* Draft
+* Diajukan
+* Disurvey
+* Disetujui
+* Ditolak
+* Dicairkan
+* Selesai
+
+**Output**
+
+* Surat pengajuan
+* Surat persetujuan
+* Jadwal angsuran otomatis
+* Akad pinjaman
+
+---
+
+## 4. Pencairan Pinjaman
+
+Setelah pengajuan disetujui.
+
+**Fitur**
+
+* Generate nomor kontrak pinjaman
+* Tanggal pencairan
+* Potongan administrasi
+* Potongan simpanan wajib
+* Potongan provisi / asuransi jika ada
+* Nilai bersih diterima nasabah
+* Metode pencairan: tunai / transfer
+* Cetak bukti pencairan
+
+**Hasil otomatis**
+
+* Membentuk saldo pinjaman
+* Membentuk jadwal angsuran
+* Masuk ke arus kas keluar
+* Masuk ke piutang pinjaman
+
+---
+
+## 5. Pembayaran Angsuran
+
+Untuk transaksi cicilan nasabah.
+
+**Komponen pembayaran**
+
+* Pokok
+* Bunga / jasa
+* Denda
+* Simpanan wajib / sukarela bila dibayar bersamaan
+* Biaya lain jika ada
+
+**Fitur**
+
+* Input pembayaran harian
+* Pembayaran per nasabah
+* Pembayaran kolektif per kelompok
+* Pembayaran sebagian / kurang bayar
+* Pelunasan dipercepat
+* Cetak kuitansi
+* Riwayat pembayaran
+* Koreksi / pembatalan transaksi dengan approval
+
+**Sistem otomatis**
+
+* Hitung sisa pinjaman
+* Hitung tunggakan
+* Hitung denda telat
+* Update status pinjaman: lancar, menunggak, lunas
+
+---
+
+## 6. Data Tunggakan
+
+Untuk monitoring keterlambatan pembayaran.
+
+**Informasi utama**
+
+* Nasabah menunggak
+* Kelompok
+* Kolektor
+* Jumlah angsuran tertunggak
+* Hari keterlambatan
+* Total pokok tertunggak
+* Total bunga tertunggak
+* Total denda
+* Last payment date
+
+**Filter yang penting**
+
+* Per tanggal
+* Per kolektor
+* Per kelompok
+* Per cabang / wilayah
+* Berdasarkan aging: 1–7 hari, 8–30 hari, 31–60 hari, >60 hari
+
+**Output**
+
+* Daftar tunggakan harian
+* Aging tunggakan
+* Tunggakan tertinggi
+* Rasio NPL / pinjaman bermasalah
+* Rekap penagihan
+
+---
+
+## 7. Rekap Kolektor
+
+Untuk memantau kinerja petugas lapangan / penagih.
+
+**Data yang direkap**
+
+* Jumlah nasabah yang ditangani
+* Jumlah kelompok yang ditangani
+* Target tagihan
+* Realisasi tagihan
+* Persentase pencapaian
+* Jumlah tunggakan
+* Jumlah kunjungan
+* Setoran harian kolektor
+* Selisih setoran bila ada
+
+**Laporan**
+
+* Rekap harian kolektor
+* Rekap mingguan / bulanan
+* Produktivitas kolektor
+* Kolektor dengan tunggakan tertinggi
+* Kolektor dengan realisasi terbaik
+
+---
+
+## 8. Arus Kas
+
+Untuk pencatatan uang masuk dan keluar koperasi.
+
+**Kas masuk**
+
+* Pembayaran angsuran
+* Denda
+* Simpanan anggota
+* Pendapatan administrasi
+* Pendapatan lain
+
+**Kas keluar**
+
+* Pencairan pinjaman
+* Biaya operasional
+* Gaji / insentif kolektor
+* Biaya kantor
+* Pengeluaran lain
+
+**Fitur**
+
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+# Koperasi MVP Gap Closure Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Menutup gap fitur utama berdasarkan `../plan.md` sampai operasional Tahap 1 + fondasi Tahap 2 berjalan stabil di production.
+
+**Architecture:** Aplikasi tetap menggunakan Next.js App Router + Server Actions + Prisma PostgreSQL. Implementasi dilakukan bertahap per domain (master data, transaksi, monitoring, laporan, akses), dengan tiap tahap menghasilkan fitur yang siap dipakai dan tervalidasi build/lint.
+
+**Tech Stack:** Next.js 16, React 19, TypeScript strict, Prisma 7, PostgreSQL, NextAuth, Base UI + Tailwind.
+
+---
+
+## 1) Baseline Saat Ini (As-Is)
+
+### Sudah tersedia
+- Master Nasabah: list/detail/create/edit + upload dokumen pendukung (dasar).
+- Master Kelompok: create/update + kelola anggota + set ketua kelompok.
+- Pengajuan pinjaman: create/list/detail + upload dokumen pendukung + catatan + approval sederhana (role-based).
+- Pencairan pinjaman: kontrak + jadwal angsuran (bulanan/mingguan) + kas keluar + dokumen pencairan + kartu angsuran.
+- Pembayaran angsuran: full/parsial/pelunasan + bukti bayar + kas masuk + pembatalan via approval.
+- Monitoring tunggakan: filter kolektor/kelompok/wilayah + bucket aging + metrik NPL.
+- Rekap kolektor: target vs realisasi + setoran (berbasis transaksi).
+- Arus kas: input transaksi + kategori kas + larangan kategori masuk/keluar sama + tab Add Category.
+- Laporan: transaksi per user (filter by user/kelompok) + tooltips alasan ranking; laba-rugi dari transaksi kas.
+- RBAC + audit trail (minimum) untuk action sensitif.
+- Dashboard: header cepat + jam/tanggal + notif penagihan hari ini + quick menu.
+
+### Masih kurang utama
+- Survey workflow detail (status `DISURVEY`, input hasil survey, tanggal survey) + alur operasional surveyor.
+- Master data lanjutan: jenis pinjaman, tarif bunga, cabang/wilayah, pengaturan akun (bila dibutuhkan), user-role CRUD yang lebih lengkap.
+- Kas lanjutan: rekonsiliasi, laporan kas per cabang/wilayah, dan kontrol approval yang lebih kaya.
+- Notifikasi in-app tersimpan (jatuh tempo, approval pending, kas pending).
+- Dokumen tambahan: surat tunggakan, rekap kolektor, export/cetak laporan per kelompok/arus kas/laba rugi.
+
+---
+
+## 2) Prioritas Implementasi (To-Be)
+
+### Gelombang A (Wajib Operasional Tahap 1)
+1. Master Kelompok full CRUD + penugasan kolektor.
+2. Pembayaran lanjutan (parsial, pembatalan approval, pelunasan dipercepat).
+3. Monitoring tunggakan lengkap (filter kolektor/kelompok/wilayah, NPL ratio).
+4. Rekap kolektor lengkap (target vs realisasi + setoran).
+5. Dokumen transaksi minimal: kuitansi pembayaran + bukti pencairan.
+
+### Gelombang B (Tahap 2 Fondasi)
+1. Arus kas lanjutan (approval, bukti, rekonsiliasi).
+2. Laporan laba-rugi real dari transaksi.
+3. Role-based access end-to-end + audit trail.
+4. Notifikasi internal (in-app) untuk jatuh tempo dan approval pending.
+
+---
+
+## 3) Gap Matrix (Plan vs Implementasi)
+
+| Domain | Status | Keterangan |
+|---|---|---|
+| Master Nasabah | Partial | Create/list/detail/edit + upload dokumen sudah ada; UI nonaktif/keluar + export masih minimal |
+| Master Kelompok | Partial | CRUD inti + anggota + ketua sudah ada; penugasan kolektor eksplisit per kelompok belum ada |
+| Pengajuan | Partial | Upload + catatan + approval ada; survey workflow detail belum |
+| Pencairan | Done | Kontrak + jadwal + kas keluar + dokumen pencairan + kartu angsuran |
+| Pembayaran | Done | Full/parsial/pelunasan + bukti bayar + pembatalan via approval |
+| Tunggakan | Done | Filter + bucket aging + NPL ratio tersedia |
+| Rekap Kolektor | Done | Target vs realisasi + setoran tersedia (berbasis transaksi) |
+| Arus Kas | Partial | Input + kategori + laba-rugi sudah; rekonsiliasi + kas per cabang/wilayah belum |
+| Laba Rugi | Done | Laporan laba-rugi dari transaksi kas |
+| Laporan Per Kelompok | Partial | Ringkasan ada; export/cetak belum |
+| Hak Akses | Partial | RBAC + audit log ada; coverage per fitur masih bertahap |
+| Notifikasi | Not Started | Model ada, modul UI + action belum |
+| Dokumen & Cetak | Partial | Kuitansi + bukti pencairan + kartu angsuran ada; dokumen tambahan belum |
+
+---
+
+## 4) File Structure Plan
+
+### Domain actions
+- Modify: `src/actions/nasabah.ts`
+- Modify: `src/actions/pengajuan.ts`
+- Modify: `src/actions/pembayaran.ts`
+- Modify: `src/actions/kas.ts`
+- Modify: `src/actions/dashboard.ts`
+- Create: `src/actions/kelompok.ts`
+- Create: `src/actions/user-role.ts`
+- Create: `src/actions/notifikasi.ts`
+
+### Validation + utils
+- Create: `src/lib/validations/kelompok.ts`
+- Create: `src/lib/validations/kas.ts`
+- Create: `src/lib/validations/role.ts`
+- Create: `src/lib/roles.ts`
+- Create: `src/lib/audit.ts`
+
+### UI pages/components
+- Modify: `src/app/(dashboard)/kelompok/page.tsx`
+- Create: `src/app/(dashboard)/kelompok/baru/page.tsx`
+- Create: `src/app/(dashboard)/kelompok/[id]/edit/page.tsx`
+- Modify: `src/app/(dashboard)/pembayaran/page.tsx`
+- Create: `src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx`
+- Modify: `src/app/(dashboard)/kas/page.tsx`
+- Modify: `src/app/(dashboard)/laporan/laba-rugi/page.tsx`
+- Create: `src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx`
+- Create: `src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx`
+
+### DB schema + migration
+- Modify: `prisma/schema.prisma`
+- Create: `prisma/migrations/<timestamp>_phase_a_gap_closure/migration.sql`
+
+### Documentation
+- Modify: `README.md`
+- Create: `docs/feature-matrix.md`
+- Create: `docs/operational-runbook.md`
+
+---
+
+## 5) Execution Tasks (Bite-Sized)
+
+### Task 1: Tambah model data untuk approval, audit, dan target kolektor
+
+**Files:**
+- Modify: `prisma/schema.prisma`
+- Create: `prisma/migrations/<timestamp>_phase_a_gap_closure/migration.sql`
+
+- [x] Tambah tabel `AuditLog`, `ApprovalLog`, `KolektorTarget`, `Notifikasi`.
+- [x] Tambah relasi ke `User`, `Pengajuan`, `Pembayaran`, `KasTransaksi`.
+- [x] Jalankan `npm run db:generate` dan validasi schema compile.
+
+### Task 2: RBAC utility dan audit helper
+
+**Files:**
+- Create: `src/lib/roles.ts`
+- Create: `src/lib/audit.ts`
+
+- [x] Buat helper `requireRoles(session, allowedRoles)`.
+- [x] Buat helper `writeAuditLog({...})` + `writeApprovalLog({...})`.
+- [x] Integrasi ke action sensitif (`approve`, `cairkan`, `input kas`, `pembayaran`).
+
+### Task 3: Master Kelompok full CRUD
+
+**Files:**
+- Create: `src/actions/kelompok.ts`
+- Create: `src/lib/validations/kelompok.ts`
+- Modify: `src/app/(dashboard)/kelompok/page.tsx`
+- Create: `src/app/(dashboard)/kelompok/baru/page.tsx`
+- Create: `src/app/(dashboard)/kelompok/[id]/edit/page.tsx`
+
+- [x] Tambah create/update kelompok + validasi kode unik.
+- [x] Lengkapi UI list + halaman create/edit + kelola anggota + set ketua.
+- [ ] (Sisa) Penugasan kolektor eksplisit per kelompok (bukan turunan dari nasabah).
+- [ ] (Sisa) Nonaktif/delete kelompok + proteksi data (jika dibutuhkan).
+
+### Task 4: Pembayaran lanjutan
+
+**Files:**
+- Modify: `src/actions/pembayaran.ts`
+- Modify: `src/lib/validations/pembayaran.ts`
+- Modify: `src/app/(dashboard)/pembayaran/page.tsx`
+- Create: `src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx`
+
+- [x] Tambah mode bayar parsial + alokasi ke pokok/bunga/denda.
+- [x] Tambah pelunasan dipercepat.
+- [x] Tambah pembatalan pembayaran dengan approval manager.
+- [x] Tulis log audit tiap perubahan pembayaran.
+
+### Task 5: Tunggakan & rekap kolektor versi operasional
+
+**Files:**
+- Modify: `src/actions/dashboard.ts`
+- Modify: `src/app/(dashboard)/monitoring/tunggakan/page.tsx`
+- Modify: `src/app/(dashboard)/monitoring/kolektor/page.tsx`
+
+- [x] Tambah filter query: tanggal, kolektor, kelompok, wilayah.
+- [x] Tambah metrik NPL formal + bucket aging detail.
+- [x] Tambah KPI rekap kolektor: target, realisasi, tunggakan, setoran.
+
+### Task 6: Dokumen transaksi (print-ready)
+
+**Files:**
+- Create: `src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx`
+- Create: `src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx`
+- Modify: `src/app/(dashboard)/pembayaran/page.tsx`
+- Modify: `src/app/(dashboard)/pencairan/pencairan-form.tsx`
+
+- [x] Buat template kuitansi pembayaran (print CSS).
+- [x] Buat template bukti pencairan (print CSS).
+- [x] Tambah tombol/tautan dokumen di flow pembayaran dan pencairan.
+
+### Task 7: Arus kas lanjutan + laba rugi real
+
+**Files:**
+- Modify: `src/actions/kas.ts`
+- Modify: `src/app/(dashboard)/kas/page.tsx`
+- Modify: `src/app/(dashboard)/laporan/laba-rugi/page.tsx`
+- Create: `src/lib/validations/kas.ts`
+
+- [x] Tambah approval transaksi kas (`isApproved=false` flow) untuk input teller + aksi approve/reject.
+- [x] Tambah lampiran bukti URL transaksi kas (upload + simpan ke `buktiUrl`).
+- [x] Hitung laba rugi dari kategori kas + transaksi pembayaran/denda (via transaksi kas).
+- [ ] (Sisa) Rekonsiliasi kas + kas per cabang/wilayah (bila dipakai).
+
+### Task 8: Notifikasi internal
+
+**Files:**
+- Create: `src/actions/notifikasi.ts`
+- Modify: `src/app/(dashboard)/layout.tsx`
+- Modify: `src/components/layout/app-sidebar.tsx`
+
+- [ ] Simpan notifikasi jatuh tempo, approval pending, kas pending.
+- [ ] Tampilkan badge jumlah notifikasi belum dibaca.
+- [ ] Tambah halaman daftar notifikasi sederhana.
+- [ ] Commit: `feat(notifications): add in-app reminder and pending alerts`.
+
+### Task 9: Hardening, docs, dan UAT checklist
+
+**Files:**
+- Modify: `README.md`
+- Create: `docs/feature-matrix.md`
+- Create: `docs/operational-runbook.md`
+
+- [ ] Update README sesuai modul yang sudah aktif.
+- [ ] Tambah matrix fitur Done/Partial/Not Started.
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' SUPER-ADMIN-PLAN.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+# Perencanaan Fitur `SUPER_ADMIN` (Platform Admin)
+
+Dokumen ini mendefinisikan scope, hak akses, dan guardrail untuk user ber-role `SUPER_ADMIN` di KoperasiApp.
+
+## 1) Prinsip Dasar
+
+- `SUPER_ADMIN` adalah role platform (lintas company) dengan akses operasional terbatas namun memiliki akses pemeliharaan yang kuat.
+- Aksi super admin bersifat "high impact" sehingga wajib:
+  - audit log lengkap,
+  - reason wajib,
+  - konfirmasi eksplisit,
+  - opsi dry-run/preview bila masuk akal.
+- `SUPER_ADMIN` tidak otomatis terhubung ke `companyId`.
+  - Untuk mengelola user/konten sebuah company, super admin harus memilih company konteks (switch context) atau melakukan aksi melalui menu platform yang menarget `companyId` secara eksplisit.
+
+## 2) Matriks Hak Akses (Versi 1)
+
+Tujuan versi 1: minimal berguna, aman, dan cepat diimplementasikan tanpa memaksa migrasi multi-tenant penuh.
+
+### A. User & Login
+
+- Reset password user (set password baru atau temporary password)
+  - target: user by email/id
+  - output: temporary password (sekali tampil) atau link reset (jika ada email provider)
+  - audit: actorId, targetUserId, method, reason
+- Force logout user (invalidate session/token)
+  - catatan: NextAuth JWT perlu strategi blacklist token atau rotate secret; versi 1 bisa pakai `isActive=false` sebagai kill-switch.
+- Suspend/disable user (`isActive=false`)
+  - gunakan untuk respon cepat saat akun disalahgunakan.
+
+### B. Company Control
+
+- Hold/Suspend company
+  - efek: semua user di company tidak bisa akses halaman dashboard (middleware menolak)
+  - reason wajib, bisa ada `suspendedUntil` opsional
+- Re-activate company
+- Delete company (disarankan soft delete)
+  - versi 1: soft delete (`status=DELETED` / `deletedAt`) dan memutus akses login
+  - hard delete hanya untuk environment dev atau dengan prosedur khusus (lihat "Guardrail")
+
+### C. Data Maintenance (Platform)
+
+- Cleanup data company tertentu (scope terbatas)
+  - misal: `USERS`, `AKUNTANSI`, `TRANSAKSI` tapi hanya untuk satu company (butuh multi-tenant data model agar benar-benar aman).
+- Import demo data untuk company tertentu
+- Backfill jurnal untuk company tertentu
+
+## 3) Guardrail Keamanan
+
+### A. Wajib Audit Log
+
+Setiap aksi `SUPER_ADMIN` minimal mencatat:
+- `actorId`
+- `action`: RESET_PASSWORD / SUSPEND_USER / SUSPEND_COMPANY / DELETE_COMPANY / REACTIVATE_COMPANY / etc.
+- `target`: userId/companyId
+- `reason` (string wajib)
+- `metadata`: payload ringkas, misal `ip`, `userAgent`, `expiresAt`
+
+Rekomendasi: tambah `entityType="PLATFORM_ADMIN"` pada audit agar mudah difilter.
+
+### B. Konfirmasi & Friksi yang Disengaja
+
+Untuk aksi high impact:
+- `DELETE_COMPANY`: wajib ketik slug + kata konfirmasi (contoh: `HAPUS <slug>`)
+- `RESET_PASSWORD`: wajib reason + pilihan "force temporary" vs "set explicit"
+- `SUSPEND_COMPANY`: wajib reason + opsi durasi
+
+### C. Least Privilege
+
+- `SUPER_ADMIN` tidak boleh membuat role `SUPER_ADMIN` lain tanpa prosedur khusus (misal env var allowlist).
+- `SUPER_ADMIN` tidak auto menjadi `OWNER`/`ADMIN` company; ia mengelola via menu platform.
+
+## 4) Desain Data (Disarankan)
+
+Saat ini model `Company` memiliki `isActive`. Untuk kontrol yang lebih jelas:
+
+### A. Tambah status company
+
+Tambahkan field pada `Company`:
+- `status`: `ACTIVE | SUSPENDED | DELETED`
+- `suspendedAt`, `suspendedReason`, `suspendedUntil` (opsional)
+- `deletedAt`, `deletedReason` (opsional)
+
+Aturan akses:
+- `SUSPENDED` dan `DELETED` menolak akses dashboard (middleware).
+- `DELETED` harus menolak login untuk user company tersebut, atau set semua user `isActive=false`.
+
+### B. Platform action log (opsional)
+
+Jika `AuditLog` sudah ada, cukup gunakan. Jika tidak cukup, buat `PlatformAdminLog`.
+
+## 5) Desain UI (Route)
+
+### A. Menu Platform Admin
+
+Tambahkan modul khusus super admin, contoh:
+- `/platform/companies`
+- `/platform/users`
+- `/platform/audit`
+
+Halaman minimal:
+- List company (search by name/slug/email)
+- Detail company
+  - tombol suspend/activate/delete (soft)
+  - list user di company (read-only versi 1)
+- List user (search by email)
+  - reset password
+  - disable user
+
+### B. Company Context Switch (opsional, versi 2)
+
+Untuk membantu debug:
+- switch context (pilih company) dan menyimpan di session token sebagai `actingCompanyId`.
+- semua query tenant-aware membaca `actingCompanyId` bila ada.
+
+## 6) Catatan Penting: Multi-Tenant Data Belum Penuh
+
+Saat ini baru `User` yang punya `companyId`. Banyak entitas lain (nasabah/pinjaman/kas/jurnal) belum menyimpan `companyId`.
+
+Implikasinya:
+- Aksi "delete company" versi 1 hanya realistis untuk memutus akses user (auth) dan identitas company; tidak aman untuk menghapus data operasional selektif per company.
+- Untuk platform admin yang benar-benar multi-tenant, perlu Phase 2:
+  - tambah `companyId` ke semua model data operasional,
+  - index + FK,
+  - semua query/filter selalu menyertakan `companyId`,
+  - migrasi data existing.
+
+## 7) Rencana Implementasi (Roadmap)
+
+### Phase 0 (1-2 hari)
+- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+
+### Phase 1 (2-4 hari)
+- Platform pages minimal `/platform/users` dan `/platform/companies`.
+- Actions server:
+  - `resetUserPassword(userId, reason)`
+  - `setUserActive(userId, isActive, reason)`
+  - `setCompanyStatus(companyId, status, reason, until?)`
+- Audit log lengkap untuk semua action.
+
+### Phase 2 (lebih besar)
+- Multi-tenant penuh pada semua tabel bisnis (companyId everywhere).
+- Cleanup/import/backfill per company (aman).
+- Context switch / impersonation dengan guardrail.
+
+## 8) SOP Operasional (Template)
+
+- Reset password:
+  1. Verifikasi permintaan (ticket)
+  2. Jalankan action reset dengan reason + ticket id
+  3. Berikan temporary password via channel aman
+  4. Minta user ganti password setelah login
+- Suspend company:
+  1. Dokumentasikan reason + siapa yang menyetujui
+  2. Suspend dengan durasi bila perlu
+  3. Komunikasi ke owner/admin company
+  4. Reactivate setelah masalah selesai
+
+
+exec
+/bin/bash -lc 'cd dashboard && rg -n "next sprint|sprint target|target sprint|progress|checkpoint|status" docs SUPER-ADMIN-PLAN.md README.md | head -n 200' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+SUPER-ADMIN-PLAN.md:38:  - versi 1: soft delete (`status=DELETED` / `deletedAt`) dan memutus akses login
+SUPER-ADMIN-PLAN.md:77:### A. Tambah status company
+SUPER-ADMIN-PLAN.md:80:- `status`: `ACTIVE | SUSPENDED | DELETED`
+SUPER-ADMIN-PLAN.md:132:- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+SUPER-ADMIN-PLAN.md:139:  - `setCompanyStatus(companyId, status, reason, until?)`
+docs/internal/accounting-extension-plan.md:32:- `status`: `DRAFT`, `POSTED`, `VOIDED`
+docs/internal/accounting-extension-plan.md:53:- `status`: `OPEN`, `CLOSED`
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:29:- Survey workflow detail (status `DISURVEY`, input hasil survey, tanggal survey) + alur operasional surveyor.
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:267:- [x] Laporan history pembayaran customer + indikator ranking (`A/B/C/D`) + status lunas/kurang/telat.
+docs/superpowers/plans/plan.md:26:* Filter berdasarkan kelompok, wilayah, kolektor, status
+docs/superpowers/plans/plan.md:155:* Update status pinjaman: lancar, menunggak, lunas
+docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:51:- [ ] Tambah model `RekonsiliasiKas` (accountId, month, year, saldoStatement, saldoBook, selisih, status).
+docs/superpowers/plans/accounting-scoring-plan.md:49:  - Cek SLIK OJK / BI Checking (status Kol 1 s/d Kol 5 diisikan oleh surveyor saat evaluasi).
+docs/superpowers/plans/accounting-scoring-plan.md:59:Sistem laporan nasabah & tagihan akan memetakan dan membagi status portofolio pinjaman Koperasi menjadi kategori baku perbankan:
+docs/superpowers/plans/accounting-scoring-plan.md:67:- **Blacklist Database**: Jika nasabah telah menginjak status `KOL 5` atau lari/tidak berniat melunasi, NIK KTP-nya otomatis di-*blacklist*. Sistem akan menolak di garis depan form jika ada Nomor KTP/NIK yang sama terdaftar lagi.
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '240,420p' docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+- `npx tsc --noEmit`
+- `npm run build`
+- `npm run db:generate`
+- `npm run dev`
+
+UAT minimum:
+- Buat 1 nasabah, 1 pengajuan, approve, cairkan, bayar, cek tunggakan dan laporan.
+- Uji role `ADMIN` vs `TELLER` vs `MANAGER` terhadap action sensitif.
+
+---
+
+## 8) Risiko dan Mitigasi
+
+- **Perubahan schema berdampak data existing**
+  - Mitigasi: migration bertahap + backup DB.
+- **Perhitungan keuangan tidak konsisten lintas modul**
+  - Mitigasi: sentralisasi fungsi hitung di `src/lib`.
+- **Scope creep**
+
+---
+
+## 9) Progress Update (2026-04-19)
+
+- [x] Perbaikan relasi `nasabah -> kelompok` di form create nasabah (dropdown kelompok + kolektor saat input awal).
+- [x] Penambahan input dokumen pendukung pelanggan baru (`dokumenUrls`) pada create nasabah.
+- [x] Tenor pinjaman dual type: `BULANAN` dan `MINGGUAN` (schema + form + pencairan jadwal).
+- [x] Upload bukti bayar pelanggan (`buktiBayarUrl`) pada proses pembayaran.
+- [x] Laporan history pembayaran customer + indikator ranking (`A/B/C/D`) + status lunas/kurang/telat.
+- [x] Form kelompok: pilih anggota kelompok + pilih ketua dari anggota.
+- [x] Modul daftar kolektor baru: sumber dari nasabah, ketua kelompok, atau input manual; dukung role kolektor+admin.
+- [x] Tabel user-role manajemen ditampilkan di modul kolektor.
+- [x] Modul akuntansi sederhana (pemasukan/pengeluaran) di halaman kas menggunakan data transaksi riil.
+- [x] Laporan laba-rugi diperbarui dari transaksi kas nyata (bukan placeholder statis).
+  - Mitigasi: implementasi wajib hanya Gelombang A dahulu.
+
+---
+
+## 9) Rekomendasi Eksekusi
+
+Urutan aman implementasi:
+1. Task 1 -> 2 (fondasi data + RBAC/audit)
+2. Task 3 -> 4 -> 5 (core operasional)
+3. Task 6 -> 7 -> 8 (dokumen + finance + notifikasi)
+4. Task 9 (stabilisasi & dokumentasi)
+
+codex
+I’ve identified the working progress tracker as `docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md` (it already has live checklist/progress). Next I’m drafting the new implementation backlog doc with API/actions/pages/tests checklists mapped to the plan sections, then I’ll append next sprint targets in that tracker.
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' docs/superpowers/plans/plan.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+Berikut breakdown fitur sistem untuk **koperasi simpan pinjam** berdasarkan kebutuhan yang  sebutkan.
+
+## 1. Master Nasabah
+
+Fitur inti untuk menyimpan data anggota/debitur.
+
+**Data utama**
+
+* Nomor anggota / ID nasabah
+* Nama lengkap
+* NIK
+* Alamat lengkap
+* No. HP
+* Pekerjaan
+* Tanggal bergabung
+* Status anggota: aktif, nonaktif, keluar
+* Kelompok nasabah
+* Kolektor / petugas lapangan
+* Data penjamin
+* Upload dokumen: KTP, KK, foto rumah, surat usaha
+
+**Fungsi**
+
+* Tambah, ubah, nonaktifkan data nasabah
+* Pencarian cepat
+* Filter berdasarkan kelompok, wilayah, kolektor, status
+* Riwayat pinjaman per nasabah
+* Riwayat pembayaran per nasabah
+* Catatan survey / catatan lapangan
+
+---
+
+## 2. Master Kelompok
+
+Kalau sistem koperasi berjalan per kelompok.
+
+**Data utama**
+
+* Nama kelompok
+* Kode kelompok
+* Ketua kelompok
+* Wilayah / cabang
+* Jadwal pertemuan / penagihan
+* Kolektor yang menangani
+
+**Fungsi**
+
+* Daftar anggota per kelompok
+* Total pinjaman aktif per kelompok
+* Total tunggakan per kelompok
+* Rekap pembayaran kelompok
+* Ranking kelompok sehat / bermasalah
+
+---
+
+## 3. Pengajuan Pinjaman
+
+Untuk proses pengajuan sampai persetujuan.
+
+**Data utama**
+
+* Nomor pengajuan
+* Tanggal pengajuan
+* Nasabah
+* Kelompok
+* Jenis pinjaman
+* Plafon pinjaman
+* Jangka waktu / tenor
+* Bunga / margin / jasa
+* Tujuan pinjaman
+* Agunan / jaminan
+* Hasil survey
+* Status pengajuan
+
+**Alur proses**
+
+* Input pengajuan
+* Verifikasi dokumen
+* Survey lapangan
+* Analisa kelayakan
+* Persetujuan / penolakan
+* Pencairan
+
+**Status**
+
+* Draft
+* Diajukan
+* Disurvey
+* Disetujui
+* Ditolak
+* Dicairkan
+* Selesai
+
+**Output**
+
+* Surat pengajuan
+* Surat persetujuan
+* Jadwal angsuran otomatis
+* Akad pinjaman
+
+---
+
+## 4. Pencairan Pinjaman
+
+Setelah pengajuan disetujui.
+
+**Fitur**
+
+* Generate nomor kontrak pinjaman
+* Tanggal pencairan
+* Potongan administrasi
+* Potongan simpanan wajib
+* Potongan provisi / asuransi jika ada
+* Nilai bersih diterima nasabah
+* Metode pencairan: tunai / transfer
+* Cetak bukti pencairan
+
+**Hasil otomatis**
+
+* Membentuk saldo pinjaman
+* Membentuk jadwal angsuran
+* Masuk ke arus kas keluar
+* Masuk ke piutang pinjaman
+
+---
+
+## 5. Pembayaran Angsuran
+
+Untuk transaksi cicilan nasabah.
+
+**Komponen pembayaran**
+
+* Pokok
+* Bunga / jasa
+* Denda
+* Simpanan wajib / sukarela bila dibayar bersamaan
+* Biaya lain jika ada
+
+**Fitur**
+
+* Input pembayaran harian
+* Pembayaran per nasabah
+* Pembayaran kolektif per kelompok
+* Pembayaran sebagian / kurang bayar
+* Pelunasan dipercepat
+* Cetak kuitansi
+* Riwayat pembayaran
+* Koreksi / pembatalan transaksi dengan approval
+
+**Sistem otomatis**
+
+* Hitung sisa pinjaman
+* Hitung tunggakan
+* Hitung denda telat
+* Update status pinjaman: lancar, menunggak, lunas
+
+---
+
+## 6. Data Tunggakan
+
+Untuk monitoring keterlambatan pembayaran.
+
+**Informasi utama**
+
+* Nasabah menunggak
+* Kelompok
+* Kolektor
+* Jumlah angsuran tertunggak
+* Hari keterlambatan
+* Total pokok tertunggak
+* Total bunga tertunggak
+* Total denda
+* Last payment date
+
+**Filter yang penting**
+
+* Per tanggal
+* Per kolektor
+* Per kelompok
+* Per cabang / wilayah
+* Berdasarkan aging: 1–7 hari, 8–30 hari, 31–60 hari, >60 hari
+
+**Output**
+
+* Daftar tunggakan harian
+* Aging tunggakan
+* Tunggakan tertinggi
+* Rasio NPL / pinjaman bermasalah
+* Rekap penagihan
+
+---
+
+## 7. Rekap Kolektor
+
+Untuk memantau kinerja petugas lapangan / penagih.
+
+**Data yang direkap**
+
+* Jumlah nasabah yang ditangani
+* Jumlah kelompok yang ditangani
+* Target tagihan
+* Realisasi tagihan
+* Persentase pencapaian
+* Jumlah tunggakan
+* Jumlah kunjungan
+* Setoran harian kolektor
+* Selisih setoran bila ada
+
+**Laporan**
+
+* Rekap harian kolektor
+* Rekap mingguan / bulanan
+* Produktivitas kolektor
+* Kolektor dengan tunggakan tertinggi
+* Kolektor dengan realisasi terbaik
+
+---
+
+## 8. Arus Kas
+
+Untuk pencatatan uang masuk dan keluar koperasi.
+
+**Kas masuk**
+
+* Pembayaran angsuran
+* Denda
+* Simpanan anggota
+* Pendapatan administrasi
+* Pendapatan lain
+
+**Kas keluar**
+
+* Pencairan pinjaman
+* Biaya operasional
+* Gaji / insentif kolektor
+* Biaya kantor
+* Pengeluaran lain
+
+**Fitur**
+
+* Buku kas harian
+* Kategori pemasukan / pengeluaran
+* Kas tunai dan kas bank
+* Mutasi kas
+* Saldo awal dan saldo akhir
+* Approval transaksi tertentu
+* Lampiran bukti transaksi
+
+**Laporan**
+
+* Arus kas harian
+* Arus kas bulanan
+* Kas per cabang
+* Rekonsiliasi kas
+
+---
+
+## 9. Laba Rugi
+
+Untuk melihat performa usaha koperasi.
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '260,520p' docs/superpowers/plans/plan.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+Untuk melihat performa usaha koperasi.
+
+**Sumber pendapatan**
+
+* Pendapatan bunga / jasa pinjaman
+* Pendapatan administrasi
+* Denda keterlambatan
+* Pendapatan lain-lain
+
+**Beban**
+
+* Beban gaji
+* Beban operasional
+* Beban transport kolektor
+* Beban penyusutan jika ada
+* Beban lain
+
+**Fitur**
+
+* Mapping akun pendapatan dan beban
+* Periode laporan bulanan / tahunan
+* Perbandingan periode
+* Drill down ke transaksi
+
+**Output**
+
+* Laporan laba rugi bulanan
+* Laporan laba rugi tahunan
+* Per cabang / per unit jika dibutuhkan
+
+---
+
+## 10. Laporan Per Kelompok
+
+Karena kamu butuh “per kelompok”, modul ini penting.
+
+**Isi laporan**
+
+* Jumlah anggota
+* Jumlah pinjaman aktif
+* Total outstanding
+* Total pembayaran
+* Total tunggakan
+* Kolektibilitas kelompok
+* Ranking kelompok
+
+**Kegunaan**
+
+* Menilai kesehatan kelompok
+* Menentukan kelompok prioritas penagihan
+* Evaluasi ketua kelompok / area
+
+---
+
+## 11. Dashboard Pimpinan
+
+Ringkasan cepat untuk manajemen.
+
+**Widget utama**
+
+* Total nasabah aktif
+* Total pinjaman aktif
+* Total outstanding
+* Total pembayaran hari ini
+* Total tunggakan
+* Top 10 nasabah menunggak
+* Kinerja kolektor
+* Arus kas hari ini
+* Laba rugi bulan berjalan
+
+---
+
+## 12. Hak Akses Pengguna
+
+Agar sistem aman dan rapi.
+
+**Role yang umum**
+
+* Admin
+* Teller / kasir
+* Kolektor
+* Surveyor
+* Manager
+* Pimpinan / owner
+* Akuntansi
+
+**Pengaturan akses**
+
+* Siapa yang bisa input pengajuan
+* Siapa yang bisa approve pinjaman
+* Siapa yang bisa edit pembayaran
+* Siapa yang bisa lihat laporan keuangan
+* Audit trail aktivitas user
+
+---
+
+## 13. Notifikasi & Reminder
+
+Supaya operasional lebih tertib.
+
+**Notifikasi yang berguna**
+
+* Jatuh tempo angsuran
+* Tunggakan nasabah
+* Pengajuan menunggu approval
+* Kas tidak balance
+* Target kolektor belum tercapai
+
+---
+
+## 14. Dokumen & Cetak
+
+Supaya siap operasional.
+
+**Dokumen yang bisa dicetak**
+
+* Form pendaftaran nasabah
+* Form pengajuan pinjaman
+* Bukti pencairan
+* Kartu angsuran
+* Kuitansi pembayaran
+* Surat tunggakan
+* Rekap kolektor
+* Laporan arus kas
+* Laporan laba rugi
+
+---
+
+# Saran struktur menu aplikasi
+
+## A. Master Data
+
+* Nasabah
+* Kelompok
+* Kolektor
+* Jenis pinjaman
+* Tarif bunga / jasa
+* Cabang / wilayah
+* User & role
+
+## B. Transaksi
+
+* Pengajuan pinjaman
+* Survey & approval
+* Pencairan
+* Pembayaran angsuran
+* Pelunasan
+* Kas masuk
+* Kas keluar
+
+## C. Monitoring
+
+* Pinjaman aktif
+* Jatuh tempo
+* Tunggakan
+* Rekap kolektor
+* Monitoring per kelompok
+
+## D. Laporan
+
+* Laporan nasabah
+* Laporan pengajuan
+* Laporan pencairan
+* Laporan pembayaran
+* Laporan tunggakan
+* Laporan per kelompok
+* Arus kas
+* Laba rugi
+
+---
+
+# Prioritas MVP
+
+Kalau mau dibuat bertahap, urutan paling penting:
+
+**Tahap 1**
+
+* Master nasabah
+* Master kelompok
+* Pengajuan pinjaman
+* Pencairan
+* Pembayaran angsuran
+* Data tunggakan
+* Rekap kolektor sederhana
+
+**Tahap 2**
+
+* Arus kas
+* Laba rugi
+* Dashboard
+* Approval berjenjang
+* Notifikasi
+
+**Tahap 3**
+
+* Mobile kolektor
+* Tanda tangan digital
+* Integrasi WhatsApp reminder
+* Export Excel / PDF
+* Analitik performa
+
+---
+
+# Output laporan yang wajib ada
+
+Minimal sistem ini sebaiknya punya:
+
+* Daftar nasabah aktif
+* Daftar pinjaman aktif
+* Jadwal angsuran
+* Riwayat pembayaran
+* Daftar tunggakan
+* Rekap tunggakan per kelompok
+* Rekap kolektor
+* Buku kas harian
+* Laporan arus kas bulanan
+* Laporan laba rugi bulanan
+exec
+/bin/bash -lc "cd dashboard && rg --files | rg -i 'test|spec|__tests__|vitest|playwright|cypress'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+
+codex
+I’ve confirmed there are currently no automated test files in this repo, so the backlog will include explicit test scaffolding tasks. I’m now reading current membership-related actions/pages so the checklist can point to concrete file targets that already exist.
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let lastPaymentAt: Date | null = null
+    let nextDueAt: Date | null = null
+    let overdueCount = 0
+    let overdueOldestDueAt: Date | null = null
+    let overdueOldestDaysLate = 0
+    let overdueMaxDaysLate = 0
+    let aktifPinjaman = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+
+      const pembayaranTagMap = new Map<string, number>()
+      for (const p of pinjaman.pembayaran) {
+        if (p.tanggalBayar) {
+          if (!lastPaymentAt || p.tanggalBayar > lastPaymentAt) lastPaymentAt = p.tanggalBayar
+        }
+        const tags = parseJadwalTags(p.catatan)
+        if (tags.length === 0) continue
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (!nextDueAt || jadwal.tanggalJatuhTempo < nextDueAt) nextDueAt = jadwal.tanggalJatuhTempo
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+          overdueCount += 1
+          if (!overdueOldestDueAt || jadwal.tanggalJatuhTempo < overdueOldestDueAt) {
+            overdueOldestDueAt = jadwal.tanggalJatuhTempo
+          }
+          const daysLate = Math.max(
+            0,
+            Math.floor((now.getTime() - jadwal.tanggalJatuhTempo.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          if (daysLate > overdueMaxDaysLate) overdueMaxDaysLate = daysLate
+        }
+      }
+    }
+
+    if (overdueOldestDueAt) {
+      overdueOldestDaysLate = Math.max(
+        0,
+        Math.floor((now.getTime() - overdueOldestDueAt.getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      ...nasabah,
+      indikator: {
+        ranking,
+        telat,
+        belumBayar,
+        belumJatuhTempo,
+        kurangAngsuran: tunggakanNominal, // Mapping for UI compatibility if needed, but semantic is tunggakan
+        tunggakanNominal,
+        outstanding,
+        lastPaymentAt,
+        nextDueAt,
+        overdueCount,
+        overdueOldestDueAt,
+        overdueOldestDaysLate,
+        overdueMaxDaysLate,
+        aktifPinjaman,
+      },
+    }
+  })
+
+  return serializeData({ data: withIndicators, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getNasabahById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.nasabah.findFirst({
+    where: { id, companyId },
+    include: {
+      kelompok: true,
+      kolektor: { select: { id: true, name: true, email: true } },
+      pengajuan: {
+        orderBy: { tanggalPengajuan: "desc" },
+        include: {
+          pinjaman: {
+            include: {
+              jadwalAngsuran: {
+                orderBy: { tanggalJatuhTempo: "asc" },
+              },
+              pembayaran: {
+                where: { isBatalkan: false },
+                orderBy: { tanggalBayar: "desc" },
+                include: { inputOleh: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      },
+      penjamin: true,
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function createNasabah(input: NasabahInput): Promise<CreateNasabahResult> {
+  const session = await auth()
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' src/app/(dashboard)/nasabah/page.tsx" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `cd dashboard && sed -n '1,260p' src/app/(dashboard)/nasabah/page.tsx'
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' src/app/(dashboard)/nasabah/baru/page.tsx" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `cd dashboard && sed -n '1,260p' src/app/(dashboard)/nasabah/baru/page.tsx'
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '260,620p' src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = nasabahSchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors }
+  }
+
+  const { tanggalLahir, kelompokId, kolektorId, dokumenUrls, ...rest } = parsed.data
+  const existingNik = await prisma.nasabah.findFirst({
+    where: { companyId, nik: parsed.data.nik },
+    select: { namaLengkap: true },
+  })
+
+  if (existingNik) {
+    return {
+      error: {
+        nik: [`NIK sudah terdaftar atas nama ${existingNik.namaLengkap}.`],
+      },
+    }
+  }
+
+  if (kelompokId) {
+    const kelompok = await prisma.kelompok.findFirst({ where: { id: kelompokId, companyId }, select: { id: true } })
+    if (!kelompok) {
+      return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+    }
+  }
+
+  // Nomor anggota dibuat otomatis. Karena generator berbasis count dapat bentrok pada concurrency,
+  // kita retry beberapa kali ketika unique constraint terjadi.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const nomorAnggota = await generateNomorAnggota(companyId)
+    try {
+      const nasabah = await prisma.nasabah.create({
+        data: {
+          companyId,
+          ...rest,
+          nomorAnggota,
+          tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : undefined,
+          kelompokId: kelompokId || null,
+          kolektorId: kolektorId || null,
+          dokumenUrls: dokumenUrls ?? [],
+          tanggalGabung: new Date(),
+        },
+      })
+
+      revalidatePath("/nasabah")
+      return { success: true, data: nasabah }
+    } catch (error) {
+      const fields = getUniqueConstraintFields(error)
+      if (fields.includes("nik")) {
+        return { error: { nik: ["NIK sudah terdaftar."] } }
+      }
+      if (fields.includes("nomorAnggota")) {
+        if (attempt < 2) continue
+        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+      }
+
+      throw error
+    }
+  }
+
+  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+}
+
+export async function updateNasabah(id: string, input: Partial<NasabahInput>): Promise<UpdateNasabahResult> {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const current = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!current) return { error: { nik: ["Nasabah tidak ditemukan."] } }
+
+  const { tanggalLahir, dokumenUrls, ...rest } = input
+  const normalized = { ...rest } as Record<string, unknown>
+  if ("kelompokId" in normalized && !normalized.kelompokId) normalized.kelompokId = null
+  if ("kolektorId" in normalized && !normalized.kolektorId) normalized.kolektorId = null
+
+  if (typeof normalized.nik === "string") {
+    const existingNik = await prisma.nasabah.findFirst({
+      where: {
+        companyId,
+        nik: normalized.nik,
+        NOT: { id },
+      },
+      select: { namaLengkap: true },
+    })
+
+    if (existingNik) {
+      return {
+        error: {
+          nik: [`NIK sudah terdaftar atas nama ${existingNik.namaLengkap}.`],
+        },
+      }
+    }
+  }
+
+  if (typeof normalized.kelompokId === "string" && normalized.kelompokId) {
+    const kelompok = await prisma.kelompok.findFirst({ where: { id: normalized.kelompokId, companyId }, select: { id: true } })
+    if (!kelompok) return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+  }
+
+  try {
+    await prisma.nasabah.update({
+      where: { id },
+      data: {
+        ...normalized,
+        tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : undefined,
+        ...(dokumenUrls ? { dokumenUrls } : {}),
+      },
+    })
+  } catch (error) {
+    const fields = getUniqueConstraintFields(error)
+    if (fields.includes("nik")) {
+      return { error: { nik: ["NIK sudah terdaftar."] } }
+    }
+
+    throw error
+  }
+
+  revalidatePath("/nasabah")
+  revalidatePath(`/nasabah/${id}`)
+  return { success: true }
+}
+
+export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+  await prisma.nasabah.update({ where: { id }, data: { status } })
+  revalidatePath("/nasabah")
+  return { success: true }
+}
+
+export async function deleteNasabah(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  try {
+    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+  } catch {
+    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+  }
+
+  const nasabah = await prisma.nasabah.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      namaLengkap: true,
+      _count: {
+        select: {
+          pengajuan: true,
+          simpanan: true,
+        },
+      },
+    },
+  })
+
+  if (!nasabah) {
+    return { success: false, error: "Nasabah tidak ditemukan." }
+  }
+  // Guard: prevent cross-company delete even if id leaks
+  const nasabahCompany = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+
+  if (nasabah._count.pengajuan > 0 || nasabah._count.simpanan > 0) {
+    return {
+      success: false,
+      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+    }
+  }
+
+  await prisma.nasabah.delete({ where: { id } })
+
+  revalidatePath("/nasabah")
+  revalidatePath("/dashboard")
+  revalidatePath("/kelompok")
+  return { success: true }
+}
+
+export async function getKelompokList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  return prisma.kelompok.findMany({ where: { companyId }, orderBy: { nama: "asc" } })
+}
+
+export async function getKolektorList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  return prisma.user.findMany({
+    where: { companyId, roles: { some: { role: "KOLEKTOR" } }, isActive: true },
+    select: { id: true, name: true },
+  })
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(dashboard)/nasabah/page.tsx'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+import Link from "next/link"
+import { Plus, Search, Download, Eye, Pencil } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getKelompokList, getNasabahList } from "@/actions/nasabah"
+import { Input } from "@/components/ui/input"
+import { DeleteNasabahButton } from "./delete-nasabah-button"
+
+const statusBadge: Record<string, { label: string; cls: string }> = {
+  AKTIF: { label: "Aktif", cls: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
+  KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+}
+
+const rankBadge: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  B: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  D: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+export default async function NasabahPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string; page?: string; kelompokId?: string; status?: string }>
+}) {
+  const sp = await searchParams
+  const search = sp?.search ?? ""
+  const page = Number(sp?.page ?? 1)
+  const kelompokId = sp?.kelompokId ?? ""
+  const status = sp?.status ?? ""
+
+  const kelompokList = await getKelompokList()
+  const { data: nasabahList, total, totalPages } = await getNasabahList({
+    page,
+    search,
+    limit: 20,
+    kelompokId: kelompokId || undefined,
+    status: status || undefined,
+  })
+
+  return (
+    <div className="p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Master Nasabah</h1>
+          <p className="text-muted-foreground text-sm">
+            {total.toLocaleString("id-ID")} total nasabah terdaftar dalam sistem.
+          </p>
+        </div>
+        <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95">
+          <Link href="/nasabah/baru">
+            <Plus className="size-4" /> Tambah Nasabah
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <CardTitle className="text-base font-semibold">Daftar Nasabah</CardTitle>
+              <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="gap-2 border-slate-200/80 dark:border-slate-800/80">
+              <Download className="size-3.5" /> 
+              <span className="hidden sm:inline">Export Data</span>
+            </Button>
+          </div>
+          <form method="GET" className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input name="search" defaultValue={search} placeholder="Cari nama, NIK, atau nomor anggota..." className="pl-9 transition-all" />
+            </div>
+            <select
+              name="kelompokId"
+              defaultValue={kelompokId}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter kelompok"
+            >
+              <option value="">Semua kelompok</option>
+              {kelompokList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama}
+                </option>
+              ))}
+            </select>
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter status"
+            >
+              <option value="">Semua status</option>
+              <option value="AKTIF">Aktif</option>
+              <option value="NON_AKTIF">Non Aktif</option>
+              <option value="KELUAR">Keluar</option>
+            </select>
+            <Button type="submit" variant="secondary" className="px-6">Cari</Button>
+          </form>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[110px]">No. Anggota</TableHead>
+                <TableHead>Nama Lengkap</TableHead>
+                <TableHead className="hidden md:table-cell">NIK</TableHead>
+                <TableHead className="hidden lg:table-cell">Kelompok</TableHead>
+                <TableHead className="hidden lg:table-cell">Kolektor</TableHead>
+                <TableHead className="hidden xl:table-cell">Indikator</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Tgl. Gabung</TableHead>
+                <TableHead className="w-[50px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {nasabahList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-24 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Search className="size-8 opacity-20" />
+                      <p>{search ? `Tidak ada nasabah dengan kata kunci "${search}"` : "Belum ada data nasabah. Tambah nasabah pertama."}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                nasabahList.map((row) => {
+                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs font-semibold text-slate-500">{row.nomorAnggota}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold tracking-tight">{row.namaLengkap}</span>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge
+                              className={`${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} hover:${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} border-0 text-[10px] font-black h-5 uppercase tracking-wider`}
+                              title="Ranking risiko"
+                            >
+                              Rank {row.indikator.ranking}
+                            </Badge>
+                            {row.indikator.overdueCount > 0 && row.indikator.overdueOldestDueAt ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-black h-5 uppercase tracking-wider"
+                                title="Angsuran jatuh tempo belum lunas"
+                              >
+                                Telat {row.indikator.overdueCount} (
+                                {new Date(row.indikator.overdueOldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                ) {row.indikator.overdueOldestDaysLate} hari
+                              </Badge>
+                            ) : null}
+                            {row.indikator.tunggakanNominal > 0 ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tunggakan angsuran"
+                              >
+                                Tunggakan {fmt(Number(row.indikator.tunggakanNominal))}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tidak ada tunggakan angsuran"
+                              >
+                                Lancar
+                              </Badge>
+                            )}
+                            {row.indikator.aktifPinjaman > 0 ? (
+                              <Badge
+                                className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Jumlah pinjaman aktif"
+                              >
+                                Aktif {row.indikator.aktifPinjaman}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground md:hidden">{row.nik}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell font-mono text-[11px] text-slate-500 tracking-tight">{row.nik}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kelompok?.nama ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kolektor?.name ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Outstanding</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-200">
+                              {fmt(Number(row.indikator.outstanding))}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Telat</span>
+                            <span className={row.indikator.telat > 0 ? "font-bold text-rose-600" : "font-semibold"}>
+                              {row.indikator.telat}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Next Due</span>
+                            <span className="font-medium">
+                              {row.indikator.nextDueAt
+                                ? new Date(row.indikator.nextDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                                : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${badge.cls} hover:${badge.cls} border-0 text-[10px] font-bold px-2 py-0 h-5 uppercase tracking-wide`}>{badge.label}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-[11px] font-medium text-slate-500">
+                        {new Date(row.tanggalGabung).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Detail"
+                          >
+                            <Link href={`/nasabah/${row.id}`}>
+                              <Eye className="size-4" />
+                              <span className="sr-only">Detail</span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Edit"
+                          >
+                            <Link href={`/nasabah/${row.id}/edit`}>
+                              <Pencil className="size-4" />
+                              <span className="sr-only">Edit</span>
+                            </Link>
+                          </Button>
+                          <DeleteNasabahButton id={row.id} nama={row.namaLengkap} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+          <div className="px-6 py-4 flex items-center justify-between border-t border-slate-50 bg-slate-50/30 dark:border-slate-800/50 dark:bg-slate-900/10 text-xs font-medium text-slate-500 tracking-tight">
+            <span>
+              {nasabahList.length > 0
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(dashboard)/nasabah/baru/page.tsx'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+"use client"
+
+import { useEffect, useRef, useState, useTransition } from "react"
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { createNasabah, getKelompokList, getKolektorList } from "@/actions/nasabah"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
+import { ArrowLeft, ArrowRight, Save, User, MapPin, Upload, X } from "lucide-react"
+import Link from "next/link"
+
+const STEPS = ["Data Diri", "Data Kontak & Usaha", "Penugasan & Dokumen"]
+
+type Option = { id: string; nama: string }
+type KolektorOption = { id: string; name: string }
+
+function parseDokumen(raw: string): string[] {
+  return raw
+    .split(/\n|,/)
+    .map((v) => v.trim())
+    .filter(Boolean)
+}
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+export default function NasabahBaruPage() {
+  const [step, setStep] = useState(0)
+  const [isPending, startTransition] = useTransition()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
+  const [dokumenText, setDokumenText] = useState("")
+  const [uploadedDokumen, setUploadedDokumen] = useState<string[]>([])
+  const [kelompokList, setKelompokList] = useState<Option[]>([])
+  const [kolektorList, setKolektorList] = useState<KolektorOption[]>([])
+  const submitIntentRef = useRef(false)
+  const router = useRouter()
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    setValue,
+    trigger,
+    formState: { errors },
+  } = useForm<NasabahInput>({
+    resolver: zodResolver(nasabahSchema) as never,
+    defaultValues: { status: "AKTIF", dokumenUrls: [] },
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    Promise.all([getKelompokList(), getKolektorList()])
+      .then(([kelompok, kolektor]) => {
+        if (cancelled) return
+        setKelompokList(kelompok.map((k) => ({ id: k.id, nama: k.nama })))
+        setKolektorList(kolektor)
+      })
+      .catch(() => {
+        toast.error("Gagal memuat daftar kelompok/kolektor.")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  function syncDokumenValue(rawText: string, uploaded: string[]) {
+    const merged = Array.from(new Set([...parseDokumen(rawText), ...uploaded]))
+    setValue("dokumenUrls", merged, { shouldValidate: true })
+  }
+
+  async function handleUploadDokumen(files: FileList | null) {
+    if (!files || files.length === 0) return
+
+    setIsUploadingDokumen(true)
+    try {
+      const formData = new FormData()
+      Array.from(files).forEach((file) => formData.append("files", file))
+
+      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+      const json = (await res.json()) as { urls?: string[]; error?: string }
+
+      if (!res.ok || !json.urls?.length) {
+        throw new Error(json.error ?? "Upload dokumen gagal.")
+      }
+
+      const nextUploaded = Array.from(new Set([...uploadedDokumen, ...json.urls]))
+      setUploadedDokumen(nextUploaded)
+      syncDokumenValue(dokumenText, nextUploaded)
+      toast.success("Dokumen berhasil diupload.")
+    } catch {
+      toast.error("Upload dokumen gagal.")
+    } finally {
+      setIsUploadingDokumen(false)
+    }
+  }
+
+  const handleNext = async () => {
+    submitIntentRef.current = false
+    const fields: (keyof NasabahInput)[] =
+      step === 0
+        ? ["namaLengkap", "nik", "alamat"]
+        : step === 1
+          ? ["noHp"]
+          : ["status"]
+
+    const valid = await trigger(fields)
+    if (valid) setStep((s) => s + 1)
+  }
+
+  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (step < STEPS.length - 1) {
+      event.preventDefault()
+      void handleNext()
+      return
+    }
+
+    if (!submitIntentRef.current) {
+      event.preventDefault()
+      return
+    }
+
+    submitIntentRef.current = false
+    void handleSubmit(onSubmit)(event)
+  }
+
+  const handleFormKeyDown = (event: ReactKeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== "Enter") return
+    const target = event.target as HTMLElement | null
+    if (target instanceof HTMLTextAreaElement) return
+    event.preventDefault()
+  }
+
+  const onSubmit = (data: NasabahInput) => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    startTransition(async () => {
+      try {
+        const result = await createNasabah(data)
+        if ("error" in result) {
+          const firstField = Object.keys(result.error)[0] as keyof typeof result.error | undefined
+
+          // Apply field errors into react-hook-form so UI shows what failed.
+          for (const [key, messages] of Object.entries(result.error)) {
+            const msg = Array.isArray(messages) ? messages[0] : undefined
+            if (!msg) continue
+            if (key === "nomorAnggota") continue
+            setError(key as keyof NasabahInput, { type: "server", message: msg })
+          }
+
+          // Move user to the relevant step.
+          if (result.error.nik || result.error.namaLengkap || result.error.alamat || result.error.tanggalLahir || result.error.tempatLahir) {
+            setStep(0)
+          } else if (result.error.noHp || result.error.pekerjaan || result.error.namaUsaha || result.error.status) {
+            setStep(1)
+          } else if (result.error.kelompokId || result.error.kolektorId || result.error.dokumenUrls) {
+            setStep(2)
+          }
+
+          const nikError = result.error.nik?.[0]
+          const nomorAnggotaError = (result.error as { nomorAnggota?: string[] }).nomorAnggota?.[0]
+          toast.error(nikError ?? nomorAnggotaError ?? (firstField ? (result.error as Record<string, string[]>)[firstField as string]?.[0] : null) ?? "Gagal menyimpan data nasabah.")
+          return
+        }
+
+        toast.success("Nasabah berhasil ditambahkan!")
+        router.push("/nasabah")
+      } finally {
+        setIsSubmitting(false)
+      }
+    })
+  }
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/nasabah"><ArrowLeft className="size-4" /></Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Tambah Nasabah Baru</h1>
+          <p className="text-muted-foreground text-sm">Langkah {step + 1} dari {STEPS.length}: {STEPS[step]}</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        {STEPS.map((s, i) => (
+          <div key={s} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-emerald-500" : "bg-muted"}`} />
+        ))}
+      </div>
+
+      <form onSubmit={handleFormSubmit} onKeyDown={handleFormKeyDown}>
+        {step === 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><User className="size-4" /> Data Diri</CardTitle>
+              <CardDescription>Informasi identitas nasabah</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="namaLengkap">Nama Lengkap <span className="text-red-500">*</span></Label>
+                <Input id="namaLengkap" {...register("namaLengkap")} placeholder="Sesuai KTP" />
+                {errors.namaLengkap && <p className="text-xs text-red-500">{errors.namaLengkap.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nik">NIK (16 digit) <span className="text-red-500">*</span></Label>
+                <Input id="nik" {...register("nik")} placeholder="Nomor KTP" maxLength={16} />
+                {errors.nik && <p className="text-xs text-red-500">{errors.nik.message}</p>}
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tempatLahir">Tempat Lahir</Label>
+                  <Input id="tempatLahir" {...register("tempatLahir")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
+                  <Input id="tanggalLahir" type="date" {...register("tanggalLahir")} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="alamat">Alamat Lengkap <span className="text-red-500">*</span></Label>
+                <Textarea id="alamat" {...register("alamat")} placeholder="Jalan, RT/RW, Desa..." rows={3} />
+                {errors.alamat && <p className="text-xs text-red-500">{errors.alamat.message}</p>}
+              </div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                {[
+                  { id: "kelurahan", label: "Kelurahan/Desa" },
+                  { id: "kecamatan", label: "Kecamatan" },
+                  { id: "kotaKab", label: "Kota/Kab" },
+                ].map(({ id, label }) => (
+                  <div key={id} className="space-y-2">
+                    <Label htmlFor={id}>{label}</Label>
+                    <Input id={id} {...register(id as keyof NasabahInput)} />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === 1 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><MapPin className="size-4" /> Kontak & Usaha</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="noHp">No. HP Aktif <span className="text-red-500">*</span></Label>
+
+exec
+/bin/bash -lc 'cd dashboard && rg -n "Phase 1|Tahap 1|membership|keanggotaan|anggota" docs src | head -n 200' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+src/actions/kelompok.ts:89:  const anggotaSet = new Set(parsed.data.anggotaIds ?? [])
+src/actions/kelompok.ts:90:  if (parsed.data.ketuaNasabahId) anggotaSet.add(parsed.data.ketuaNasabahId)
+src/actions/kelompok.ts:91:  const anggotaIds = Array.from(anggotaSet)
+src/actions/kelompok.ts:107:    if (anggotaIds.length > 0) {
+src/actions/kelompok.ts:109:        where: { companyId, id: { in: anggotaIds } },
+src/actions/kelompok.ts:136:  const anggotaSet = new Set(parsed.data.anggotaIds ?? [])
+src/actions/kelompok.ts:137:  if (parsed.data.ketuaNasabahId) anggotaSet.add(parsed.data.ketuaNasabahId)
+src/actions/kelompok.ts:138:  const anggotaIds = Array.from(anggotaSet)
+src/actions/kelompok.ts:158:      where: { companyId, kelompokId: id, ...(anggotaIds.length > 0 ? { id: { notIn: anggotaIds } } : {}) },
+src/actions/kelompok.ts:162:    if (anggotaIds.length > 0) {
+src/actions/kelompok.ts:164:        where: { companyId, id: { in: anggotaIds } },
+src/actions/kelompok.ts:207:      error: "Kelompok sudah dipakai di histori pengajuan. Edit atau kosongkan anggota, jangan hapus histori kelompok.",
+src/actions/nasabah.ts:24:// Helper: generate nomor anggota otomatis
+src/actions/nasabah.ts:290:  // Nomor anggota dibuat otomatis. Karena generator berbasis count dapat bentrok pada concurrency,
+src/actions/nasabah.ts:317:        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:324:  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/maintenance.ts:462:    ["KELUAR", "OPERASIONAL", "Demo konsumsi rapat anggota", 520_000, "TUNAI", 14],
+src/actions/dashboard.ts:276:  anggota: number
+src/actions/dashboard.ts:366:      anggota: k.nasabah.length,
+src/actions/dashboard.ts:374:  const totalAnggota = data.reduce((sum, item) => sum + item.anggota, 0)
+src/actions/kolektor.ts:216:  if (!ketuaNasabah) return { error: "Kelompok belum memiliki anggota untuk dijadikan kolektor." }
+src/app/(dashboard)/pembayaran/manual-input.tsx:62:          Cari berdasarkan nama nasabah, no anggota, NIK, atau nomor kontrak.
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx:99:                  Modul ini digunakan untuk mengelola data anggota koperasi. Pastikan NIK diinput dengan benar untuk validasi duplikasi. Dokumen pendukung seperti foto KTP dapat diupload langsung ke profil nasabah.
+src/app/(dashboard)/nasabah/page.tsx:69:              <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
+src/app/(dashboard)/nasabah/page.tsx:79:              <Input name="search" defaultValue={search} placeholder="Cari nama, NIK, atau nomor anggota..." className="pl-9 transition-all" />
+src/app/(dashboard)/kelompok/page.tsx:111:                      <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-0 h-5 px-2 text-[10px] font-bold rounded-md">{row.anggota} anggota</Badge>
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:53:      anggotaIds: initialData?.nasabah?.map((n) => n.id) ?? [],
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:57:  const anggotaIds = useWatch({ control, name: "anggotaIds" }) ?? []
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:89:    const exists = anggotaIds.includes(id)
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:90:    const next = exists ? anggotaIds.filter((x) => x !== id) : [...anggotaIds, id]
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:91:    setValue("anggotaIds", next)
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:180:                      <SelectValue placeholder="Pilih ketua dari anggota" />
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:184:                      {anggotaIds
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:196:                 Ketua idealnya dipilih dari daftar anggota kelompok yang sudah dicentang.
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:211:              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 h-5 px-1.5 text-[9px] font-black">{anggotaIds.length} Terpilih</Badge>
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:227:                      checked={anggotaIds.includes(n.id)}
+src/app/(dashboard)/kelompok/_components/kelompok-form.tsx:231:                       <span className={`text-sm font-semibold tracking-tight transition-colors ${anggotaIds.includes(n.id) ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{n.namaLengkap}</span>
+src/app/(dashboard)/dashboard/page.tsx:77:      description: "Input anggota baru",
+src/app/(marketing)/penawaran/page.tsx:353:            desc="Pilih paket yang paling sesuai dengan kapasitas anggota dan kebutuhan fitur koperasi Anda saat ini."
+src/app/(marketing)/penawaran/page.tsx:425:                Ribuan data sudah kami kelola, ratusan jam operasional sudah kami pangkas. Sekarang giliran Anda memberikan pelayanan terbaik untuk anggota.
+src/app/(dashboard)/laporan/laba-rugi/page.tsx:108:          Laba rugi hanya mengambil akun pendapatan dan beban dari jurnal posted. Setoran modal, simpanan anggota,
+src/app/(dashboard)/laporan/transaksi-per-user/page.tsx:126:            <Input name="search" defaultValue={search} placeholder="Nama, anggota, atau NIK..." />
+src/app/(marketing)/product/page.tsx:29:                KoperasiApp menghubungkan administrasi anggota, pinjaman, angsuran, kas, dan laporan supaya keputusan pengurus memakai data yang sama.
+src/app/(marketing)/about/page.tsx:15:  "Setiap transaksi harus mudah ditelusuri saat audit dan rapat anggota.",
+src/app/(marketing)/_components/marketing-data.ts:22:    description: "Profil anggota, kelompok, simpanan, dokumen, dan riwayat pinjaman tersimpan dalam alur yang mudah ditelusuri.",
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+src/app/(marketing)/_components/marketing-data.ts:100:  { title: "Rapikan Data", description: "Impor atau input anggota, kelompok, user, dan kategori transaksi." },
+src/app/(marketing)/home/page.tsx:40:                  Kelola anggota, pengajuan, pencairan, angsuran, kas, dan laporan tanpa rekap manual yang tercecer.
+src/app/(marketing)/home/page.tsx:91:                Ketika data anggota, kas, jadwal angsuran, dan laporan berada di tempat berbeda, pengurus sulit mengambil keputusan tepat waktu. KoperasiApp menyatukan alur harian agar tim kantor dan lapangan melihat data yang sama.
+src/app/(marketing)/home/page.tsx:95:              {["Pengajuan tertunda karena berkas dan plafon tidak terlacak.", "Tunggakan baru terlihat setelah laporan manual selesai.", "Kas harian sulit dicocokkan dengan pembayaran anggota."].map((item) => (
+src/app/(marketing)/home/page.tsx:111:                  Dari anggota baru sampai laporan pengurus.
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:5:**Goal:** Menutup gap fitur utama berdasarkan `../plan.md` sampai operasional Tahap 1 + fondasi Tahap 2 berjalan stabil di production.
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:17:- Master Kelompok: create/update + kelola anggota + set ketua kelompok.
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:39:### Gelombang A (Wajib Operasional Tahap 1)
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:59:| Master Kelompok | Partial | CRUD inti + anggota + ketua sudah ada; penugasan kolektor eksplisit per kelompok belum ada |
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:147:- [x] Lengkapi UI list + halaman create/edit + kelola anggota + set ketua.
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:230:- Semua flow inti Tahap 1 bisa dieksekusi end-to-end:
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:268:- [x] Form kelompok: pilih anggota kelompok + pilih ketua dari anggota.
+docs/superpowers/plans/plan.md:5:Fitur inti untuk menyimpan data anggota/debitur.
+docs/superpowers/plans/plan.md:9:* Nomor anggota / ID nasabah
+docs/superpowers/plans/plan.md:16:* Status anggota: aktif, nonaktif, keluar
+docs/superpowers/plans/plan.md:48:* Daftar anggota per kelompok
+docs/superpowers/plans/plan.md:227:* Simpanan anggota
+docs/superpowers/plans/plan.md:298:* Jumlah anggota
+docs/superpowers/plans/plan.md:435:**Tahap 1**
+docs/superpowers/plans/accounting-scoring-plan.md:68:- **Warning Pembiayaan Kelompok (Group Risk Control)**: Sistem memblokir sementara persetujuan pembiayaan pengajuan baru untuk sebuah *Kelompok* jika di *Group* tersebut tingkat NPL / Penunggaknya (KOL 2 ke atas) menembus batas persentase wajar (Misal >25% anggota menunggak).
+src/lib/validations/kelompok.ts:7:  anggotaIds: z.array(z.string()).optional(),
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,280p' src/actions/kelompok.ts" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { kelompokSchema } from "@/lib/validations/kelompok"
+import { requireRoles } from "@/lib/roles"
+import { RoleType } from "@prisma/client"
+import { requireCompanyId } from "@/lib/tenant"
+
+export async function getKelompokList(params?: { search?: string }) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.kelompok.findMany({
+    where: params?.search
+      ? {
+          companyId,
+          OR: [
+            { kode: { contains: params.search, mode: "insensitive" } },
+            { nama: { contains: params.search, mode: "insensitive" } },
+            { wilayah: { contains: params.search, mode: "insensitive" } },
+          ],
+        }
+      : { companyId },
+    orderBy: { nama: "asc" },
+  })
+}
+
+export async function getKelompokById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.kelompok.findFirst({
+    where: { id, companyId },
+    include: {
+      nasabah: {
+        select: {
+          id: true,
+          namaLengkap: true,
+        },
+        orderBy: { namaLengkap: "asc" },
+      },
+    },
+  })
+}
+
+export async function getNasabahOptionsForKelompok() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.nasabah.findMany({
+    where: { companyId, status: "AKTIF" },
+    select: {
+      id: true,
+      namaLengkap: true,
+      kelompokId: true,
+    },
+    orderBy: { namaLengkap: "asc" },
+  })
+}
+
+async function resolveKetuaNama(companyId: string, ketuaNasabahId?: string, ketuaManual?: string) {
+  if (!ketuaNasabahId) return ketuaManual || null
+  const ketuaNasabah = await prisma.nasabah.findFirst({
+    where: { id: ketuaNasabahId, companyId },
+    select: { namaLengkap: true },
+  })
+  return ketuaNasabah?.namaLengkap ?? ketuaManual ?? null
+}
+
+export async function createKelompok(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = kelompokSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const existing = await prisma.kelompok.findUnique({
+    where: { companyId_kode: { companyId, kode: parsed.data.kode } },
+    select: { id: true },
+  })
+  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+
+  const anggotaSet = new Set(parsed.data.anggotaIds ?? [])
+  if (parsed.data.ketuaNasabahId) anggotaSet.add(parsed.data.ketuaNasabahId)
+  const anggotaIds = Array.from(anggotaSet)
+
+  const ketuaNama = await resolveKetuaNama(companyId, parsed.data.ketuaNasabahId, parsed.data.ketua)
+
+  const kelompok = await prisma.$transaction(async (tx) => {
+    const created = await tx.kelompok.create({
+      data: {
+        companyId,
+        kode: parsed.data.kode,
+        nama: parsed.data.nama,
+        ketua: ketuaNama,
+        wilayah: parsed.data.wilayah,
+        jadwalPertemuan: parsed.data.jadwalPertemuan,
+      },
+    })
+
+    if (anggotaIds.length > 0) {
+      await tx.nasabah.updateMany({
+        where: { companyId, id: { in: anggotaIds } },
+        data: { kelompokId: created.id },
+      })
+    }
+
+    return created
+  })
+
+  revalidatePath("/kelompok")
+  revalidatePath("/nasabah")
+  return { success: true, data: kelompok }
+}
+
+export async function updateKelompok(id: string, input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = kelompokSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const existing = await prisma.kelompok.findFirst({
+    where: { companyId, kode: parsed.data.kode, id: { not: id } },
+    select: { id: true },
+  })
+  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+
+  const anggotaSet = new Set(parsed.data.anggotaIds ?? [])
+  if (parsed.data.ketuaNasabahId) anggotaSet.add(parsed.data.ketuaNasabahId)
+  const anggotaIds = Array.from(anggotaSet)
+
+  const ketuaNama = await resolveKetuaNama(companyId, parsed.data.ketuaNasabahId, parsed.data.ketua)
+
+  await prisma.$transaction(async (tx) => {
+    const current = await tx.kelompok.findFirst({ where: { id, companyId }, select: { id: true } })
+    if (!current) throw new Error("Kelompok tidak ditemukan.")
+
+    await tx.kelompok.update({
+      where: { id },
+      data: {
+        kode: parsed.data.kode,
+        nama: parsed.data.nama,
+        ketua: ketuaNama,
+        wilayah: parsed.data.wilayah,
+        jadwalPertemuan: parsed.data.jadwalPertemuan,
+      },
+    })
+
+    await tx.nasabah.updateMany({
+      where: { companyId, kelompokId: id, ...(anggotaIds.length > 0 ? { id: { notIn: anggotaIds } } : {}) },
+      data: { kelompokId: null },
+    })
+
+    if (anggotaIds.length > 0) {
+      await tx.nasabah.updateMany({
+        where: { companyId, id: { in: anggotaIds } },
+        data: { kelompokId: id },
+      })
+    }
+  })
+
+  revalidatePath("/kelompok")
+  revalidatePath(`/kelompok/${id}/edit`)
+  revalidatePath("/nasabah")
+  return { success: true }
+}
+
+export async function deleteKelompok(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  try {
+    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+  } catch {
+    return { success: false, error: "Tidak memiliki hak akses untuk menghapus kelompok." }
+  }
+
+  const kelompok = await prisma.kelompok.findFirst({
+    where: { id, companyId },
+    select: {
+      id: true,
+      _count: {
+        select: {
+          nasabah: true,
+          pengajuan: true,
+        },
+      },
+    },
+  })
+
+  if (!kelompok) {
+    return { success: false, error: "Kelompok tidak ditemukan." }
+  }
+
+  if (kelompok._count.pengajuan > 0) {
+    return {
+      success: false,
+      error: "Kelompok sudah dipakai di histori pengajuan. Edit atau kosongkan anggota, jangan hapus histori kelompok.",
+    }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (kelompok._count.nasabah > 0) {
+      await tx.nasabah.updateMany({
+        where: { companyId, kelompokId: id },
+        data: { kelompokId: null },
+      })
+    }
+    await tx.kelompok.delete({ where: { id } })
+  })
+
+  revalidatePath("/kelompok")
+  revalidatePath("/nasabah")
+  revalidatePath("/dashboard")
+  return { success: true }
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(dashboard)/kelompok/page.tsx'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+import { getKelompokOverview } from "@/actions/dashboard"
+import { Search, Users, Plus, LayoutGrid, MapPin, UserCheck } from "lucide-react"
+import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { DeleteKelompokButton } from "./delete-kelompok-button"
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+export default async function KelompokPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string }>
+}) {
+  const sp = await searchParams
+  const search = sp?.search?.trim() ?? ""
+  const { data, summary } = await getKelompokOverview(search)
+
+  return (
+    <div className="p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Master Kelompok</h1>
+          <p className="text-muted-foreground text-sm">Pengelolaan data kelompok nasabah dan wilayah binaan.</p>
+        </div>
+        <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95">
+          <Link href="/kelompok/baru"><Plus className="size-4" /> Tambah Kelompok</Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {[
+          { label: "Total Kelompok", value: summary.totalKelompok.toLocaleString("id-ID"), icon: LayoutGrid, color: "text-blue-600", bg: "bg-blue-50/80" },
+          { label: "Total Anggota", value: summary.totalAnggota.toLocaleString("id-ID"), icon: Users, color: "text-emerald-600", bg: "bg-emerald-50/80" },
+          { label: "Pinjaman Aktif", value: summary.totalPinjamanAktif.toLocaleString("id-ID"), icon: UserCheck, color: "text-violet-600", bg: "bg-violet-50/80" },
+          { label: "Rata-rata/Kelompok", value: `${summary.avgAnggotaPerKelompok}`, icon: MapPin, color: "text-amber-600", bg: "bg-amber-50/80" },
+        ].map((s) => (
+          <Card key={s.label} className="border-none shadow-sm overflow-hidden transition-all hover:scale-[1.02]">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className={`p-3 rounded-2xl ${s.bg} ${s.color} shadow-sm border border-current/5`}>
+                <s.icon className="size-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+          <div className="mb-4">
+            <CardTitle className="text-base font-semibold">Daftar Kelompok</CardTitle>
+            <CardDescription>Pantau sebaran nasabah berdasarkan kelompok dan wilayah</CardDescription>
+          </div>
+          <form className="relative max-w-md group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input name="search" defaultValue={search} placeholder="Cari nama/kode/wilayah kelompok..." className="pl-9 transition-all" />
+          </form>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Kode</TableHead>
+                <TableHead>Nama Kelompok</TableHead>
+                <TableHead className="hidden md:table-cell">Wilayah</TableHead>
+                <TableHead className="hidden md:table-cell">Kolektor</TableHead>
+                <TableHead className="text-center">Anggota</TableHead>
+                <TableHead className="hidden lg:table-cell text-right">Outstanding</TableHead>
+                <TableHead className="hidden lg:table-cell text-right">Tunggakan</TableHead>
+                <TableHead className="w-[100px] text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-24 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                       <LayoutGrid className="size-8 opacity-20" />
+                       <p>Tidak ada data kelompok.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-widest">{row.kode}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0 dark:bg-emerald-950/20 dark:border-emerald-900/50">
+                          <Users className="size-3.5 text-emerald-600" />
+                        </div>
+                        <span className="font-bold tracking-tight text-slate-900 dark:text-slate-200">{row.nama}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-xs font-medium text-slate-500">{row.wilayah}</span>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{row.kolektor}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-0 h-5 px-2 text-[10px] font-bold rounded-md">{row.anggota} anggota</Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-right">
+                       <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-200">{fmt(row.outstanding)}</span>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-right">
+                      <span className={`text-sm font-bold tracking-tight ${row.tunggakan > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                        {fmt(row.tunggakan)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button size="xs" variant="outline" className="h-7 px-3 rounded-lg border-slate-200 dark:border-slate-800 text-[10px] font-bold uppercase tracking-widest" asChild>
+                          <Link href={`/kelompok/${row.id}/edit`}>Edit</Link>
+                        </Button>
+                        <DeleteKelompokButton id={row.id} nama={row.nama} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          <div className="px-6 py-4 flex items-center justify-between border-t border-slate-50 bg-slate-50/30 dark:border-slate-800/50 dark:bg-slate-900/10 text-xs font-medium text-slate-500 tracking-tight">
+            <span>Total {data.length} kelompok terdaftar</span>
+            <Badge variant="outline" className="h-5 px-2 rounded-md font-bold text-[9px] uppercase tracking-widest border-slate-200 dark:border-slate-800">Real-time Data</Badge>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(dashboard)/kelompok/_components/kelompok-form.tsx'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+"use client"
+
+import { useEffect, useMemo, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { useForm, useWatch } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Save, Users, MapPin, Calendar, UserCheck, Shield, Trash2, Info } from "lucide-react"
+import { createKelompok, getNasabahOptionsForKelompok, updateKelompok } from "@/actions/kelompok"
+import { kelompokSchema, type KelompokInput } from "@/lib/validations/kelompok"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
+
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field"
+
+type NasabahOption = {
+  id: string
+  namaLengkap: string
+  kelompokId: string | null
+}
+
+export function KelompokForm({
+  mode,
+  initialData,
+}: {
+  mode: "create" | "edit"
+  initialData?: {
+    id: string
+    kode: string
+    nama: string
+    ketua: string | null
+    wilayah: string | null
+    jadwalPertemuan: string | null
+    nasabah: { id: string; namaLengkap: string }[]
+  }
+}) {
+  const [isPending, startTransition] = useTransition()
+  const [nasabahOptions, setNasabahOptions] = useState<NasabahOption[]>([])
+  const router = useRouter()
+
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<KelompokInput>({
+    resolver: zodResolver(kelompokSchema) as never,
+    defaultValues: {
+      kode: initialData?.kode ?? "",
+      nama: initialData?.nama ?? "",
+      ketua: initialData?.ketua ?? "",
+      wilayah: initialData?.wilayah ?? "",
+      jadwalPertemuan: initialData?.jadwalPertemuan ?? "",
+      anggotaIds: initialData?.nasabah?.map((n) => n.id) ?? [],
+    },
+  })
+
+  const anggotaIds = useWatch({ control, name: "anggotaIds" }) ?? []
+  const ketuaNasabahId = useWatch({ control, name: "ketuaNasabahId" })
+
+  useEffect(() => {
+    let cancelled = false
+    getNasabahOptionsForKelompok()
+      .then((result) => {
+        if (cancelled) return
+        setNasabahOptions(result)
+
+        if (mode === "edit" && initialData?.ketua) {
+          const ketuaMatch = result.find((n) => n.namaLengkap === initialData.ketua && n.kelompokId === initialData.id)
+          if (ketuaMatch) {
+            setValue("ketuaNasabahId", ketuaMatch.id)
+          }
+        }
+      })
+      .catch(() => {
+        toast.error("Gagal memuat daftar nasabah.")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [initialData, mode, setValue])
+
+  const availableForKelompok = useMemo(() => {
+    if (!initialData?.id) return nasabahOptions
+    return nasabahOptions.filter((n) => !n.kelompokId || n.kelompokId === initialData.id)
+  }, [initialData, nasabahOptions])
+
+  const toggleAnggota = (id: string) => {
+    const exists = anggotaIds.includes(id)
+    const next = exists ? anggotaIds.filter((x) => x !== id) : [...anggotaIds, id]
+    setValue("anggotaIds", next)
+
+    if (ketuaNasabahId === id && exists) {
+      setValue("ketuaNasabahId", undefined)
+    }
+  }
+
+  const onSubmit = (values: KelompokInput) => {
+    startTransition(async () => {
+      let errorMessage: string | undefined
+      const result = (
+        mode === "create"
+          ? await createKelompok(values)
+          : await updateKelompok(initialData!.id, values)
+      ) as { error?: string | Record<string, string[]> }
+
+      if (result.error) {
+        errorMessage =
+          typeof result.error === "string"
+            ? result.error
+            : (Object.values(result.error).flat()[0] as string | undefined) ?? "Gagal menyimpan data kelompok."
+      }
+
+      if (errorMessage) {
+        toast.error(errorMessage)
+        return
+      }
+
+      toast.success(mode === "create" ? "Kelompok berhasil ditambahkan." : "Data kelompok berhasil diperbarui.")
+      router.push("/kelompok")
+      router.refresh()
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <div className="space-y-6">
+        <Card className="border-none shadow-sm overflow-hidden">
+          <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="size-4 text-primary" />
+              <CardTitle className="text-base font-semibold">Informasi Dasar</CardTitle>
+            </div>
+            <CardDescription>Detail identitas dan lokasi kelompok</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            <div className="grid sm:grid-cols-2 gap-6">
+              <Field>
+                <FieldLabel htmlFor="kode" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Kode Kelompok</FieldLabel>
+                <Input id="kode" {...register("kode")} className="h-10 font-mono text-sm" placeholder="KLP-001" />
+                {errors.kode && <FieldError className="text-[10px] font-bold text-red-500 uppercase">{errors.kode.message}</FieldError>}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="nama" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Nama Kelompok</FieldLabel>
+                <Input id="nama" {...register("nama")} className="h-10 font-bold" placeholder="Nama Kelompok..." />
+                {errors.nama && <FieldError className="text-[10px] font-bold text-red-500 uppercase">{errors.nama.message}</FieldError>}
+              </Field>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              <Field>
+                <FieldLabel htmlFor="wilayah" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Wilayah / Area</FieldLabel>
+                <div className="relative group w-full">
+                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                   <Input id="wilayah" {...register("wilayah")} className="pl-9 h-10 w-full" placeholder="Contoh: Desa Sukamaju" />
+                </div>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="jadwalPertemuan" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Jadwal Pertemuan</FieldLabel>
+                <div className="relative group w-full">
+                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                   <Input id="jadwalPertemuan" {...register("jadwalPertemuan")} className="pl-9 h-10 w-full" placeholder="Senin, 09:00 WIB" />
+                </div>
+              </Field>
+            </div>
+
+            <Separator className="bg-slate-50 dark:bg-slate-800" />
+
+            <Field className="space-y-4">
+               <div className="flex items-center gap-2">
+                  <UserCheck className="size-4 text-emerald-600" />
+                  <FieldLabel className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Ketua Kelompok</FieldLabel>
+               </div>
+               <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                  <Select
+                    onValueChange={(value) => setValue("ketuaNasabahId", !value || value === "__NONE__" ? undefined : value)}
+                    value={ketuaNasabahId ?? "__NONE__"}
+                  >
+                    <SelectTrigger className="h-10 border-slate-100 bg-slate-50 dark:bg-slate-900 dark:border-slate-800">
+                      <SelectValue placeholder="Pilih ketua dari anggota" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-slate-100 dark:border-slate-800">
+                      <SelectItem value="__NONE__" className="rounded-lg italic opacity-50">Manual / Belum ditentukan</SelectItem>
+                      {anggotaIds
+                        .map((id) => availableForKelompok.find((n) => n.id === id))
+                        .filter((n): n is NasabahOption => Boolean(n))
+                        .map((n) => (
+                          <SelectItem key={n.id} value={n.id} className="rounded-lg font-medium">{n.namaLengkap}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Input {...register("ketua")} placeholder="Input manual..." className="h-10 sm:w-48" />
+               </div>
+               <FieldDescription className="text-[10px] text-muted-foreground flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg dark:bg-slate-900/30">
+                 <Info className="size-3 text-blue-500" />
+                 Ketua idealnya dipilih dari daftar anggota kelompok yang sudah dicentang.
+               </FieldDescription>
+            </Field>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-6">
+        <Card className="border-none shadow-sm overflow-hidden flex flex-col h-fit">
+          <CardHeader className="pb-4 border-b border-slate-50 dark:border-slate-800/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <Shield className="size-4 text-emerald-600" />
+                 <CardTitle className="text-base font-semibold">Anggota</CardTitle>
+              </div>
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 h-5 px-1.5 text-[9px] font-black">{anggotaIds.length} Terpilih</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4 p-0">
+            <div className="max-h-[400px] overflow-y-auto px-4 pb-4 space-y-1 divide-y divide-slate-50 dark:divide-slate-800/50">
+              {availableForKelompok.length === 0 ? (
+                <div className="py-12 text-center">
+                   <Users className="size-8 opacity-10 mx-auto mb-2" />
+                   <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Tidak ada nasabah tersedia</p>
+                </div>
+              ) : (
+                availableForKelompok.map((n) => (
+                  <label key={n.id} className="flex items-center gap-3 py-3 px-1 hover:bg-slate-50 cursor-pointer rounded-lg transition-colors group dark:hover:bg-slate-900/50">
+                    <input
+                      type="checkbox"
+                      className="size-4 rounded-md border-slate-300 text-emerald-600 focus:ring-emerald-500/20"
+                      checked={anggotaIds.includes(n.id)}
+                      onChange={() => toggleAnggota(n.id)}
+                    />
+                    <div className="flex flex-col flex-1 min-w-0">
+                       <span className={`text-sm font-semibold tracking-tight transition-colors ${anggotaIds.includes(n.id) ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{n.namaLengkap}</span>
+                       {n.kelompokId && n.kelompokId === initialData?.id && (
+                          <span className="text-[9px] font-black uppercase text-emerald-600/60 tracking-widest">Anggota Aktif</span>
+                       )}
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-3">
+          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 rounded-xl shadow-lg shadow-emerald-200/50 dark:shadow-none font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98]" disabled={isPending}>
+            {isPending ? <Trash2 className="size-4 animate-spin mr-2" /> : <Save className="size-4 mr-2" />}
+            {isPending ? "Sedang Menyimpan..." : "Simpan Data Kelompok"}
+          </Button>
+          <Button type="button" variant="ghost" className="w-full h-11 rounded-xl font-bold uppercase tracking-widest text-[10px] text-slate-400" onClick={() => router.back()}>
+            Batal & Kembali
+          </Button>
+        </div>
+      </div>
+    </form>
+  )
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+codex
+I’ve gathered enough context and I’m moving to edits now: creating `docs/internal/phase1-membership-implementation-backlog.md` with a concrete API/actions/pages/tests checklist mapped to the master-plan sections, then appending a dated “next sprint targets” block in the current progress tracker. After that I’ll commit the branch.
+exec
+/bin/bash -lc "cd dashboard && cat > docs/internal/phase1-membership-implementation-backlog.md <<'EOF'
+# Phase 1 Membership Implementation Backlog
+
+## Tujuan
+Menyelesaikan modul keanggotaan Tahap 1 (Master Nasabah + Master Kelompok) dengan checklist eksekusi yang bisa langsung dikerjakan lintas "'`API`, `actions`, `pages`, dan `tests`.
+
+## Mapping ke MASTER-PLAN-KOPERASI-UMUM.md
+Referensi yang dipakai di repo: `docs/superpowers/plans/plan.md` (konten master plan).
+
+| Master Plan | Scope Phase 1 Membership | Status Saat Ini | Gap Implementasi |
+|---|---|---|---|
+| 1. Master Nasabah | CRUD, status anggota, filter, histori, dokumen | Sebagian besar sudah ada (`src/actions/nasabah.ts`, halaman nasabah) | Belum ada test otomatis; catatan survey belum dedicated; export belum ada |
+| 2. Master Kelompok | CRUD kelompok, anggota, ketua, metrik kelompok | Sudah ada CRUD + anggota + ketua (`src/actions/kelompok.ts`) | Penugasan kolektor eksplisit per kelompok belum persisted; ranking kelompok belum formal |
+| Prioritas MVP Tahap 1 | Master Nasabah + Master Kelompok siap operasional | Operasional dasar sudah jalan | Hardening API, regression tests, dan acceptance checklist belum ada |
+
+## Backlog Eksekusi
+
+### A. API
+- [ ] `src/app/api/upload/nasabah/route.ts`: tambah validasi MIME/ukuran file + limit jumlah file per request.
+- [ ] `src/app/api/upload/nasabah/route.ts`: enforce tenant-aware path (sertakan `companyId` pada prefix upload).
+- [ ] `src/app/api/nasabah/export/route.ts` (baru): endpoint export CSV data nasabah sesuai filter list page.
+- [ ] `src/app/api/nasabah/[id]/survey/route.ts` (baru): endpoint catatan survey membership (minimal create/list).
+
+### B. Server Actions
+- [ ] `src/actions/nasabah.ts`: tambah action `upsertSurveyCatatanNasabah` + `getSurveyCatatanNasabah`.
+- [ ] `src/actions/nasabah.ts`: hardening `createNasabah` nomor anggota agar race-safe (counter table / sequence strategy).
+- [ ] `src/actions/nasabah.ts`: tambahkan audit log untuk create/update/status/delete agar konsisten dengan modul sensitif lain.
+- [ ] `src/actions/kelompok.ts`: tambah field penugasan kolektor eksplisit per kelompok (bukan turunan dari anggota).
+- [ ] `src/actions/kelompok.ts`: tambah metrik ranking kesehatan kelompok (berbasis tunggakan/outstanding).
+
+### C. Pages / UI
+- [ ] `src/app/(dashboard)/nasabah/page.tsx`: sambungkan tombol `Export Data` ke endpoint export.
+- [ ] `src/app/(dashboard)/nasabah/[id]/page.tsx`: tampilkan timeline catatan survey.
+- [ ] `src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx`: input/edit catatan survey ringkas.
+- [ ] `src/app/(dashboard)/kelompok/page.tsx`: tampilkan kolektor penanggung jawab yang persisted di kelompok.
+- [ ] `src/app/(dashboard)/kelompok/_components/kelompok-form.tsx`: tambah field pilih kolektor penanggung jawab kelompok.
+
+### D. Tests (Belum Ada Baseline, Harus Dibuat)
+- [ ] Setup test runner (`vitest` + `@testing-library/react` + `jsdom`) dan script `npm run test`.
+- [ ] `src/actions/__tests__/nasabah.actions.test.ts`: test create/update/status/delete + duplicate NIK + tenant guard.
+- [ ] `src/actions/__tests__/kelompok.actions.test.ts`: test create/update/delete + anggota sync + forbidden role delete.
+- [ ] `src/app/api/upload/nasabah/__tests__/route.test.ts`: test unauthorized, no file, invalid mime, success upload.
+- [ ] `src/app/(dashboard)/nasabah/__tests__/page.test.tsx`: smoke test render list + filter state.
+- [ ] `src/app/(dashboard)/kelompok/__tests__/page.test.tsx`: smoke test render summary + table rows.
+
+## Definition of Done (Per Item)
+- [ ] Lulus `npm run lint`.
+- [ ] Lulus `npx tsc --noEmit`.
+- [ ] Lulus `npm run build`.
+- [ ] Lulus `npm run test` (setelah baseline test ditambahkan).
+- [ ] Checklist UAT membership: create anggota, assign ke kelompok, ubah status, hapus aman, verifikasi histori tetap konsisten.
+
+## Sprint Breakdown (Disarankan)
+
+### Sprint 1 (Hardening Core)
+- [ ] A1, A2, B2, B3
+- [ ] D1
+
+### Sprint 2 (Feature Completion)
+- [ ] A3, A4, B1, B4, B5
+- [ ] C1, C2, C3, C4, C5
+
+### Sprint 3 (Quality Gate)
+- [ ] D2, D3, D4, D5, D6
+- [ ] Semua Definition of Done + UAT membership.
+EOF' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cd dashboard && cat >> docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md <<'EOF'
+
+---
+
+## 10) Next Sprint Targets (2026-04-24 s.d. 2026-05-01)
+
+Referensi detail backlog: "'`docs/internal/phase1-membership-implementation-backlog.md`.
+
+Fokus sprint berikut untuk modul membership Tahap 1:
+
+- [ ] Hardening API upload nasabah: validasi MIME/size, limit jumlah file, tenant-aware upload path.
+- [ ] Tambah catatan survey nasabah (action + API + tampil di detail/edit nasabah).
+- [ ] Persist penugasan kolektor eksplisit pada kelompok (action + form + list page).
+- [ ] Aktifkan export data nasabah (endpoint CSV + integrasi tombol Export).
+- [ ] Setup baseline automated test (`vitest`) dan tambah test awal untuk actions nasabah/kelompok.
+- [ ] Quality gate sprint: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `npm run test`.
+
+Target outcome sprint:
+- Modul membership punya backlog eksekusi terstruktur, 4 gap fitur utama tertutup, dan baseline regression test sudah berjalan di CI lokal.
+EOF' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+codex
+I’ve finished both document updates and I’m now validating the exact diffs, then I’ll commit with a focused message for worker `P1-B`.
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' docs/internal/phase1-membership-implementation-backlog.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+# Phase 1 Membership Implementation Backlog
+
+## Tujuan
+Menyelesaikan modul keanggotaan Tahap 1 (Master Nasabah + Master Kelompok) dengan checklist eksekusi yang bisa langsung dikerjakan lintas `API`, `actions`, `pages`, dan `tests`.
+
+## Mapping ke MASTER-PLAN-KOPERASI-UMUM.md
+Referensi yang dipakai di repo: `docs/superpowers/plans/plan.md` (konten master plan).
+
+| Master Plan | Scope Phase 1 Membership | Status Saat Ini | Gap Implementasi |
+|---|---|---|---|
+| 1. Master Nasabah | CRUD, status anggota, filter, histori, dokumen | Sebagian besar sudah ada (`src/actions/nasabah.ts`, halaman nasabah) | Belum ada test otomatis; catatan survey belum dedicated; export belum ada |
+| 2. Master Kelompok | CRUD kelompok, anggota, ketua, metrik kelompok | Sudah ada CRUD + anggota + ketua (`src/actions/kelompok.ts`) | Penugasan kolektor eksplisit per kelompok belum persisted; ranking kelompok belum formal |
+| Prioritas MVP Tahap 1 | Master Nasabah + Master Kelompok siap operasional | Operasional dasar sudah jalan | Hardening API, regression tests, dan acceptance checklist belum ada |
+
+## Backlog Eksekusi
+
+### A. API
+- [ ] `src/app/api/upload/nasabah/route.ts`: tambah validasi MIME/ukuran file + limit jumlah file per request.
+- [ ] `src/app/api/upload/nasabah/route.ts`: enforce tenant-aware path (sertakan `companyId` pada prefix upload).
+- [ ] `src/app/api/nasabah/export/route.ts` (baru): endpoint export CSV data nasabah sesuai filter list page.
+- [ ] `src/app/api/nasabah/[id]/survey/route.ts` (baru): endpoint catatan survey membership (minimal create/list).
+
+### B. Server Actions
+- [ ] `src/actions/nasabah.ts`: tambah action `upsertSurveyCatatanNasabah` + `getSurveyCatatanNasabah`.
+- [ ] `src/actions/nasabah.ts`: hardening `createNasabah` nomor anggota agar race-safe (counter table / sequence strategy).
+- [ ] `src/actions/nasabah.ts`: tambahkan audit log untuk create/update/status/delete agar konsisten dengan modul sensitif lain.
+- [ ] `src/actions/kelompok.ts`: tambah field penugasan kolektor eksplisit per kelompok (bukan turunan dari anggota).
+- [ ] `src/actions/kelompok.ts`: tambah metrik ranking kesehatan kelompok (berbasis tunggakan/outstanding).
+
+### C. Pages / UI
+- [ ] `src/app/(dashboard)/nasabah/page.tsx`: sambungkan tombol `Export Data` ke endpoint export.
+- [ ] `src/app/(dashboard)/nasabah/[id]/page.tsx`: tampilkan timeline catatan survey.
+- [ ] `src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx`: input/edit catatan survey ringkas.
+- [ ] `src/app/(dashboard)/kelompok/page.tsx`: tampilkan kolektor penanggung jawab yang persisted di kelompok.
+- [ ] `src/app/(dashboard)/kelompok/_components/kelompok-form.tsx`: tambah field pilih kolektor penanggung jawab kelompok.
+
+### D. Tests (Belum Ada Baseline, Harus Dibuat)
+- [ ] Setup test runner (`vitest` + `@testing-library/react` + `jsdom`) dan script `npm run test`.
+- [ ] `src/actions/__tests__/nasabah.actions.test.ts`: test create/update/status/delete + duplicate NIK + tenant guard.
+- [ ] `src/actions/__tests__/kelompok.actions.test.ts`: test create/update/delete + anggota sync + forbidden role delete.
+- [ ] `src/app/api/upload/nasabah/__tests__/route.test.ts`: test unauthorized, no file, invalid mime, success upload.
+- [ ] `src/app/(dashboard)/nasabah/__tests__/page.test.tsx`: smoke test render list + filter state.
+- [ ] `src/app/(dashboard)/kelompok/__tests__/page.test.tsx`: smoke test render summary + table rows.
+
+## Definition of Done (Per Item)
+- [ ] Lulus `npm run lint`.
+- [ ] Lulus `npx tsc --noEmit`.
+- [ ] Lulus `npm run build`.
+- [ ] Lulus `npm run test` (setelah baseline test ditambahkan).
+- [ ] Checklist UAT membership: create anggota, assign ke kelompok, ubah status, hapus aman, verifikasi histori tetap konsisten.
+
+## Sprint Breakdown (Disarankan)
+
+### Sprint 1 (Hardening Core)
+- [ ] A1, A2, B2, B3
+- [ ] D1
+
+### Sprint 2 (Feature Completion)
+- [ ] A3, A4, B1, B4, B5
+- [ ] C1, C2, C3, C4, C5
+
+### Sprint 3 (Quality Gate)
+- [ ] D2, D3, D4, D5, D6
+- [ ] Semua Definition of Done + UAT membership.
+
+exec
+/bin/bash -lc 'cd dashboard && git status --short' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+exec
+/bin/bash -lc 'cd dashboard && tail -n 80 docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+ M docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+?? docs/internal/phase1-membership-implementation-backlog.md
+
+ succeeded in 0ms:
+- [ ] Commit: `docs: add feature matrix and operational runbook`.
+
+---
+
+## 6) Acceptance Criteria
+
+- Build production sukses (`npm run build`).
+- Lint tanpa error (`npm run lint`).
+- Semua flow inti Tahap 1 bisa dieksekusi end-to-end:
+  - Nasabah -> Pengajuan -> Approval -> Pencairan -> Pembayaran -> Tunggakan -> Rekap Kolektor.
+- Dokumen kuitansi dan bukti pencairan bisa dicetak dengan format rapi.
+- Role restriction berjalan konsisten di server action kritikal.
+
+---
+
+## 7) Test & Verification Command Set
+
+- `npm run lint`
+- `npx tsc --noEmit`
+- `npm run build`
+- `npm run db:generate`
+- `npm run dev`
+
+UAT minimum:
+- Buat 1 nasabah, 1 pengajuan, approve, cairkan, bayar, cek tunggakan dan laporan.
+- Uji role `ADMIN` vs `TELLER` vs `MANAGER` terhadap action sensitif.
+
+---
+
+## 8) Risiko dan Mitigasi
+
+- **Perubahan schema berdampak data existing**
+  - Mitigasi: migration bertahap + backup DB.
+- **Perhitungan keuangan tidak konsisten lintas modul**
+  - Mitigasi: sentralisasi fungsi hitung di `src/lib`.
+- **Scope creep**
+
+---
+
+## 9) Progress Update (2026-04-19)
+
+- [x] Perbaikan relasi `nasabah -> kelompok` di form create nasabah (dropdown kelompok + kolektor saat input awal).
+- [x] Penambahan input dokumen pendukung pelanggan baru (`dokumenUrls`) pada create nasabah.
+- [x] Tenor pinjaman dual type: `BULANAN` dan `MINGGUAN` (schema + form + pencairan jadwal).
+- [x] Upload bukti bayar pelanggan (`buktiBayarUrl`) pada proses pembayaran.
+- [x] Laporan history pembayaran customer + indikator ranking (`A/B/C/D`) + status lunas/kurang/telat.
+- [x] Form kelompok: pilih anggota kelompok + pilih ketua dari anggota.
+- [x] Modul daftar kolektor baru: sumber dari nasabah, ketua kelompok, atau input manual; dukung role kolektor+admin.
+- [x] Tabel user-role manajemen ditampilkan di modul kolektor.
+- [x] Modul akuntansi sederhana (pemasukan/pengeluaran) di halaman kas menggunakan data transaksi riil.
+- [x] Laporan laba-rugi diperbarui dari transaksi kas nyata (bukan placeholder statis).
+  - Mitigasi: implementasi wajib hanya Gelombang A dahulu.
+
+---
+
+## 9) Rekomendasi Eksekusi
+
+Urutan aman implementasi:
+1. Task 1 -> 2 (fondasi data + RBAC/audit)
+2. Task 3 -> 4 -> 5 (core operasional)
+3. Task 6 -> 7 -> 8 (dokumen + finance + notifikasi)
+4. Task 9 (stabilisasi & dokumentasi)
+
+---
+
+## 10) Next Sprint Targets (2026-04-24 s.d. 2026-05-01)
+
+Referensi detail backlog: `docs/internal/phase1-membership-implementation-backlog.md`.
+
+Fokus sprint berikut untuk modul membership Tahap 1:
+
+- [ ] Hardening API upload nasabah: validasi MIME/size, limit jumlah file, tenant-aware upload path.
+- [ ] Tambah catatan survey nasabah (action + API + tampil di detail/edit nasabah).
+- [ ] Persist penugasan kolektor eksplisit pada kelompok (action + form + list page).
+- [ ] Aktifkan export data nasabah (endpoint CSV + integrasi tombol Export).
+- [ ] Setup baseline automated test (`vitest`) dan tambah test awal untuk actions nasabah/kelompok.
+- [ ] Quality gate sprint: `npm run lint`, `npx tsc --noEmit`, `npm run build`, `npm run test`.
+
+Target outcome sprint:
+- Modul membership punya backlog eksekusi terstruktur, 4 gap fitur utama tertutup, dan baseline regression test sudah berjalan di CI lokal.
+
+exec
+/bin/bash -lc 'cd dashboard && git status --short --branch && git add docs/internal/phase1-membership-implementation-backlog.md docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md && git commit -m "docs(membership): add phase 1 implementation backlog and next sprint targets" && git status --short --branch' in /tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog
+ succeeded in 0ms:
+## codex/20260423_125711/phase1a-membership-impl-backlog
+ M docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+?? docs/internal/phase1-membership-implementation-backlog.md
+[codex/20260423_125711/phase1a-membership-impl-backlog 6afa739] docs(membership): add phase 1 implementation backlog and next sprint targets
+ 2 files changed, 82 insertions(+)
+ create mode 100644 dashboard/docs/internal/phase1-membership-implementation-backlog.md
+## codex/20260423_125711/phase1a-membership-impl-backlog
+
+codex
+Implemented and committed on branch `codex/20260423_125711/phase1a-membership-impl-backlog`.
+
+Files updated:
+- [phase1-membership-implementation-backlog.md](/tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog/dashboard/docs/internal/phase1-membership-implementation-backlog.md)
+- [2026-04-19-koperasi-mvp-gap-implementation.md](/tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog/dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md)
+
+What was done:
+- Created a Phase 1 membership backlog with executable checklist split by `API/actions/pages/tests`, plus DoD and sprint breakdown.
+- Mapped the backlog to the master-plan scope (using in-repo reference `docs/superpowers/plans/plan.md`).
+- Updated the progress tracker with dated next sprint targets (`2026-04-24` to `2026-05-01`).
+
+Commit:
+- `6afa739` with message: `docs(membership): add phase 1 implementation backlog and next sprint targets`
+tokens used
+112,936
+Implemented and committed on branch `codex/20260423_125711/phase1a-membership-impl-backlog`.
+
+Files updated:
+- [phase1-membership-implementation-backlog.md](/tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog/dashboard/docs/internal/phase1-membership-implementation-backlog.md)
+- [2026-04-19-koperasi-mvp-gap-implementation.md](/tmp/codex-fanout/20260423_125711/phase1a-membership-impl-backlog/dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md)
+
+What was done:
+- Created a Phase 1 membership backlog with executable checklist split by `API/actions/pages/tests`, plus DoD and sprint breakdown.
+- Mapped the backlog to the master-plan scope (using in-repo reference `docs/superpowers/plans/plan.md`).
+- Updated the progress tracker with dated next sprint targets (`2026-04-24` to `2026-05-01`).
+
+Commit:
+- `6afa739` with message: `docs(membership): add phase 1 implementation backlog and next sprint targets`

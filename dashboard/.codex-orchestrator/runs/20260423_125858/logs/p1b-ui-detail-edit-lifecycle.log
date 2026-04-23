@@ -1,0 +1,3493 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba6c-1de3-7c00-943c-2d25545fd85d
+--------
+user
+Worker 5 ownership: src/app/(dashboard)/nasabah/[id]/edit/* and src/app/(dashboard)/nasabah/[id]/page.tsx only. Add lifecycle controls/display for status transition UX (non-destructive), wired to action endpoint if available. Run lint/build. Commit.
+2026-04-23T12:59:02.429988Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll implement the lifecycle status transition UX within your owned files only, wire it to an existing action endpoint if present, then run lint/build and commit. I’m first scanning the target files and related status actions to map the current edit/detail flow.
+exec
+/bin/bash -lc "sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+codex
+I’ve confirmed the workflow constraints and now I’m inspecting your owned routes/components plus existing status actions so the change stays scoped and non-destructive.
+exec
+/bin/bash -lc 'rg --files src/app/(dashboard)/nasabah/[id]/edit src/app/(dashboard)/nasabah/[id]/page.tsx' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `rg --files src/app/(dashboard)/nasabah/[id]/edit src/app/(dashboard)/nasabah/[id]/page.tsx'
+
+exec
+/bin/bash -lc 'rg -n "status|lifecycle|transition|approve|reject|aktif|inactive|suspend|nasabah" src/app/(dashboard)/nasabah/[id]/edit src/app/(dashboard)/nasabah/[id]/page.tsx src | head -n 200' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `rg -n "status|lifecycle|transition|approve|reject|aktif|inactive|suspend|nasabah" src/app/(dashboard)/nasabah/[id]/edit src/app/(dashboard)/nasabah/[id]/page.tsx src | head -n 200'
+
+codex
+The path pattern needs shell escaping for `(dashboard)` and `[id]`; I’m rerunning with quoted paths and then reading the current page/edit implementation.
+exec
+/bin/bash -lc 'rg --files "src/app/(dashboard)/nasabah/[id]/edit" "src/app/(dashboard)/nasabah/[id]/page.tsx"' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ exited 2 in 0ms:
+src/app/(dashboard)/nasabah/[id]/edit: No such file or directory (os error 2)
+src/app/(dashboard)/nasabah/[id]/page.tsx: No such file or directory (os error 2)
+
+exec
+/bin/bash -lc 'rg -n "status|lifecycle|transition|approve|reject|aktif|inactive|suspend|nasabah" "src/app/(dashboard)/nasabah/[id]/edit" "src/app/(dashboard)/nasabah/[id]/page.tsx" src | head -n 260' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+src/app/(dashboard)/nasabah/[id]/edit: No such file or directory (os error 2)
+src/app/(dashboard)/nasabah/[id]/page.tsx: No such file or directory (os error 2)
+src: No such file or directory (os error 2)
+
+codex
+I don’t have those paths in this checkout yet, so I’m mapping the actual project tree first and then I’ll target the matching nasabah detail/edit files.
+exec
+/bin/bash -lc 'pwd; ls -la; rg --files | head -n 200' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 12:58 .
+drwxr-xr-x 10 kotacom kotacom 4096 Apr 23 12:59 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 12:58 .codex
+-rw-r--r--  1 kotacom kotacom   91 Apr 23 12:58 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 12:58 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 12:58 dashboard
+dashboard/skills-lock.json
+dashboard/fix-inputs.js
+dashboard/README.md
+dashboard/postcss.config.mjs
+dashboard/package-lock.json
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/AGENTS.md
+dashboard/USING-SUPERPOWERS.md
+dashboard/eslint.config.mjs
+dashboard/PANDUAN-PENGGUNA.md
+dashboard/middleware.ts
+dashboard/307
+dashboard/package.json
+dashboard/next.config.ts
+dashboard/CLAUDE.md
+dashboard/docs/superpowers/using-superpowers.md
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+dashboard/src/actions/company-users.ts
+dashboard/docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+dashboard/public/vercel.svg
+dashboard/src/components/nav-secondary.tsx
+dashboard/src/actions/kelompok.ts
+dashboard/src/components/app-link.tsx
+dashboard/public/uploads/nasabah/1776851508256-de1ba137-c597-44e0-8d9c-5a24a8578751.pdf
+dashboard/public/uploads/nasabah/1776613912086-44c59630-5991-4c7d-b064-c8e9a6096319.jpeg
+dashboard/public/uploads/nasabah/1776618214801-f5c7641f-ee89-4e0d-ade6-672c31aef520.jpeg
+dashboard/src/components/nav-main.tsx
+dashboard/public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+dashboard/src/components/theme-provider.tsx
+dashboard/src/components/nav-user.tsx
+dashboard/src/components/page-view-transition.tsx
+dashboard/public/static/sw.js
+dashboard/src/components/navigation-indicator.tsx
+dashboard/public/window.svg
+dashboard/src/components/print-button.tsx
+dashboard/public/next.svg
+dashboard/src/components/markdown.tsx
+dashboard/src/components/print/company-document-header.tsx
+dashboard/src/components/app-sidebar.tsx
+dashboard/public/globe.svg
+dashboard/public/file.svg
+dashboard/src/actions/nasabah.ts
+dashboard/src/actions/akuntansi.ts
+dashboard/src/actions/maintenance.ts
+dashboard/src/actions/auth-registration.ts
+dashboard/src/actions/pengajuan.ts
+dashboard/src/actions/settings.ts
+dashboard/src/actions/kas.ts
+dashboard/src/actions/platform-admin.ts
+dashboard/src/actions/dashboard.ts
+dashboard/src/actions/pembayaran.ts
+dashboard/public/uploads/pembayaran/1776700680512-a635469f-803c-4b6c-b940-9e710a4fa1bb.jpeg
+dashboard/src/actions/kolektor.ts
+dashboard/src/components/ui/sonner.tsx
+dashboard/docs/superpowers/plans/plan.md
+dashboard/docs/superpowers/plans/accounting-scoring-plan.md
+dashboard/src/components/ui/select.tsx
+dashboard/src/components/ui/alert.tsx
+dashboard/src/components/ui/skeleton.tsx
+dashboard/src/hooks/use-mobile.ts
+dashboard/src/components/ui/table.tsx
+dashboard/src/components/ui/input.tsx
+dashboard/src/components/ui/label.tsx
+dashboard/src/components/ui/textarea.tsx
+dashboard/src/components/ui/dialog.tsx
+dashboard/src/components/ui/collapsible.tsx
+dashboard/src/components/ui/sidebar.tsx
+dashboard/src/components/ui/separator.tsx
+dashboard/src/components/ui/badge.tsx
+dashboard/src/components/ui/tooltip.tsx
+dashboard/src/components/ui/button.tsx
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+dashboard/public/snitch/project/master_nasabah_client_data_management/screen.png
+dashboard/src/app/favicon.ico
+dashboard/src/app/layout.tsx
+dashboard/public/snitch/project/master_nasabah_client_data_management/nasabah.png
+dashboard/public/snitch/project/vault_cooperative_management_landing_page/screen.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/screen.png
+dashboard/src/app/(marketing)/penawaran/page.tsx
+dashboard/src/app/(auth)/login/page.tsx
+dashboard/src/app/(marketing)/_components/marketing-shell.tsx
+dashboard/src/app/(marketing)/_components/marketing-data.ts
+dashboard/src/app/(marketing)/penawaran/_lib/screenshots.ts
+dashboard/src/app/(dashboard)/pengajuan/page.tsx
+dashboard/src/app/(dashboard)/roadmap/page.tsx
+dashboard/src/app/(dashboard)/nasabah/page.tsx
+dashboard/src/app/(dashboard)/roadmap/roadmap-client.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+dashboard/src/app/(dashboard)/pengajuan/baru/page.tsx
+dashboard/src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+dashboard/src/app/(marketing)/contact/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+dashboard/src/app/(marketing)/blog/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+dashboard/src/app/(dashboard)/docs/using-superpowers/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/edit-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/bayar-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/manual-input.tsx
+dashboard/src/app/(dashboard)/layout.tsx
+dashboard/src/app/(marketing)/product/page.tsx
+dashboard/src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png
+dashboard/src/app/(marketing)/page.tsx
+dashboard/src/app/(dashboard)/platform/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+dashboard/src/app/(marketing)/about/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+dashboard/src/app/(auth)/layout.tsx
+dashboard/src/app/(dashboard)/platform/users/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+dashboard/src/app/(dashboard)/_components/dashboard-header.tsx
+dashboard/src/app/(dashboard)/_components/top-bar.tsx
+dashboard/src/app/(dashboard)/platform/users/user-admin-table.tsx
+dashboard/src/app/(dashboard)/platform/companies/page.tsx
+dashboard/src/app/(auth)/loading.tsx
+dashboard/src/app/(marketing)/home/page.tsx
+dashboard/src/app/(auth)/register/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+dashboard/src/app/(dashboard)/monitoring/tunggakan/page.tsx
+dashboard/src/app/(dashboard)/monitoring/kolektor/page.tsx
+dashboard/src/app/(dashboard)/kelompok/page.tsx
+dashboard/src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/page.tsx
+dashboard/src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+dashboard/src/app/(dashboard)/settings/accounting-mode-card.tsx
+dashboard/src/app/(dashboard)/settings/ranking-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/user-management-card.tsx
+dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx
+dashboard/src/app/(dashboard)/laporan/buku-besar/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+dashboard/src/app/(dashboard)/settings/db-maintenance-card.tsx
+dashboard/src/app/(dashboard)/settings/page.tsx
+dashboard/src/app/(dashboard)/settings/company/page.tsx
+dashboard/src/app/(dashboard)/settings/accounting/page.tsx
+dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+dashboard/src/app/(dashboard)/settings/settings-profile-card.tsx
+dashboard/src/app/(dashboard)/settings/ranking/page.tsx
+dashboard/src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/settings/users/page.tsx
+dashboard/src/app/(dashboard)/settings/maintenance/page.tsx
+dashboard/src/app/(dashboard)/kelompok/baru/page.tsx
+dashboard/src/app/(dashboard)/laporan/laba-rugi/page.tsx
+dashboard/src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+dashboard/src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+dashboard/src/app/(dashboard)/loading.tsx
+dashboard/src/app/(dashboard)/settings/profile/page.tsx
+dashboard/src/app/(dashboard)/laporan/neraca/page.tsx
+dashboard/src/app/(dashboard)/laporan/arus-kas/page.tsx
+dashboard/src/app/(dashboard)/kas/page.tsx
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx
+dashboard/src/app/(dashboard)/kas/kas-client.tsx
+dashboard/src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/page.tsx
+dashboard/src/app/(dashboard)/pencairan/pencairan-form.tsx
+dashboard/src/app/(dashboard)/pencairan/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+dashboard/src/app/(dashboard)/dashboard/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+dashboard/src/app/(dashboard)/kolektor/page.tsx
+dashboard/src/app/(dashboard)/kolektor/kolektor-management.tsx
+dashboard/src/app/globals.css
+dashboard/public/snitch/project/login_cooperative_management_dashboard/screen.png
+dashboard/src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/laporan.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/screen.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/screen.png
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png
+dashboard/src/components/ui/breadcrumb.tsx
+dashboard/src/components/ui/sheet.tsx
+dashboard/public/docs/screenshots/error-login.png
+dashboard/public/snitch/project/settings_user_role_management/settings.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/screen.png
+dashboard/public/snitch/project/settings_user_role_management/screen.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png
+dashboard/public/docs/screenshots/debug-login-page.png
+dashboard/src/app/api/auth/[...nextauth]/route.ts
+dashboard/src/components/ui/card.tsx
+dashboard/src/components/ui/tabs.tsx
+dashboard/src/components/ui/field.tsx
+dashboard/src/components/ui/avatar.tsx
+dashboard/src/components/ui/dropdown-menu.tsx
+dashboard/src/app/api/upload/kas/route.ts
+dashboard/src/app/api/upload/pengajuan/route.ts
+dashboard/src/app/api/upload/nasabah/route.ts
+dashboard/src/app/api/upload/pembayaran/route.ts
+dashboard/src/app/api/upload/logo/route.ts
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+dashboard/prisma.config.ts
+
+codex
+I found the project nested in `dashboard/`; next I’ll inspect the owned nasabah detail/edit files and the `nasabah` actions to wire transitions to an existing endpoint pattern.
+exec
+/bin/bash -lc "sed -n '1,240p' dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,240p' dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,320p' dashboard/src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let lastPaymentAt: Date | null = null
+    let nextDueAt: Date | null = null
+    let overdueCount = 0
+    let overdueOldestDueAt: Date | null = null
+    let overdueOldestDaysLate = 0
+    let overdueMaxDaysLate = 0
+    let aktifPinjaman = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+
+      const pembayaranTagMap = new Map<string, number>()
+      for (const p of pinjaman.pembayaran) {
+        if (p.tanggalBayar) {
+          if (!lastPaymentAt || p.tanggalBayar > lastPaymentAt) lastPaymentAt = p.tanggalBayar
+        }
+        const tags = parseJadwalTags(p.catatan)
+        if (tags.length === 0) continue
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (!nextDueAt || jadwal.tanggalJatuhTempo < nextDueAt) nextDueAt = jadwal.tanggalJatuhTempo
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+          overdueCount += 1
+          if (!overdueOldestDueAt || jadwal.tanggalJatuhTempo < overdueOldestDueAt) {
+            overdueOldestDueAt = jadwal.tanggalJatuhTempo
+          }
+          const daysLate = Math.max(
+            0,
+            Math.floor((now.getTime() - jadwal.tanggalJatuhTempo.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          if (daysLate > overdueMaxDaysLate) overdueMaxDaysLate = daysLate
+        }
+      }
+    }
+
+    if (overdueOldestDueAt) {
+      overdueOldestDaysLate = Math.max(
+        0,
+        Math.floor((now.getTime() - overdueOldestDueAt.getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      ...nasabah,
+      indikator: {
+        ranking,
+        telat,
+        belumBayar,
+        belumJatuhTempo,
+        kurangAngsuran: tunggakanNominal, // Mapping for UI compatibility if needed, but semantic is tunggakan
+        tunggakanNominal,
+        outstanding,
+        lastPaymentAt,
+        nextDueAt,
+        overdueCount,
+        overdueOldestDueAt,
+        overdueOldestDaysLate,
+        overdueMaxDaysLate,
+        aktifPinjaman,
+      },
+    }
+  })
+
+  return serializeData({ data: withIndicators, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getNasabahById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.nasabah.findFirst({
+    where: { id, companyId },
+    include: {
+      kelompok: true,
+      kolektor: { select: { id: true, name: true, email: true } },
+      pengajuan: {
+        orderBy: { tanggalPengajuan: "desc" },
+        include: {
+          pinjaman: {
+            include: {
+              jadwalAngsuran: {
+                orderBy: { tanggalJatuhTempo: "asc" },
+              },
+              pembayaran: {
+                where: { isBatalkan: false },
+                orderBy: { tanggalBayar: "desc" },
+                include: { inputOleh: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      },
+      penjamin: true,
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function createNasabah(input: NasabahInput): Promise<CreateNasabahResult> {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = nasabahSchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors }
+  }
+
+  const { tanggalLahir, kelompokId, kolektorId, dokumenUrls, ...rest } = parsed.data
+  const existingNik = await prisma.nasabah.findFirst({
+    where: { companyId, nik: parsed.data.nik },
+    select: { namaLengkap: true },
+  })
+
+  if (existingNik) {
+    return {
+      error: {
+        nik: [`NIK sudah terdaftar atas nama ${existingNik.namaLengkap}.`],
+      },
+    }
+  }
+
+  if (kelompokId) {
+    const kelompok = await prisma.kelompok.findFirst({ where: { id: kelompokId, companyId }, select: { id: true } })
+    if (!kelompok) {
+      return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+    }
+  }
+
+  // Nomor anggota dibuat otomatis. Karena generator berbasis count dapat bentrok pada concurrency,
+  // kita retry beberapa kali ketika unique constraint terjadi.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const nomorAnggota = await generateNomorAnggota(companyId)
+    try {
+      const nasabah = await prisma.nasabah.create({
+        data: {
+          companyId,
+          ...rest,
+          nomorAnggota,
+          tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : undefined,
+          kelompokId: kelompokId || null,
+          kolektorId: kolektorId || null,
+          dokumenUrls: dokumenUrls ?? [],
+          tanggalGabung: new Date(),
+        },
+      })
+
+      revalidatePath("/nasabah")
+      return { success: true, data: nasabah }
+    } catch (error) {
+      const fields = getUniqueConstraintFields(error)
+      if (fields.includes("nik")) {
+        return { error: { nik: ["NIK sudah terdaftar."] } }
+      }
+      if (fields.includes("nomorAnggota")) {
+        if (attempt < 2) continue
+        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+      }
+
+      throw error
+
+exec
+/bin/bash -lc "sed -n '1,320p' dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,320p' dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { getNasabahById } from "@/actions/nasabah"
+import { getRankingConfig } from "@/actions/settings"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+import { computeRanking, explainRanking } from "@/lib/ranking"
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+const statusPinjaman: Record<string, string> = {
+  AKTIF: "bg-blue-100 text-blue-700",
+  MENUNGGAK: "bg-orange-100 text-orange-700",
+  MACET: "bg-red-100 text-red-700",
+  LUNAS: "bg-emerald-100 text-emerald-700",
+}
+
+const statusPengajuan: Record<string, string> = {
+  DRAFT: "bg-gray-100 text-gray-600",
+  DIAJUKAN: "bg-blue-100 text-blue-700",
+  DISURVEY: "bg-violet-100 text-violet-700",
+  DISETUJUI: "bg-emerald-100 text-emerald-700",
+  DITOLAK: "bg-red-100 text-red-700",
+  DICAIRKAN: "bg-teal-100 text-teal-700",
+  SELESAI: "bg-gray-100 text-gray-600",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+function rankingBadge(rank: string) {
+  if (rank === "A") return <Badge className="bg-emerald-100 text-emerald-700">A - Sangat Lancar</Badge>
+  if (rank === "B") return <Badge className="bg-blue-100 text-blue-700">B - Lancar</Badge>
+  if (rank === "C") return <Badge className="bg-amber-100 text-amber-700">C - Perlu Pantau</Badge>
+  return <Badge className="bg-red-100 text-red-700">D - Risiko</Badge>
+}
+
+export default async function NasabahDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const nasabah = await getNasabahById(id)
+  if (!nasabah) notFound()
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  // Indikator konsistensi dan ranking (mengikuti logika laporan).
+  const indikator = (() => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let anomaliPembayaran = 0
+    let anomaliNominal = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      const pembayaranTagMap = new Map<string, number>()
+
+      for (const p of pinjaman.pembayaran) {
+        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+        if (tags.length === 0) {
+          anomaliPembayaran += 1
+          anomaliNominal += Number(p.totalBayar)
+          continue
+        }
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+        }
+      }
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      tunggakanNominal,
+      telat,
+      belumJatuhTempo,
+      belumBayar,
+      outstanding,
+      ranking,
+      anomaliPembayaran,
+      anomaliNominal,
+    }
+  })()
+  const rankingExplain = explainRanking(
+    { telat: indikator.telat, tunggakanNominal: indikator.tunggakanNominal },
+    rankingConfig
+  )
+
+  const transaksiTerjadi = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.pembayaran ?? []).map((bayar) => ({
+        id: bayar.id,
+        tanggal: bayar.tanggalBayar,
+        kontrak: p.pinjaman?.nomorKontrak ?? "-",
+        total: Number(bayar.totalBayar),
+        pokok: Number(bayar.pokok),
+        bunga: Number(bayar.bunga),
+        denda: Number(bayar.denda),
+        metode: bayar.metode,
+        petugas: bayar.inputOleh.name,
+      }))
+    )
+    .sort((a, b) => b.tanggal.getTime() - a.tanggal.getTime())
+
+  const transaksiAkanDatang = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.jadwalAngsuran ?? [])
+        .filter((jadwal) => !jadwal.sudahDibayar)
+        .map((jadwal) => ({
+          id: jadwal.id,
+          tanggalJatuhTempo: jadwal.tanggalJatuhTempo,
+          kontrak: p.pinjaman?.nomorKontrak ?? "-",
+          angsuranKe: jadwal.angsuranKe,
+          total: Number(jadwal.total),
+          pokok: Number(jadwal.pokok),
+          bunga: Number(jadwal.bunga),
+          status: jadwal.tanggalJatuhTempo < now ? "TERLAMBAT" : "UPCOMING",
+        }))
+    )
+    .sort((a, b) => a.tanggalJatuhTempo.getTime() - b.tanggalJatuhTempo.getTime())
+
+  const infoItems = [
+    { icon: Phone, label: "No. HP", value: nasabah.noHp },
+    { icon: MapPin, label: "Alamat", value: `${nasabah.alamat}${nasabah.kecamatan ? `, Kec. ${nasabah.kecamatan}` : ""}${nasabah.kotaKab ? `, ${nasabah.kotaKab}` : ""}` },
+    { icon: CalendarDays, label: "Tempat/Tgl. Lahir", value: nasabah.tanggalLahir ? `${nasabah.tempatLahir ?? "—"}, ${new Date(nasabah.tanggalLahir).toLocaleDateString("id-ID")}` : (nasabah.tempatLahir ?? "—") },
+    { icon: Briefcase, label: "Pekerjaan", value: nasabah.pekerjaan ?? "—" },
+    { icon: Store, label: "Nama Usaha", value: nasabah.namaUsaha ?? "—" },
+    { icon: CreditCard, label: "NIK", value: nasabah.nik },
+  ]
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/nasabah"><ArrowLeft className="size-4" /></Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{nasabah.namaLengkap}</h1>
+            <p className="text-muted-foreground text-sm font-mono">{nasabah.nomorAnggota}</p>
+          </div>
+        </div>
+        <Button asChild variant="outline">
+          <Link href={`/nasabah/${id}/edit`}>
+            <Edit className="size-4" /> Edit
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" asChild>
+          <a href="#informasi">Informasi</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#penjamin">Penjamin ({nasabah.penjamin.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#dokumen">Dokumen ({nasabah.dokumenUrls.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#pengajuan">Pengajuan ({nasabah.pengajuan.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#transaksi">Transaksi ({transaksiTerjadi.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#jadwal">Jadwal ({transaksiAkanDatang.length})</a>
+        </Button>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Info Utama */}
+        <Card id="informasi" className="lg:col-span-2 scroll-mt-24">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Informasi Nasabah</CardTitle>
+              <Badge className={nasabah.status === "AKTIF" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}>
+                {nasabah.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {nasabah.fotoUrl ? (
+              <div className="flex items-center gap-3 rounded-md border bg-muted/20 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={nasabah.fotoUrl}
+                  alt="Foto nasabah"
+                  className="h-14 w-14 rounded-md border bg-white object-cover"
+                />
+                <div className="text-xs text-muted-foreground">
+                  Foto profil nasabah.
+                </div>
+              </div>
+            ) : null}
+            {infoItems.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <Icon className="size-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-sm">{value}</p>
+                </div>
+              </div>
+            ))}
+            <Separator />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Kelompok</p>
+                <p>{nasabah.kelompok?.nama ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Kolektor</p>
+                <p>{nasabah.kolektor?.name ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tgl. Gabung</p>
+                <p>{new Date(nasabah.tanggalGabung).toLocaleDateString("id-ID")}</p>
+              </div>
+            </div>
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
+import { getKolektorList, getKelompokList, getNasabahById } from "@/actions/nasabah"
+import { Button } from "@/components/ui/button"
+import { EditNasabahForm } from "./edit-form"
+
+export default async function EditNasabahPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const [nasabah, kelompokList, kolektorList] = await Promise.all([
+    getNasabahById(id),
+    getKelompokList(),
+    getKolektorList(),
+  ])
+
+  if (!nasabah) notFound()
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href={`/nasabah/${id}`}>
+            <ArrowLeft className="size-4" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Nasabah</h1>
+          <p className="text-muted-foreground text-sm font-mono">{nasabah.nomorAnggota}</p>
+        </div>
+      </div>
+
+      <EditNasabahForm nasabah={nasabah} kelompokList={kelompokList} kolektorList={kolektorList} />
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '320,760p' 'dashboard/src/actions/nasabah.ts'" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+exec
+/bin/bash -lc "sed -n '1,360p' 'dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+"use client"
+
+import { useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Save, Upload, X } from "lucide-react"
+import { updateNasabah } from "@/actions/nasabah"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
+import { useState } from "react"
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+type FormNasabah = {
+  id: string
+  namaLengkap: string
+  nik: string
+  tempatLahir: string | null
+  tanggalLahir: Date | null
+  alamat: string
+  kelurahan: string | null
+  kecamatan: string | null
+  kotaKab: string | null
+  noHp: string
+  pekerjaan: string | null
+  namaUsaha: string | null
+  dokumenUrls: string[]
+  status: "AKTIF" | "NON_AKTIF" | "KELUAR"
+  kelompokId: string | null
+  kolektorId: string | null
+}
+
+export function EditNasabahForm({
+  nasabah,
+  kelompokList,
+  kolektorList,
+}: {
+  nasabah: FormNasabah
+  kelompokList: { id: string; nama: string }[]
+  kolektorList: { id: string; name: string }[]
+}) {
+  const [isPending, startTransition] = useTransition()
+  const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
+  const [dokumenText, setDokumenText] = useState("")
+  const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+  const router = useRouter()
+
+  const { register, handleSubmit, setError, setValue, formState: { errors } } = useForm<NasabahInput>({
+    resolver: zodResolver(nasabahSchema) as never,
+    defaultValues: {
+      namaLengkap: nasabah.namaLengkap,
+      nik: nasabah.nik,
+      tempatLahir: nasabah.tempatLahir ?? "",
+      tanggalLahir: nasabah.tanggalLahir ? new Date(nasabah.tanggalLahir).toISOString().slice(0, 10) : "",
+      alamat: nasabah.alamat,
+      kelurahan: nasabah.kelurahan ?? "",
+      kecamatan: nasabah.kecamatan ?? "",
+      kotaKab: nasabah.kotaKab ?? "",
+      noHp: nasabah.noHp,
+      pekerjaan: nasabah.pekerjaan ?? "",
+      namaUsaha: nasabah.namaUsaha ?? "",
+      dokumenUrls: nasabah.dokumenUrls ?? [],
+      status: nasabah.status,
+      kelompokId: nasabah.kelompokId ?? undefined,
+      kolektorId: nasabah.kolektorId ?? undefined,
+    },
+  })
+
+  function parseDokumen(raw: string): string[] {
+    return raw
+      .split(/\n|,/)
+      .map((v) => v.trim())
+      .filter(Boolean)
+  }
+
+  function syncDokumenValue(rawText: string, uploaded: string[]) {
+    const merged = Array.from(new Set([...parseDokumen(rawText), ...uploaded]))
+    setValue("dokumenUrls", merged, { shouldValidate: true })
+  }
+
+  async function handleUploadDokumen(files: FileList | null) {
+    if (!files || files.length === 0) return
+
+    setIsUploadingDokumen(true)
+    try {
+      const formData = new FormData()
+      Array.from(files).forEach((file) => formData.append("files", file))
+
+      const res = await fetch("/api/upload/nasabah", { method: "POST", body: formData })
+      const json = (await res.json()) as { urls?: string[]; error?: string }
+
+      if (!res.ok || !json.urls?.length) {
+        throw new Error(json.error ?? "Upload dokumen gagal.")
+      }
+
+      const nextUploaded = Array.from(new Set([...uploadedDokumen, ...json.urls]))
+      setUploadedDokumen(nextUploaded)
+      syncDokumenValue(dokumenText, nextUploaded)
+      toast.success("Dokumen berhasil diupload.")
+    } catch {
+      toast.error("Upload dokumen gagal.")
+    } finally {
+      setIsUploadingDokumen(false)
+    }
+  }
+
+  const onSubmit = (data: NasabahInput) => {
+    startTransition(async () => {
+      const result = await updateNasabah(nasabah.id, data)
+      if ("error" in result) {
+        const nikError = result.error.nik?.[0]
+        if (nikError) setError("nik", { type: "server", message: nikError })
+        toast.error(nikError ?? "Gagal memperbarui data nasabah. Periksa kembali form.")
+        return
+      }
+      toast.success("Data nasabah berhasil diperbarui.")
+      router.push(`/nasabah/${nasabah.id}`)
+      router.refresh()
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Form Edit Nasabah</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="namaLengkap">Nama Lengkap</Label>
+              <Input id="namaLengkap" {...register("namaLengkap")} />
+              {errors.namaLengkap && <p className="text-xs text-red-500">{errors.namaLengkap.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nik">NIK</Label>
+              <Input id="nik" {...register("nik")} maxLength={16} />
+              {errors.nik && <p className="text-xs text-red-500">{errors.nik.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tempatLahir">Tempat Lahir</Label>
+              <Input id="tempatLahir" {...register("tempatLahir")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
+              <Input id="tanggalLahir" type="date" {...register("tanggalLahir")} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="alamat">Alamat</Label>
+            <Textarea id="alamat" rows={3} {...register("alamat")} />
+            {errors.alamat && <p className="text-xs text-red-500">{errors.alamat.message}</p>}
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="kelurahan">Kelurahan</Label>
+              <Input id="kelurahan" {...register("kelurahan")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="kecamatan">Kecamatan</Label>
+              <Input id="kecamatan" {...register("kecamatan")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="kotaKab">Kota/Kabupaten</Label>
+              <Input id="kotaKab" {...register("kotaKab")} />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="noHp">No. HP</Label>
+              <Input id="noHp" {...register("noHp")} />
+              {errors.noHp && <p className="text-xs text-red-500">{errors.noHp.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pekerjaan">Pekerjaan</Label>
+              <Input id="pekerjaan" {...register("pekerjaan")} />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="namaUsaha">Nama Usaha</Label>
+              <Input id="namaUsaha" {...register("namaUsaha")} />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AKTIF">Aktif</SelectItem>
+                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+                  <SelectItem value="KELUAR">Keluar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Kelompok</Label>
+              <Select
+                defaultValue={nasabah.kelompokId ?? "__NONE__"}
+                onValueChange={(v) => setValue("kelompokId", !v || v === "__NONE__" ? undefined : v)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__NONE__">Belum ditentukan</SelectItem>
+                  {kelompokList.map((k) => (
+                    <SelectItem key={k.id} value={k.id}>{k.nama}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Kolektor</Label>
+              <Select
+                defaultValue={nasabah.kolektorId ?? "__NONE__"}
+                onValueChange={(v) => setValue("kolektorId", !v || v === "__NONE__" ? undefined : v)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__NONE__">Belum ditentukan</SelectItem>
+                  {kolektorList.map((k) => (
+                    <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dokumenPendukung">Dokumen Pendukung</Label>
+            <Textarea
+              id="dokumenPendukung"
+              placeholder="Masukkan URL dokumen manual (1 baris 1 URL)"
+              rows={3}
+              value={dokumenText}
+              onChange={(e) => {
+                const nextText = e.target.value
+                setDokumenText(nextText)
+                syncDokumenValue(nextText, uploadedDokumen)
+              }}
+            />
+            <Input
+              id="dokumenFile"
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.webp,.pdf"
+              onChange={(e) => {
+                void handleUploadDokumen(e.target.files)
+                e.currentTarget.value = ""
+              }}
+              disabled={isUploadingDokumen}
+            />
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Upload className="size-3" /> {isUploadingDokumen ? "Sedang upload..." : "Upload file dokumen (max 5MB per file)."}
+            </p>
+            {uploadedDokumen.length > 0 && (
+              <div className="space-y-1">
+                {uploadedDokumen.map((url) => (
+                  <div key={url} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
+                    <div className="min-w-0 pr-2">
+                      <div className="truncate font-medium">{docTitle(url)}</div>
+                      <div className="truncate text-muted-foreground">{url}</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-600"
+                      onClick={() => {
+                        const nextUploaded = uploadedDokumen.filter((v) => v !== url)
+                        setUploadedDokumen(nextUploaded)
+                        syncDokumenValue(dokumenText, nextUploaded)
+                      }}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {errors.dokumenUrls && <p className="text-xs text-red-500">Dokumen pendukung tidak valid.</p>}
+          </div>
+
+          <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
+            <Save className="size-4" />
+            {isPending ? "Menyimpan..." : "Simpan Perubahan"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+ succeeded in 0ms:
+      throw error
+    }
+  }
+
+  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+}
+
+export async function updateNasabah(id: string, input: Partial<NasabahInput>): Promise<UpdateNasabahResult> {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const current = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!current) return { error: { nik: ["Nasabah tidak ditemukan."] } }
+
+  const { tanggalLahir, dokumenUrls, ...rest } = input
+  const normalized = { ...rest } as Record<string, unknown>
+  if ("kelompokId" in normalized && !normalized.kelompokId) normalized.kelompokId = null
+  if ("kolektorId" in normalized && !normalized.kolektorId) normalized.kolektorId = null
+
+  if (typeof normalized.nik === "string") {
+    const existingNik = await prisma.nasabah.findFirst({
+      where: {
+        companyId,
+        nik: normalized.nik,
+        NOT: { id },
+      },
+      select: { namaLengkap: true },
+    })
+
+    if (existingNik) {
+      return {
+        error: {
+          nik: [`NIK sudah terdaftar atas nama ${existingNik.namaLengkap}.`],
+        },
+      }
+    }
+  }
+
+  if (typeof normalized.kelompokId === "string" && normalized.kelompokId) {
+    const kelompok = await prisma.kelompok.findFirst({ where: { id: normalized.kelompokId, companyId }, select: { id: true } })
+    if (!kelompok) return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+  }
+
+  try {
+    await prisma.nasabah.update({
+      where: { id },
+      data: {
+        ...normalized,
+        tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : undefined,
+        ...(dokumenUrls ? { dokumenUrls } : {}),
+      },
+    })
+  } catch (error) {
+    const fields = getUniqueConstraintFields(error)
+    if (fields.includes("nik")) {
+      return { error: { nik: ["NIK sudah terdaftar."] } }
+    }
+
+    throw error
+  }
+
+  revalidatePath("/nasabah")
+  revalidatePath(`/nasabah/${id}`)
+  return { success: true }
+}
+
+export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+  await prisma.nasabah.update({ where: { id }, data: { status } })
+  revalidatePath("/nasabah")
+  return { success: true }
+}
+
+export async function deleteNasabah(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  try {
+    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+  } catch {
+    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+  }
+
+  const nasabah = await prisma.nasabah.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      namaLengkap: true,
+      _count: {
+        select: {
+          pengajuan: true,
+          simpanan: true,
+        },
+      },
+    },
+  })
+
+  if (!nasabah) {
+    return { success: false, error: "Nasabah tidak ditemukan." }
+  }
+  // Guard: prevent cross-company delete even if id leaks
+  const nasabahCompany = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+
+  if (nasabah._count.pengajuan > 0 || nasabah._count.simpanan > 0) {
+    return {
+      success: false,
+      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+    }
+  }
+
+  await prisma.nasabah.delete({ where: { id } })
+
+  revalidatePath("/nasabah")
+  revalidatePath("/dashboard")
+  revalidatePath("/kelompok")
+  return { success: true }
+}
+
+export async function getKelompokList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  return prisma.kelompok.findMany({ where: { companyId }, orderBy: { nama: "asc" } })
+}
+
+export async function getKolektorList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  return prisma.user.findMany({
+    where: { companyId, roles: { some: { role: "KOLEKTOR" } }, isActive: true },
+    select: { id: true, name: true },
+  })
+}
+
+codex
+I found an existing server action `ubahStatusNasabah` in `src/actions/nasabah.ts`, so I’ll wire the UI to that instead of inventing a new endpoint. I’m now adding a reusable transition control component under your `edit/*` scope and embedding it in detail + edit screens.
+exec
+/bin/bash -lc "sed -n '260,620p' 'dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Indikator</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">Ranking</span>
+              <Tooltip>
+                <TooltipTrigger render={<span className="inline-flex">{rankingBadge(indikator.ranking)}</span>} />
+                <TooltipContent className="max-w-sm">
+                  <div className="text-xs space-y-1">
+                    <div className="font-semibold">Alasan Ranking</div>
+                    <div>{rankingExplain.summary}</div>
+                    <div className="pt-1">
+                      {rankingExplain.rules.map((line) => (
+                        <div key={line}>{line}</div>
+                      ))}
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Separator />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Telat</p>
+                <p className="font-semibold text-red-600">{indikator.telat.toLocaleString("id-ID")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Belum JT</p>
+                <p className="font-semibold">{indikator.belumJatuhTempo.toLocaleString("id-ID")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tunggakan</p>
+                <p className="font-semibold">{fmt(indikator.tunggakanNominal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className="font-semibold text-blue-700">{fmt(indikator.outstanding)}</p>
+              </div>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">Anomali pencatatan</span>
+              {indikator.anomaliPembayaran > 0 ? (
+                <Badge className="bg-amber-100 text-amber-700">
+                  {indikator.anomaliPembayaran} trx ({fmt(indikator.anomaliNominal)})
+                </Badge>
+              ) : (
+                <Badge className="bg-emerald-100 text-emerald-700">0</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Penjamin */}
+        <Card id="penjamin" className="scroll-mt-24">
+          <CardHeader>
+            <CardTitle className="text-base">Penjamin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {nasabah.penjamin.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Belum ada data penjamin.</p>
+            ) : (
+              nasabah.penjamin.map((p) => (
+                <div key={p.id} className="text-sm space-y-0.5">
+                  <p className="font-medium">{p.namaLengkap}</p>
+                  <p className="text-xs text-muted-foreground">{p.hubungan} · {p.noHp}</p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card id="dokumen" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle className="text-base">Dokumen Terlampir</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {nasabah.dokumenUrls.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belum ada dokumen terlampir.</p>
+          ) : (
+            <div className="space-y-2">
+              {nasabah.dokumenUrls.map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded border px-3 py-2 hover:bg-muted/30"
+                >
+                  <div className="text-sm font-medium truncate">{docTitle(url)}</div>
+                  <div className="text-xs text-muted-foreground truncate">{url}</div>
+                </a>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Riwayat Pengajuan */}
+      <Card id="pengajuan" className="scroll-mt-24">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Riwayat Pengajuan Pinjaman</CardTitle>
+          <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+            <Link href={`/pengajuan/baru?nasabahId=${nasabah.id}`}>+ Pengajuan Baru</Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          {nasabah.pengajuan.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4">Belum ada pengajuan pinjaman.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Tenor</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Sisa Pinjaman</th>
+                  <th className="text-left px-4 py-2.5 hidden md:table-cell font-medium">No. Kontrak</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Tanggal</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {nasabah.pengajuan.map((p) => (
+                  // Progress tenor ditampilkan jika sudah ada pinjaman + jadwal.
+                  // Format: Bulanan 1/12, Mingguan 3/16
+                  <tr key={p.id} className="border-b hover:bg-muted/20">
+                    <td className="px-4 py-2.5">
+                      <Badge className={`${statusPengajuan[p.status]} border-0`}>{p.status}</Badge>
+                      {p.pinjaman && (
+                        <Badge className={`${statusPinjaman[p.pinjaman.status]} border-0 ml-1`}>{p.pinjaman.status}</Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs">
+                      {p.pinjaman ? (
+                        (() => {
+                          const total = p.pinjaman.tenor
+                          const paid = p.pinjaman.jadwalAngsuran.filter((j) => j.sudahDibayar).length
+                          const label = p.pinjaman.tenorType === "MINGGUAN" ? "Mingguan" : "Bulanan"
+                          return `${label} ${paid}/${total}`
+                        })()
+                      ) : (
+                        (() => {
+                          const label = p.tenorType === "MINGGUAN" ? "Mingguan" : "Bulanan"
+                          return `${label} 0/${p.tenor}`
+                        })()
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-medium">
+                      {p.pinjaman ? fmt(Number(p.pinjaman.sisaPinjaman)) : fmt(Number(p.plafonDiajukan))}
+                    </td>
+                    <td className="px-4 py-2.5 hidden md:table-cell font-mono text-xs text-muted-foreground">
+                      {p.pinjaman?.nomorKontrak ?? "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(p.tanggalPengajuan).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-4 py-2.5 flex justify-end gap-1">
+                      {p.pinjaman && (
+                        <Link 
+                          href={`/dokumen/kartu-angsuran/${p.pinjaman.id}`}
+                          className="inline-flex items-center justify-center rounded-md text-xs font-medium border h-7 px-2.5 hover:bg-indigo-50 text-indigo-700 border-indigo-200"
+                        >
+                          Kartu
+                        </Link>
+                      )}
+                      <Link 
+                        href={`/pengajuan/${p.id}`}
+                        className="inline-flex items-center justify-center rounded-md text-xs font-medium hover:bg-slate-100 h-7 px-2.5"
+                      >
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card id="transaksi" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle className="text-base">Log Detail Transaksi Terjadi</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {transaksiTerjadi.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4">Belum ada transaksi pembayaran yang tercatat.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left px-4 py-2.5 font-medium">Tanggal</th>
+                  <th className="text-left px-4 py-2.5 font-medium">No. Kontrak</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Pokok</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Bunga</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Denda</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Total</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Petugas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transaksiTerjadi.map((row) => (
+                  <tr key={row.id} className="border-b hover:bg-muted/20">
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(row.tanggal).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{row.kontrak}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.pokok)}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.bunga)}</td>
+                    <td className="px-4 py-2.5 text-right text-orange-600">{fmt(row.denda)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold">{fmt(row.total)}</td>
+                    <td className="px-4 py-2.5 text-xs">{row.petugas}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card id="jadwal" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle className="text-base">Daftar Transaksi Akan Datang</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {transaksiAkanDatang.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4">Tidak ada jadwal transaksi yang akan datang.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left px-4 py-2.5 font-medium">Jatuh Tempo</th>
+                  <th className="text-left px-4 py-2.5 font-medium">No. Kontrak</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Angsuran Ke</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Pokok</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Bunga</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Total</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transaksiAkanDatang.map((row) => (
+                  <tr key={row.id} className="border-b hover:bg-muted/20">
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(row.tanggalJatuhTempo).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{row.kontrak}</td>
+                    <td className="px-4 py-2.5 text-right">{row.angsuranKe}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.pokok)}</td>
+                    <td className="px-4 py-2.5 text-right">{fmt(row.bunga)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold">{fmt(row.total)}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge className={row.status === "TERLAMBAT" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}>
+                        {row.status === "TERLAMBAT" ? "Terlambat" : "Akan Datang"}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/AGENTS.md" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+# Agent Handoff: Koperasi Pinjam Dashboard
+
+Dokumen ini adalah konteks kerja cepat untuk agent berikutnya agar langsung paham arsitektur, batasan data, dan flow kritis.
+
+## 1. Stack & Struktur Utama
+
+- Framework: Next.js `16.2.4` (App Router, Turbopack)
+- Runtime UI: React `19.2.4`
+- ORM: Prisma `7.7.0` + PostgreSQL (`@prisma/adapter-pg`)
+- Auth: NextAuth v5 beta (Credentials provider)
+- UI: shadcn + Tailwind
+
+Folder penting:
+- `src/app`: routes App Router (auth, dashboard, platform)
+- `src/actions`: server actions domain bisnis
+- `src/lib`: auth, tenant, accounting, prisma client, utils
+- `prisma/schema.prisma`: source of truth model database
+- `prisma/seed.ts`: seed default accounts/demo users
+
+## 2. Rule Wajib Sebelum Ngoding
+
+1. Baca panduan Next.js lokal di `node_modules/next/dist/docs/` untuk API yang mau disentuh.
+2. Jangan asumsi API lama Next.js masih sama.
+3. Untuk perubahan signifikan, validasi minimal dengan:
+   - `npm run build`
+   - bila schema berubah: `npm run db:generate`
+
+## 3. Multi-Tenant & Auth (Sangat Penting)
+
+### Registrasi
+- Route: `/register`
+- Action: `src/actions/auth-registration.ts`
+- Efek:
+  - create user baru
+  - create company baru (`slug` unik)
+  - assign role `OWNER` + `ADMIN`
+  - set `user.companyId = company.id`
+
+### Login
+- Auth di `src/lib/auth.ts`.
+- User ditolak login jika:
+  - `user.isActive = false`
+  - company non-active (`isActive=false` atau `status != ACTIVE`)
+
+### Isolasi tenant
+- Gunakan `requireCompanyId` (`src/lib/tenant.ts`) di action tenant.
+- Semua query bisnis wajib filter `companyId`.
+- `SUPER_ADMIN` bisa tanpa `companyId`, tapi diarahkan untuk operasi lintas tenant lewat `/platform`.
+
+### Middleware akses
+- `middleware.ts` mengatur route-level role guard.
+- `/platform` hanya untuk `SUPER_ADMIN`.
+
+## 4. Prisma/DB: Ringkasan Model Kritis
+
+Sumber resmi: `prisma/schema.prisma`.
+
+### Entitas inti bisnis
+- `Company`, `User`, `UserRole`
+- `Nasabah`, `Kelompok`, `Pengajuan`, `Pinjaman`, `JadwalAngsuran`, `Pembayaran`
+- `KasKategori`, `KasTransaksi`
+- `Account`, `JournalEntry`, `JournalLine`, `RekonsiliasiKas`
+- `CompanySetting`, `AppSetting`
+
+### Constraint penting
+- `Nasabah`: unique `[companyId, nik]`, `[companyId, nomorAnggota]`
+- `Kelompok`: unique `[companyId, kode]`
+- `Account`: unique `[companyId, code]`
+- `KasKategori`: unique `[companyId, key]`
+- `JournalEntry`: unique `[sourceType, sourceId]` (idempotensi posting jurnal)
+- `CompanySetting`: unique `[companyId, key]`
+
+### Catatan tenant safety
+- Mayoritas tabel operasional sudah punya `companyId`.
+- `AuditLog` dan `ApprovalLog` tidak punya `companyId`; gunakan metadata/entity untuk pelacakan konteks.
+
+## 5. Akuntansi: Cara Kerja Saat Ini
+
+File utama: `src/lib/accounting.ts`
+
+- Daftar akun default dibuat via `ensureAccountingAccounts(companyId)`.
+- Mode akuntansi: `SIMPLE` / `PROPER` (`src/lib/accounting-mode.ts`, setting per company di `CompanySetting` key `ACCOUNTING_MODE`).
+- Saldo kas dihitung dari `JournalLine` akun kas (`CASH_TUNAI`/`CASH_BANK`) dengan `JournalEntry.status = POSTED`.
+- Posting jurnal idempotent berdasarkan `(sourceType, sourceId)`.
+
+Flow jurnal utama:
+- Pencairan pinjaman -> `postPencairanJournal`
+- Pembayaran angsuran -> `postPembayaranJournal`
+- Kas umum approved -> `postKasTransactionJournal`
+
+## 6. Flow Pencairan (Bagian Paling Sensitif)
+
+File: `src/actions/pengajuan.ts` (`cairkanPinjaman`)
+
+Validasi saldo:
+- Cek saldo berdasarkan `kasJenis` (`TUNAI`/`BANK`).
+- Gunakan tanggal akhir hari pencairan (`23:59:59.999`) untuk menghindari false negative jika kas masuk terjadi di hari yang sama.
+
+Penyebab umum error `Saldo kas tidak cukup`:
+1. Transaksi modal/simpanan masih `isApproved=false`.
+2. Kas masuk di `BANK`, tapi pencairan memilih `TUNAI` (atau sebaliknya).
+3. Jurnal kas tidak terbentuk (mis. transaksi belum approved).
+
+UI pencairan:
+- `src/app/(dashboard)/pencairan/pencairan-form.tsx`
+- Sudah ada submit lock untuk mencegah double submit/toast bentrok.
+
+## 7. Kas & Approval
+
+File: `src/actions/kas.ts`
+
+- User role non-privileged input kas -> default pending (`isApproved=false`) + `ApprovalLog`.
+- Role privileged (`ADMIN/MANAGER/PIMPINAN`) -> auto approved + langsung post jurnal.
+- Pengeluaran (`KELUAR`) divalidasi saldo kas dulu sebelum simpan/approve.
+
+## 8. Super Admin (Platform)
+
+File utama:
+- `src/actions/platform-admin.ts`
+- pages: `/platform/users`, `/platform/companies`, `/platform/companies/[id]`
+
+Kemampuan inti:
+- Suspend/activate/delete company (soft delete via status)
+- Disable/enable user
+- Reset password user (temporary password)
+- Semua aksi high-impact masuk audit log
+
+Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
+
+## 9. Runbook DB Prisma
+
+### Lokal development
+1. Set `.env` (minimal `DATABASE_URL`, `NEXTAUTH_SECRET`)
+2. Install deps:
+   - `npm install`
+3. Generate prisma client:
+   - `npm run db:generate`
+4. Sinkron schema ke DB (non-migration):
+   - `npm run db:push`
+5. (Opsional) seed:
+   - `npm run db:seed`
+
+### Tarik struktur dari DB existing (mis. prod snapshot)
+- `npx prisma db pull`
+- review perubahan `prisma/schema.prisma`
+- `npm run db:generate`
+
+### Catatan migration
+- `prisma.config.ts` memakai `DIRECT_URL` untuk migration jika tersedia.
+- Untuk perubahan production, hindari asumsi; cek skema aktual dulu (`db pull`) sebelum buat migration.
+
+## 10. Known Pitfalls Cepat
+
+- Error `Can't resolve 'tailwindcss'` biasanya karena menjalankan command dari folder salah (harus di `dashboard/` yang punya `package.json` dan `node_modules`).
+- Hydration mismatch sering dari text non-deterministic antara server/client (hindari data berubah saat render awal).
+- Untuk unique `nik` nasabah: error sudah expected, tampilkan pesan user-friendly; cek scoping `companyId`.
+
+## 11. Checklist Wajib Sebelum Selesai Task
+
+1. Pastikan query/action tenant-aware (`companyId` tidak hilang).
+2. Jalankan `npm run build`.
+3. Jika menyentuh akuntansi:
+   - cek jurnal balance
+   - cek dampak ke `Neraca`, `Laba Rugi`, `Buku Besar`
+4. Jika menyentuh auth/role:
+   - cek login user biasa
+   - cek login `SUPER_ADMIN`
+   - cek guard middleware untuk route sensitif
+
+codex
+I’m now editing three owned files: adding a client `status-lifecycle-controls` component under `edit/*`, then embedding it in detail and edit forms so transitions call `ubahStatusNasabah` directly with refresh/toast feedback.
+exec
+/bin/bash -lc "cat > 'dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx' <<'EOF'
+\"use client\"
+
+import { useMemo, useTransition } from \"react\"
+import { useRouter } from \"next/navigation\"
+import { ubahStatusNasabah } from \"@/actions/nasabah\"
+import { Badge } from \"@/components/ui/badge\"
+import { Button } from \"@/components/ui/button\"
+import { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\"
+import { toast } from \"sonner\"
+
+type NasabahStatus = \"AKTIF\" | \"NON_AKTIF\" | \"KELUAR\"
+
+const statusLabel: Record<NasabahStatus, string> = {
+  AKTIF: \"Aktif\",
+  NON_AKTIF: \"Non Aktif\",
+  KELUAR: \"Keluar\",
+}
+
+const statusBadgeClass: Record<NasabahStatus, string> = {
+  AKTIF: \"bg-emerald-100 text-emerald-700\",
+  NON_AKTIF: \"bg-amber-100 text-amber-700\",
+  KELUAR: \"bg-gray-100 text-gray-700\",
+}
+
+const lifecycleOrder: NasabahStatus[] = [\"AKTIF\", \"NON_AKTIF\", \"KELUAR\"]
+
+const nextTransitions: Record<NasabahStatus, NasabahStatus[]> = {
+  AKTIF: [\"NON_AKTIF\", \"KELUAR\"],
+  NON_AKTIF: [\"AKTIF\", \"KELUAR\"],
+  KELUAR: [],
+}
+
+export function StatusLifecycleControls({
+  nasabahId,
+  status,
+  onStatusChange,
+}: {
+  nasabahId: string
+  status: NasabahStatus
+  onStatusChange?: (next: NasabahStatus) => void
+}) {
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  const available = useMemo(() => nextTransitions[status], [status])
+
+  const handleTransition = (target: NasabahStatus) => {
+    if (target === status || isPending) return
+
+    if (target === \"KELUAR\") {
+      const confirmed = window.confirm(
+        \"Status akan diubah ke Keluar. Data nasabah tetap tersimpan (non-destructive). Lanjutkan?\",
+      )
+      if ("'!confirmed) return
+    }
+
+    startTransition(async () => {
+      const result = await ubahStatusNasabah(nasabahId, target)
+      if (!result.success) {
+        toast.error(result.error ?? "Gagal mengubah status nasabah.")
+        return
+      }
+
+      onStatusChange?.(target)
+      toast.success(`Status nasabah diubah ke ${statusLabel[target]}.`)
+      router.refresh()
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Lifecycle Status Nasabah</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-xs text-muted-foreground">Status saat ini</div>
+          <Badge className={statusBadgeClass[status]}>{statusLabel[status]}</Badge>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">Tahapan lifecycle</p>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {lifecycleOrder.map((stage, idx) => (
+              <div key={stage} className="flex items-center gap-2">
+                <Badge className={stage === status ? statusBadgeClass[stage] : "bg-muted text-muted-foreground"}>
+                  {statusLabel[stage]}
+                </Badge>
+                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">-></span> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">Transisi tersedia (non-destructive)</p>
+          {available.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {available.map((target) => (
+                <Button
+                  key={target}
+                  type="button"
+                  variant={target === "KELUAR" ? "outline" : "default"}
+                  className={target === "AKTIF" ? "bg-emerald-600 hover:bg-emerald-700" : undefined}
+                  onClick={() => handleTransition(target)}
+                  disabled={isPending}
+                >
+                  {isPending ? "Memproses..." : `Ubah ke ${statusLabel[target]}`}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Status akhir tercapai. Tidak ada transisi lanjutan.</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+EOF' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+codex
+I’m updating `edit-form.tsx` to sync form `status` with the new lifecycle controls and removing the free-form status dropdown so transitions happen via controlled actions.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+codex
+The lifecycle UI is wired and scoped to your owned files. I’m now running `lint` and `build` in `dashboard/`, then I’ll commit with a focused message if both pass.
+exec
+/bin/bash -lc 'npm run lint' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+exec
+/bin/bash -lc 'npm run build' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+ exited 127 in 585ms:
+
+> dashboard@0.1.0 lint
+> eslint
+
+sh: 1: eslint: not found
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+ exited 127 in 692ms:
+
+> dashboard@0.1.0 build
+> next build
+
+sh: 1: next: not found
+
+codex
+`lint`/`build` failed because local binaries (`eslint`, `next`) are missing, so dependencies are not installed in this checkout. I’m installing packages and rerunning both checks.
+exec
+/bin/bash -lc 'npm install' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+ succeeded in 77490ms:
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> dashboard@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.7.0) to ./node_modules/@prisma/client in 895ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+added 862 packages, and audited 863 packages in 1m
+
+255 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+codex
+Dependencies installed successfully; I’m rerunning `lint` and `build` now to verify the changes compile cleanly.
+exec
+/bin/bash -lc 'npm run lint' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+exec
+/bin/bash -lc 'npm run build' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+ exited 1 in 77420ms:
+
+> dashboard@0.1.0 build
+> next build
+
+▲ Next.js 16.2.4 (Turbopack)
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx:89:93
+Unexpected token. Did you mean `{'>'}` or `&gt;`?
+  [90m87 |[0m ...
+  [90m88 |[0m ...
+[31m[1m>[0m [90m89 |[0m ...? <span className=[32m"text-muted-foreground"[0m>-></span> : [36mnull[0m}
+  [90m   |[0m                                               [31m[1m^[0m
+  [90m90 |[0m ...
+  [90m91 |[0m ...
+  [90m92 |[0m ...
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Server Component:
+    ./src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+    ./src/app/(dashboard)/nasabah/[id]/page.tsx
+
+  Client Component Browser:
+    ./src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx [Client Component Browser]
+    ./src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx [Client Component Browser]
+    ./src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx [Server Component]
+    ./src/app/(dashboard)/nasabah/[id]/edit/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx [Client Component SSR]
+    ./src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx [Client Component SSR]
+    ./src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx [Server Component]
+    ./src/app/(dashboard)/nasabah/[id]/edit/page.tsx [Server Component]
+
+
+    at <unknown> (./src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx:89:93)
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+ exited 1 in 79514ms:
+
+> dashboard@0.1.0 lint
+> eslint
+
+
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/actions/maintenance.ts
+   17:10  warning  'requireRoles' is defined but never used               @typescript-eslint/no-unused-vars
+   29:7   warning  'DEFAULT_ACCOUNTS' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  175:16  warning  'upsertDemoUser' is defined but never used             @typescript-eslint/no-unused-vars
+
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+  89:92  error  Parsing error: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+  135:71  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  135:95  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+✖ 6 problems (3 errors, 3 warnings)
+
+
+codex
+Build failure is from the new lifecycle component (`->` in JSX text). I’m patching that syntax and rerunning checks; remaining lint issues in other files look pre-existing and outside your ownership.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+index 784349b72f1ff30d587de56e8393e2a7a2ff0ca9..80c3787cbca13f75c06a57fa1a043ef518f6340c
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+@@ -86,7 +86,7 @@
+                 <Badge className={stage === status ? statusBadgeClass[stage] : "bg-muted text-muted-foreground"}>
+                   {statusLabel[stage]}
+                 </Badge>
+-                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">-></span> : null}
++                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">{"->"}</span> : null}
+               </div>
+             ))}
+           </div>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+index 784349b72f1ff30d587de56e8393e2a7a2ff0ca9..80c3787cbca13f75c06a57fa1a043ef518f6340c
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+@@ -86,7 +86,7 @@
+                 <Badge className={stage === status ? statusBadgeClass[stage] : "bg-muted text-muted-foreground"}>
+                   {statusLabel[stage]}
+                 </Badge>
+-                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">-></span> : null}
++                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">{"->"}</span> : null}
+               </div>
+             ))}
+           </div>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+exec
+/bin/bash -lc 'npm run lint' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+exec
+/bin/bash -lc 'npm run build' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+index 784349b72f1ff30d587de56e8393e2a7a2ff0ca9..80c3787cbca13f75c06a57fa1a043ef518f6340c
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+@@ -86,7 +86,7 @@
+                 <Badge className={stage === status ? statusBadgeClass[stage] : "bg-muted text-muted-foreground"}>
+                   {statusLabel[stage]}
+                 </Badge>
+-                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">-></span> : null}
++                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">{"->"}</span> : null}
+               </div>
+             ))}
+           </div>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+ exited 1 in 38077ms:
+
+> dashboard@0.1.0 lint
+> eslint
+
+
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/actions/maintenance.ts
+   17:10  warning  'requireRoles' is defined but never used               @typescript-eslint/no-unused-vars
+   29:7   warning  'DEFAULT_ACCOUNTS' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  175:16  warning  'upsertDemoUser' is defined but never used             @typescript-eslint/no-unused-vars
+
+/tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+  135:71  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  135:95  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+✖ 5 problems (2 errors, 3 warnings)
+
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+index 784349b72f1ff30d587de56e8393e2a7a2ff0ca9..80c3787cbca13f75c06a57fa1a043ef518f6340c
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+@@ -86,7 +86,7 @@
+                 <Badge className={stage === status ? statusBadgeClass[stage] : "bg-muted text-muted-foreground"}>
+                   {statusLabel[stage]}
+                 </Badge>
+-                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">-></span> : null}
++                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">{"->"}</span> : null}
+               </div>
+             ))}
+           </div>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+ succeeded in 58451ms:
+
+> dashboard@0.1.0 build
+> next build
+
+▲ Next.js 16.2.4 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 36.6s
+  Running TypeScript ...
+  Finished TypeScript in 17.6s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/53) ...
+  Generating static pages using 3 workers (13/53) 
+  Generating static pages using 3 workers (26/53) 
+  Generating static pages using 3 workers (39/53) 
+✓ Generating static pages using 3 workers (53/53) in 699ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ƒ /akuntansi/akun
+├ ƒ /akuntansi/mapping-kategori
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/upload/kas
+├ ƒ /api/upload/logo
+├ ƒ /api/upload/nasabah
+├ ƒ /api/upload/pembayaran
+├ ƒ /api/upload/pengajuan
+├ ○ /blog
+├ ○ /contact
+├ ƒ /dashboard
+├ ƒ /docs/panduan-pengguna
+├ ƒ /docs/using-superpowers
+├ ƒ /dokumen/kartu-angsuran/[id]
+├ ƒ /dokumen/kuitansi/[id]
+├ ƒ /dokumen/pencairan/[id]
+├ ○ /home
+├ ƒ /kas
+├ ƒ /kelompok
+├ ƒ /kelompok/[id]/edit
+├ ƒ /kelompok/baru
+├ ƒ /kolektor
+├ ƒ /laporan/arus-kas
+├ ƒ /laporan/buku-besar
+├ ƒ /laporan/history-pembayaran
+├ ƒ /laporan/laba-rugi
+├ ƒ /laporan/neraca
+├ ƒ /laporan/per-kelompok
+├ ƒ /laporan/rekonsiliasi
+├ ƒ /laporan/transaksi-per-user
+├ ○ /login
+├ ƒ /monitoring/kolektor
+├ ƒ /monitoring/tunggakan
+├ ƒ /nasabah
+├ ƒ /nasabah/[id]
+├ ƒ /nasabah/[id]/edit
+├ ƒ /nasabah/baru
+├ ƒ /pembayaran
+├ ƒ /pembayaran/[id]/pembatalan
+├ ƒ /penawaran
+├ ƒ /pencairan
+├ ƒ /pengajuan
+├ ƒ /pengajuan/[id]
+├ ƒ /pengajuan/[id]/approve
+├ ƒ /pengajuan/baru
+├ ƒ /platform
+├ ƒ /platform/companies
+├ ƒ /platform/companies/[id]
+├ ƒ /platform/companies/[id]/workspace
+├ ƒ /platform/users
+├ ○ /product
+├ ○ /register
+├ ƒ /roadmap
+├ ƒ /settings
+├ ƒ /settings/accounting
+├ ƒ /settings/company
+├ ƒ /settings/maintenance
+├ ƒ /settings/profile
+├ ƒ /settings/ranking
+└ ƒ /settings/users
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+codex
+Build now passes. I’m checking git status/diff to ensure the commit includes only your scoped UI lifecycle files (and not incidental install artifacts).
+exec
+/bin/bash -lc "git -C /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard diff -- 'src/app/(dashboard)/nasabah/[id]/page.tsx' 'src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx' 'src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx' | sed -n '1,260p'" in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c..a0f765b 100644
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@ export function EditNasabahForm({
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@ export function EditNasabahForm({
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@ export function EditNasabahForm({
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef9..5929207 100644
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@ export default async function NasabahDetailPage({ params }: { params: Promise<{
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+
+exec
+/bin/bash -lc 'git -C /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle/dashboard status --short' in /tmp/codex-fanout/20260423_125858/p1b-ui-detail-edit-lifecycle
+ succeeded in 0ms:
+ M src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+ M src/app/(dashboard)/nasabah/[id]/page.tsx
+?? src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+index 89ad33c1e96e7e2640ae71bc2e1093d70ed6dfa9..a0f765b24088729ef2ddf91af57858431341fbac
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+@@ -15,6 +15,7 @@
+ import { Textarea } from "@/components/ui/textarea"
+ import { toast } from "sonner"
+ import { useState } from "react"
++import { StatusLifecycleControls } from "./status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -51,6 +52,7 @@
+ }) {
+   const [isPending, startTransition] = useTransition()
+   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
++  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
+   const [dokumenText, setDokumenText] = useState("")
+   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
+   const router = useRouter()
+@@ -70,7 +72,7 @@
+       pekerjaan: nasabah.pekerjaan ?? "",
+       namaUsaha: nasabah.namaUsaha ?? "",
+       dokumenUrls: nasabah.dokumenUrls ?? [],
+-      status: nasabah.status,
++      status: currentStatus,
+       kelompokId: nasabah.kelompokId ?? undefined,
+       kolektorId: nasabah.kolektorId ?? undefined,
+     },
+@@ -198,19 +200,18 @@
+               <Label htmlFor="namaUsaha">Nama Usaha</Label>
+               <Input id="namaUsaha" {...register("namaUsaha")} />
+             </div>
+-            <div className="space-y-2">
+-              <Label>Status</Label>
+-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
+-                <SelectTrigger><SelectValue /></SelectTrigger>
+-                <SelectContent>
+-                  <SelectItem value="AKTIF">Aktif</SelectItem>
+-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+-                  <SelectItem value="KELUAR">Keluar</SelectItem>
+-                </SelectContent>
+-              </Select>
+-            </div>
++            <div className="space-y-2" />
+           </div>
+ 
++          <StatusLifecycleControls
++            nasabahId={nasabah.id}
++            status={currentStatus}
++            onStatusChange={(next) => {
++              setCurrentStatus(next)
++              setValue("status", next, { shouldDirty: true, shouldValidate: true })
++            }}
++          />
++
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label>Kelompok</Label>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+index 784349b72f1ff30d587de56e8393e2a7a2ff0ca9..80c3787cbca13f75c06a57fa1a043ef518f6340c
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/edit/status-lifecycle-controls.tsx
+@@ -86,7 +86,7 @@
+                 <Badge className={stage === status ? statusBadgeClass[stage] : "bg-muted text-muted-foreground"}>
+                   {statusLabel[stage]}
+                 </Badge>
+-                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">-></span> : null}
++                {idx < lifecycleOrder.length - 1 ? <span className="text-muted-foreground">{"->"}</span> : null}
+               </div>
+             ))}
+           </div>
+diff --git a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+index a477ef92bb215a66a8b9e085b398ab331171e118..5929207dc7e61cbc2f01edf2432c908fb8ac2f74
+--- a/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
++++ b/dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+@@ -9,6 +9,7 @@
+ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+ import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+ import { computeRanking, explainRanking } from "@/lib/ranking"
++import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
+ 
+ function docTitle(url: string) {
+   const clean = url.split("?")[0]
+@@ -316,6 +317,8 @@
+           </CardContent>
+         </Card>
+ 
++        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
++
+         {/* Penjamin */}
+         <Card id="penjamin" className="scroll-mt-24">
+           <CardHeader>
+

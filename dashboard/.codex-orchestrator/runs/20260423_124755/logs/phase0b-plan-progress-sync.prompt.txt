@@ -1,0 +1,1 @@
+You are worker C. Create a concrete progress report for Phase 0 using format from MASTER-PLAN-KOPERASI-UMUM.md section 7 and place it at docs/internal/progress/2026-04-23-phase0-progress.md. Include completed/pending items and explicit testing evidence. Update AGENTS.md references if needed. Commit your branch.

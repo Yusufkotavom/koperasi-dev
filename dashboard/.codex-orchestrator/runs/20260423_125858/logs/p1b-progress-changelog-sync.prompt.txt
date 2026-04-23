@@ -1,0 +1,1 @@
+Worker 8 ownership: CHANGELOG.md, docs/internal/progress/*, docs/internal/MASTER-PLAN-KOPERASI-UMUM.md only. Update Phase 1 progress checklists and add orchestrator run log template with testing evidence fields. Do not mark items complete without evidence. Commit.

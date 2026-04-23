@@ -56,6 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           companyId: user.companyId,
           companyName: user.company?.name ?? null,
           companySlug: user.company?.slug ?? null,
+          companyStatus: user.company?.status ?? null,
         }
       },
     }),
@@ -68,6 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         companyId?: string | null
         companyName?: string | null
         companySlug?: string | null
+        companyStatus?: string | null
       }
 
       if (user) {
@@ -80,6 +82,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         t.companyName = user.companyName
         // @ts-expect-error custom field
         t.companySlug = user.companySlug
+        // @ts-expect-error custom field
+        t.companyStatus = user.companyStatus
       }
 
       if (!t.id && token.sub) {
@@ -93,15 +97,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           t.companyId = null
           t.companyName = null
           t.companySlug = null
+          t.companyStatus = null
         } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
           const company = await prisma.company.findUnique({
             where: { id: next.actingCompanyId },
-            select: { id: true, name: true, slug: true },
+            select: { id: true, name: true, slug: true, status: true },
           })
           if (company) {
             t.companyId = company.id
             t.companyName = company.name
             t.companySlug = company.slug
+            t.companyStatus = company.status
           }
         }
       }
@@ -117,7 +123,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: token.email.toLowerCase() },
           include: {
             roles: true,
-            company: { select: { id: true, name: true, slug: true } },
+            company: { select: { id: true, name: true, slug: true, status: true } },
           },
         })
 
@@ -127,6 +133,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           t.companyId = dbUser.companyId
           t.companyName = dbUser.company?.name ?? null
           t.companySlug = dbUser.company?.slug ?? null
+          t.companyStatus = dbUser.company?.status ?? null
         }
       }
       return token
@@ -139,6 +146,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           companyId?: string | null
           companyName?: string | null
           companySlug?: string | null
+          companyStatus?: string | null
         }
         // @ts-expect-error custom field
         session.user.roles = Array.isArray(t.roles) ? t.roles : []
@@ -149,6 +157,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.companyName = (t.companyName ?? null) as string | null
         // @ts-expect-error custom field
         session.user.companySlug = (t.companySlug ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyStatus = (t.companyStatus ?? null) as string | null
       }
       return session
     },

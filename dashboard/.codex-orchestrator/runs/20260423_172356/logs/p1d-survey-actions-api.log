@@ -1,0 +1,3382 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dbb5e-ae7b-7b03-9b58-44ab0297c7c7
+--------
+user
+You are Worker p1d-survey-actions-api. Ownership: src/actions/nasabah-survey.ts (new), src/app/api/nasabah/[id]/survey/route.ts (new). Task: implement list/create survey note API scoped by companyId and role guard; validation non-empty note and sensible max length; stable JSON responses. If schema model names differ, adapt cleanly. Add concise error handling. Run lint/build targeted checks and commit. You are not alone in codebase; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+codex
+Saya akan implement dua file baru untuk API catatan survey nasabah dengan scope `companyId`, role guard, validasi note, dan response JSON yang konsisten. Langkah pertama: saya cek struktur model/action yang sudah ada agar nama schema dan pola error handling mengikuti codebase ini.
+exec
+/bin/bash -lc "pwd && ls -la && rg --files src/actions src/app/api | sed -n '1,200p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+total 656
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 17:23 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 17:23 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 17:23 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 17:23 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 17:23 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 17:23 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 17:23 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 17:23 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 17:23 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 17:23 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 17:23 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 17:23 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 17:23 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 17:23 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 17:23 next.config.ts
+lrwxrwxrwx  1 kotacom kotacom     61 Apr 23 17:23 node_modules -> /home/kotacom/projects/koperasi-pinjam/dashboard/node_modules
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 17:23 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 17:23 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 17:23 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 17:23 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 17:23 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 17:23 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 17:23 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 17:23 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 17:23 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 17:23 tsconfig.json
+src/actions/company-users.ts
+src/actions/kelompok.ts
+src/actions/nasabah.ts
+src/actions/akuntansi.ts
+src/actions/maintenance.ts
+src/actions/auth-registration.ts
+src/actions/pengajuan.ts
+src/actions/settings.ts
+src/actions/kas.ts
+src/actions/platform-admin.ts
+src/actions/dashboard.ts
+src/actions/pembayaran.ts
+src/actions/kolektor.ts
+src/app/api/auth/[...nextauth]/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/kas/route.ts
+src/app/api/upload/logo/route.ts
+
+exec
+/bin/bash -lc "rg -n \"survey|nasabah|companyId|requireCompanyId|role|forbidden|NextResponse|zod|validation\" src/actions src/app/api src/lib prisma/schema.prisma | sed -n '1,260p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/schema.prisma:12:  role   RoleType
+prisma/schema.prisma:15:  @@unique([userId, role])
+prisma/schema.prisma:16:  @@map("user_roles")
+prisma/schema.prisma:45:  nasabah         Nasabah[]
+prisma/schema.prisma:67:  companyId              String?
+prisma/schema.prisma:75:  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+prisma/schema.prisma:79:  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+prisma/schema.prisma:81:  roles                  UserRole[]
+prisma/schema.prisma:82:  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+prisma/schema.prisma:84:  @@index([companyId])
+prisma/schema.prisma:110:  companyId     String
+prisma/schema.prisma:111:  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:118:  @@unique([companyId, nomorAnggota])
+prisma/schema.prisma:119:  @@unique([companyId, nik])
+prisma/schema.prisma:120:  @@index([companyId])
+prisma/schema.prisma:121:  @@map("nasabah")
+prisma/schema.prisma:131:  nasabahId   String
+prisma/schema.prisma:132:  companyId   String
+prisma/schema.prisma:133:  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:134:  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:136:  @@index([companyId])
+prisma/schema.prisma:149:  companyId       String
+prisma/schema.prisma:150:  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:151:  nasabah         Nasabah[]
+prisma/schema.prisma:154:  @@unique([companyId, kode])
+prisma/schema.prisma:155:  @@index([companyId])
+prisma/schema.prisma:162:  nasabahId            String
+prisma/schema.prisma:177:  surveyorId           String?
+prisma/schema.prisma:184:  companyId            String
+prisma/schema.prisma:186:  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:188:  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+prisma/schema.prisma:192:  @@index([companyId])
+prisma/schema.prisma:216:  companyId         String
+prisma/schema.prisma:219:  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:222:  @@index([companyId])
+prisma/schema.prisma:237:  companyId         String
+prisma/schema.prisma:238:  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:241:  @@index([companyId])
+prisma/schema.prisma:261:  companyId      String
+prisma/schema.prisma:262:  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:266:  @@index([companyId])
+prisma/schema.prisma:272:  nasabahId String
+prisma/schema.prisma:276:  companyId String
+prisma/schema.prisma:277:  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:278:  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id])
+prisma/schema.prisma:280:  @@index([companyId])
+prisma/schema.prisma:292:  companyId    String
+prisma/schema.prisma:293:  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:298:  @@unique([companyId, code])
+prisma/schema.prisma:300:  @@index([companyId])
+prisma/schema.prisma:315:  companyId   String
+prisma/schema.prisma:316:  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:323:  @@index([companyId])
+prisma/schema.prisma:357:  companyId      String
+prisma/schema.prisma:359:  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:363:  @@index([companyId])
+prisma/schema.prisma:377:  companyId    String
+prisma/schema.prisma:379:  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:382:  @@unique([companyId, key])
+prisma/schema.prisma:383:  @@index([companyId])
+prisma/schema.prisma:400:  companyId   String
+prisma/schema.prisma:402:  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:406:  @@index([companyId])
+prisma/schema.prisma:458:  companyId          String
+prisma/schema.prisma:459:  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:464:  @@index([companyId])
+prisma/schema.prisma:478:  companyId String
+prisma/schema.prisma:479:  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:483:  @@index([companyId])
+prisma/schema.prisma:497:  companyId String
+prisma/schema.prisma:501:  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+prisma/schema.prisma:503:  @@unique([companyId, key])
+src/lib/accounting.ts:33:  companyId: string
+src/lib/accounting.ts:69:export async function ensureAccountingAccounts(companyId: string, db: DbClient = prisma) {
+src/lib/accounting.ts:72:      where: { companyId_code: { companyId, code: account.code } },
+src/lib/accounting.ts:76:        companyId,
+src/lib/accounting.ts:83:export async function getCashBalanceByJenis(companyId: string, kasJenis: "TUNAI" | "BANK", asOf?: Date, db: DbClient = prisma) {
+src/lib/accounting.ts:86:    where: { companyId_code: { companyId, code: accountCode } },
+src/lib/accounting.ts:108:    await ensureAccountingAccounts(input.companyId, db)
+src/lib/accounting.ts:137:    where: { companyId: input.companyId, code: { in: normalized.map((line) => line.accountCode) } },
+src/lib/accounting.ts:146:      companyId: input.companyId,
+src/lib/accounting.ts:169:    companyId: string
+src/lib/accounting.ts:183:    companyId: input.companyId,
+src/lib/accounting.ts:201:    companyId: string
+src/lib/accounting.ts:215:    companyId: input.companyId,
+src/lib/accounting.ts:247:    companyId: kas.companyId,
+src/lib/tenant.ts:2:import { requireRoles } from "@/lib/roles"
+src/lib/tenant.ts:7:    roles?: string[]
+src/lib/tenant.ts:8:    companyId?: string | null
+src/lib/tenant.ts:12:export function requireCompanyId(session: SessionLike) {
+src/lib/tenant.ts:16:  const companyId = session.user?.companyId
+src/lib/tenant.ts:17:  if (!companyId) {
+src/lib/tenant.ts:19:    const roles = session.user?.roles ?? []
+src/lib/tenant.ts:20:    if (roles.includes(RoleType.SUPER_ADMIN)) {
+src/lib/tenant.ts:26:  return { userId, companyId }
+src/lib/tenant.ts:31:  const companyId = session?.user?.companyId
+src/lib/tenant.ts:32:  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+src/lib/tenant.ts:33:  return { userId, companyId }
+src/lib/roles.ts:6:    roles?: string[]
+src/lib/roles.ts:11:  const roles = session?.user?.roles ?? []
+src/lib/roles.ts:12:  return roles.filter((role): role is RoleType =>
+src/lib/roles.ts:13:    Object.values(RoleType).includes(role as RoleType)
+src/lib/roles.ts:23:  const roles = extractRoles(session)
+src/lib/roles.ts:24:  const allowed = roles.some((role) => allowedRoles.includes(role))
+src/lib/roles.ts:30:  return { userId, roles }
+src/lib/roles.ts:34:  const roles = extractRoles(session)
+src/lib/roles.ts:35:  return roles.some((role) => allowedRoles.includes(role))
+src/lib/auth.ts:5:import { z } from "zod"
+src/lib/auth.ts:40:            roles: true,
+src/lib/auth.ts:55:          roles: user.roles.map((r: { role: string }) => r.role),
+src/lib/auth.ts:56:          companyId: user.companyId,
+src/lib/auth.ts:67:        roles?: string[]
+src/lib/auth.ts:68:        companyId?: string | null
+src/lib/auth.ts:75:        t.roles = user.roles
+src/lib/auth.ts:78:        t.companyId = user.companyId
+src/lib/auth.ts:89:      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+src/lib/auth.ts:93:          t.companyId = null
+src/lib/auth.ts:102:            t.companyId = company.id
+src/lib/auth.ts:110:        !Array.isArray(t.roles) ||
+src/lib/auth.ts:113:        t.companyId === undefined
+src/lib/auth.ts:119:            roles: true,
+src/lib/auth.ts:126:          t.roles = dbUser.roles.map((r) => r.role)
+src/lib/auth.ts:127:          t.companyId = dbUser.companyId
+src/lib/auth.ts:138:          roles?: string[]
+src/lib/auth.ts:139:          companyId?: string | null
+src/lib/auth.ts:144:        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+src/lib/auth.ts:147:        session.user.companyId = (t.companyId ?? null) as string | null
+src/lib/validations/kelompok.ts:1:import { z } from "zod"
+src/lib/validations/nasabah.ts:1:import { z } from "zod"
+src/lib/validations/nasabah.ts:3:export const nasabahSchema = z.object({
+src/lib/validations/nasabah.ts:21:export type NasabahInput = z.infer<typeof nasabahSchema>
+src/lib/validations/pengajuan.ts:1:import { z } from "zod"
+src/lib/validations/pengajuan.ts:4:  nasabahId: z.string().min(1, "Pilih nasabah"),
+src/lib/validations/pembayaran.ts:1:import { z } from "zod"
+src/actions/company-users.ts:6:import { z } from "zod"
+src/actions/company-users.ts:9:import { requireRoles } from "@/lib/roles"
+src/actions/company-users.ts:14:    roles?: string[]
+src/actions/company-users.ts:15:    companyId?: string | null
+src/actions/company-users.ts:33:  role: z.enum(manageableRoles, { message: "Role tidak valid" }),
+src/actions/company-users.ts:41:  roles: string[]
+src/actions/company-users.ts:47:  errors?: Partial<Record<"name" | "email" | "password" | "role", string[]>>
+src/actions/company-users.ts:51:  const companyId = session?.user?.companyId
+src/actions/company-users.ts:52:  if (!companyId) throw new Error("Company belum terhubung ke akun ini.")
+src/actions/company-users.ts:53:  return companyId
+src/actions/company-users.ts:59:  const companyId = getCompanyId(session as unknown as SessionLike)
+src/actions/company-users.ts:62:    where: { companyId },
+src/actions/company-users.ts:69:      roles: { select: { role: true }, orderBy: { role: "asc" } },
+src/actions/company-users.ts:75:    roles: user.roles.map((item) => item.role),
+src/actions/company-users.ts:85:  const companyId = getCompanyId(session as unknown as SessionLike)
+src/actions/company-users.ts:91:    role: formData.get("role"),
+src/actions/company-users.ts:117:      companyId,
+src/actions/company-users.ts:119:      roles: {
+src/actions/company-users.ts:120:        create: [{ role: parsed.data.role }],
+src/actions/kelompok.ts:6:import { kelompokSchema } from "@/lib/validations/kelompok"
+src/actions/kelompok.ts:7:import { requireRoles } from "@/lib/roles"
+src/actions/kelompok.ts:9:import { requireCompanyId } from "@/lib/tenant"
+src/actions/kelompok.ts:14:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:19:          companyId,
+src/actions/kelompok.ts:26:      : { companyId },
+src/actions/kelompok.ts:34:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:37:    where: { id, companyId },
+src/actions/kelompok.ts:39:      nasabah: {
+src/actions/kelompok.ts:53:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:55:  return prisma.nasabah.findMany({
+src/actions/kelompok.ts:56:    where: { companyId, status: "AKTIF" },
+src/actions/kelompok.ts:66:async function resolveKetuaNama(companyId: string, ketuaNasabahId?: string, ketuaManual?: string) {
+src/actions/kelompok.ts:68:  const ketuaNasabah = await prisma.nasabah.findFirst({
+src/actions/kelompok.ts:69:    where: { id: ketuaNasabahId, companyId },
+src/actions/kelompok.ts:78:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:84:    where: { companyId_kode: { companyId, kode: parsed.data.kode } },
+src/actions/kelompok.ts:93:  const ketuaNama = await resolveKetuaNama(companyId, parsed.data.ketuaNasabahId, parsed.data.ketua)
+src/actions/kelompok.ts:98:        companyId,
+src/actions/kelompok.ts:108:      await tx.nasabah.updateMany({
+src/actions/kelompok.ts:109:        where: { companyId, id: { in: anggotaIds } },
+src/actions/kelompok.ts:118:  revalidatePath("/nasabah")
+src/actions/kelompok.ts:125:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:131:    where: { companyId, kode: parsed.data.kode, id: { not: id } },
+src/actions/kelompok.ts:140:  const ketuaNama = await resolveKetuaNama(companyId, parsed.data.ketuaNasabahId, parsed.data.ketua)
+src/actions/kelompok.ts:143:    const current = await tx.kelompok.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/kelompok.ts:157:    await tx.nasabah.updateMany({
+src/actions/kelompok.ts:158:      where: { companyId, kelompokId: id, ...(anggotaIds.length > 0 ? { id: { notIn: anggotaIds } } : {}) },
+src/actions/kelompok.ts:163:      await tx.nasabah.updateMany({
+src/actions/kelompok.ts:164:        where: { companyId, id: { in: anggotaIds } },
+src/actions/kelompok.ts:172:  revalidatePath("/nasabah")
+src/actions/kelompok.ts:179:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/kelompok.ts:188:    where: { id, companyId },
+src/actions/kelompok.ts:193:          nasabah: true,
+src/actions/kelompok.ts:212:    if (kelompok._count.nasabah > 0) {
+src/actions/kelompok.ts:213:      await tx.nasabah.updateMany({
+src/actions/kelompok.ts:214:        where: { companyId, kelompokId: id },
+src/actions/kelompok.ts:222:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:6:import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+src/actions/nasabah.ts:11:import { requireRoles } from "@/lib/roles"
+src/actions/nasabah.ts:12:import { requireCompanyId } from "@/lib/tenant"
+src/actions/nasabah.ts:16:  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+src/actions/nasabah.ts:25:async function generateNomorAnggota(companyId: string): Promise<string> {
+src/actions/nasabah.ts:26:  const count = await prisma.nasabah.count({ where: { companyId } })
+src/actions/nasabah.ts:50:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:61:      { companyId },
+src/actions/nasabah.ts:77:    prisma.nasabah.findMany({
+src/actions/nasabah.ts:116:    prisma.nasabah.count({ where }),
+src/actions/nasabah.ts:119:  const withIndicators = data.map((nasabah) => {
+src/actions/nasabah.ts:134:    const pinjamanList = nasabah.pengajuan
+src/actions/nasabah.ts:203:      ...nasabah,
+src/actions/nasabah.ts:229:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:230:  const result = await prisma.nasabah.findFirst({
+src/actions/nasabah.ts:231:    where: { id, companyId },
+src/actions/nasabah.ts:262:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:264:  const parsed = nasabahSchema.safeParse(input)
+src/actions/nasabah.ts:270:  const existingNik = await prisma.nasabah.findFirst({
+src/actions/nasabah.ts:271:    where: { companyId, nik: parsed.data.nik },
+src/actions/nasabah.ts:284:    const kelompok = await prisma.kelompok.findFirst({ where: { id: kelompokId, companyId }, select: { id: true } })
+src/actions/nasabah.ts:293:    const nomorAnggota = await generateNomorAnggota(companyId)
+src/actions/nasabah.ts:295:      const nasabah = await prisma.nasabah.create({
+src/actions/nasabah.ts:297:          companyId,
+src/actions/nasabah.ts:308:      revalidatePath("/nasabah")
+src/actions/nasabah.ts:309:      return { success: true, data: nasabah }
+src/actions/nasabah.ts:330:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:332:  const current = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/nasabah.ts:341:    const existingNik = await prisma.nasabah.findFirst({
+src/actions/nasabah.ts:343:        companyId,
+src/actions/nasabah.ts:360:    const kelompok = await prisma.kelompok.findFirst({ where: { id: normalized.kelompokId, companyId }, select: { id: true } })
+src/actions/nasabah.ts:365:    await prisma.nasabah.update({
+src/actions/nasabah.ts:382:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:383:  revalidatePath(`/nasabah/${id}`)
+src/actions/nasabah.ts:390:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:392:  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/nasabah.ts:394:  await prisma.nasabah.update({ where: { id }, data: { status } })
+src/actions/nasabah.ts:395:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:402:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:407:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+src/actions/nasabah.ts:410:  const nasabah = await prisma.nasabah.findUnique({
+src/actions/nasabah.ts:424:  if (!nasabah) {
+src/actions/nasabah.ts:428:  const nasabahCompany = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+src/actions/nasabah.ts:429:  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+src/actions/nasabah.ts:431:  if (nasabah._count.pengajuan > 0 || nasabah._count.simpanan > 0) {
+src/actions/nasabah.ts:438:  await prisma.nasabah.delete({ where: { id } })
+src/actions/nasabah.ts:440:  revalidatePath("/nasabah")
+src/actions/nasabah.ts:449:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:450:  return prisma.kelompok.findMany({ where: { companyId }, orderBy: { nama: "asc" } })
+src/actions/nasabah.ts:456:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/nasabah.ts:458:    where: { companyId, roles: { some: { role: "KOLEKTOR" } }, isActive: true },
+src/actions/akuntansi.ts:3:import { z } from "zod"
+src/actions/akuntansi.ts:6:import { requireRoles } from "@/lib/roles"
+src/actions/akuntansi.ts:13:import { requireCompanyId } from "@/lib/tenant"
+src/actions/akuntansi.ts:15:async function ensureDefaultAccounts(companyId: string) {
+src/actions/akuntansi.ts:16:  await ensureAccountingAccounts(companyId)
+src/actions/akuntansi.ts:19:type SessionLike = { user?: { id?: string; roles?: string[] } } | null
+src/actions/akuntansi.ts:29:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:31:  await ensureDefaultAccounts(companyId)
+src/actions/akuntansi.ts:34:    where: { companyId, isActive: true },
+src/actions/akuntansi.ts:55:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:60:  const existing = await prisma.account.findUnique({ where: { companyId_code: { companyId, code: parsed.data.code } } })
+src/actions/akuntansi.ts:65:      companyId,
+src/actions/akuntansi.ts:89:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+src/actions/akuntansi.ts:91:  await ensureDefaultAccounts(companyId)
+src/actions/akuntansi.ts:94:    prisma.account.findMany({ where: { companyId, isActive: true }, orderBy: [{ type: "asc" }, { code: "asc" }] }),
+src/actions/akuntansi.ts:96:      where: { companyId, isActive: true },
+src/actions/akuntansi.ts:114:  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+codex
+Saya sudah menemukan pola tenant/role yang dipakai. Berikutnya saya baca model Prisma terkait survey dan contoh route handler API yang sudah ada, plus panduan Next.js lokal untuk route handlers agar implementasi sesuai versi Next 16 di repo ini.
+exec
+/bin/bash -lc "sed -n '90,240p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  id              String      @id @default(cuid())
+  kode            String
+  nama            String
+  ketua           String?
+  wilayah         String?
+  jadwalPertemuan String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '240,340p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh      User        @relation(fields: [inputOlehId], references: [id])
+  pinjaman       Pinjaman    @relation(fields: [pinjamanId], references: [id])
+
+  @@index([companyId])
+  @@map("pembayaran")
+}
+
+model Simpanan {
+  id        String   @id @default(cuid())
+  nasabahId String
+  jenis     String
+  jumlah    Decimal  @db.Decimal(15, 2)
+  tanggal   DateTime @default(now())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id])
+
+  @@index([companyId])
+  @@map("simpanan")
+}
+
+model Account {
+  id           String            @id @default(cuid())
+  code         String
+  name         String
+  type         AccountType
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  companyId    String
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  kasKategori  KasKategori[]
+  rekonsiliasi RekonsiliasiKas[]
+
+  @@unique([companyId, code])
+  @@index([type, isActive])
+  @@index([companyId])
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id          String            @id @default(cuid())
+  entryNo     String            @unique @default(cuid())
+  entryDate   DateTime
+  description String
+  sourceType  JournalSourceType
+  sourceId    String?
+  status      JournalStatus     @default(POSTED)
+  postedById  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  postedBy    User?             @relation("JournalPostedBy", fields: [postedById], references: [id])
+  lines       JournalLine[]
+
+  @@unique([sourceType, sourceId])
+  @@index([entryDate])
+  @@index([sourceType, sourceId])
+  @@index([companyId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal      @default(0) @db.Decimal(15, 2)
+  credit         Decimal      @default(0) @db.Decimal(15, 2)
+  memo           String?
+  createdAt      DateTime     @default(now())
+  account        Account      @relation(fields: [accountId], references: [id])
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_lines")
+
+exec
+/bin/bash -lc "ls -la node_modules/next/dist/docs | sed -n '1,120p' && rg -n \"route handler|Route Handlers|app/api|NextResponse|params\" node_modules/next/dist/docs -S | sed -n '1,120p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+total 28
+drwxr-xr-x  6 kotacom kotacom 4096 Apr 19 14:03 .
+drwxr-xr-x 22 kotacom kotacom 4096 Apr 19 14:03 ..
+drwxr-xr-x  5 kotacom kotacom 4096 Apr 19 14:03 01-app
+drwxr-xr-x  6 kotacom kotacom 4096 Apr 19 14:03 02-pages
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 19 14:03 03-architecture
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 19 14:03 04-community
+-rw-r--r--  1 kotacom kotacom 3361 Apr 19 14:03 index.md
+node_modules/next/dist/docs/index.md:29:- [API Reference](/docs/app/api-reference): Detailed technical reference for every feature.
+node_modules/next/dist/docs/02-pages/02-guides/draft-mode.md:116:If you’re also using `getStaticPaths`, then `context.params` will also be available.
+node_modules/next/dist/docs/02-pages/02-guides/preview-mode.md:157:If you’re also using `getStaticPaths`, then `context.params` will also be available.
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/05-client-side-rendering.md:71:> Keep in mind that CSR can impact SEO. Some search engine crawlers might not execute JavaScript and therefore only see the initial empty or loading state of your application. It can also lead to performance issues for users with slower internet connections or devices, as they need to wait for all the JavaScript to load and run before they can see the full page. Next.js promotes a hybrid approach that allows you to use a combination of [server-side rendering](/docs/pages/building-your-application/rendering/server-side-rendering), [static site generation](/docs/pages/building-your-application/rendering/static-site-generation), and client-side rendering, **depending on the needs of each page** in your application. In the App Router, you can also use [Loading UI with Suspense](/docs/app/api-reference/file-conventions/loading) to show a loading indicator while the page is being rendered.
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:131:    params: { id: post.id },
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:152:export async function getStaticProps({ params }) {
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:153:  // params contains the post `id`.
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:154:  // If the route is like /posts/1, then params.id is 1
+node_modules/next/dist/docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.md:155:  const res = await fetch(`https://.../posts/${params.id}`)
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md:26:        params: {
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md:55:        params: {
+node_modules/next/dist/docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.md:135:    params: { id: post.id },
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md:16:> **Good to know**: If you are using the App Router, you can use [Server Components](/docs/app/getting-started/server-and-client-components) or [Route Handlers](/docs/app/api-reference/file-conventions/route) instead of API Routes.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md:48:> - API Routes can't be used with [static exports](/docs/pages/guides/static-exports). However, [Route Handlers](/docs/app/api-reference/file-conventions/route) in the App Router can.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/07-api-routes.md:420:While the Pages Router does support streaming responses with API Routes, we recommend incrementally adopting the App Router and using [Route Handlers](/docs/app/api-reference/file-conventions/route) if you are on Next.js 14+.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:3:description: Dynamic Routes are pages that allow you to add custom params to your URLs. Start creating Dynamic Routes and learn more here.
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:33:| Route                  | Example URL | `params`        |
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:45:| Route                     | Example URL   | `params`                    |
+node_modules/next/dist/docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.md:59:| Route                       | Example URL   | `params`                    |
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:165:import { NextRequest, NextResponse } from 'next/server'
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:181:    return NextResponse.redirect(
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:298:For pages using `getStaticProps` with [Dynamic Routes](/docs/pages/building-your-application/routing/dynamic-routes), all locale variants of the page desired to be prerendered need to be returned from [`getStaticPaths`](/docs/pages/building-your-application/data-fetching/get-static-paths). Along with the `params` object returned for `paths`, you can also return a `locale` field specifying which locale you want to render. For example:
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:305:      { params: { slug: 'post-1' }, locale: 'en-US' },
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:306:      { params: { slug: 'post-1' }, locale: 'fr' },
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:17:    // Render fallback UI while search params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:36:    // Render fallback UI while search params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:86:For pages that are [statically optimized](/docs/pages/building-your-application/rendering/automatic-static-optimization) (not using `getServerSideProps`), `useSearchParams` will return `null` during prerendering. After hydration, the value will be updated to the actual search params.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:88:This is because search params cannot be known during static generation as they depend on the request.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:97:    // Return a fallback UI while search params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:115:    // Return a fallback UI while search params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:128:When using [`getServerSideProps`](/docs/pages/building-your-application/data-fetching/get-server-side-props), the page is server-rendered on each request and `useSearchParams` will return the actual search params immediately:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:180:### Updating search params
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:182:You can use the [`useRouter`](/docs/pages/api-reference/functions/use-router) hook to update search params:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:195:      const params = new URLSearchParams(searchParams?.toString())
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:196:      params.set(name, value)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:197:      return params.toString()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:239:      const params = new URLSearchParams(searchParams?.toString())
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:240:      params.set(name, value)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:241:      return params.toString()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-search-params.md:312:> **Good to know**: When using this component in the App Router, wrap it in a `<Suspense>` boundary for [prerendering](/docs/app/api-reference/functions/use-search-params#prerendering) support.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:24:        params: {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:53:        params: {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:84:    { params: { id: '1' }},
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:86:      params: { id: '2' },
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:97:The value for each `params` object must match the parameters used in the page name:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:99:- If the page name is `pages/posts/[postId]/[commentId]`, then `params` should contain `postId` and `commentId`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:100:- If the page name uses [catch-all routes](/docs/pages/building-your-application/routing/dynamic-routes#catch-all-segments) like `pages/[...slug]`, then `params` should contain `slug` (which is an array). If this array is `['hello', 'world']`, then Next.js will statically generate the page at `/hello/world`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:103:The `params` strings are **case-sensitive** and ideally should be normalized to ensure the paths are generated correctly. For example, if `WoRLD` is returned for a param it will only match if `WoRLD` is the actual path visited, not `world` or `World`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:105:Separate of the `params` object a `locale` field can be returned when [i18n is configured](/docs/pages/guides/internationalization), which configures the locale for the path being generated.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:128:    params: { id: post.id },
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:137:export async function getStaticProps({ params }) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:138:  // params contains the post `id`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:139:  // If the route is like /posts/1, then params.id is 1
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:140:  const res = await fetch(`https://.../posts/${params.id}`)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:225:    paths: [{ params: { id: '1' } }, { params: { id: '2' } }],
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:233:export async function getStaticProps({ params }) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:234:  // params contains the post `id`.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:235:  // If the route is like /posts/1, then params.id is 1
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:236:  const res = await fetch(`https://.../posts/${params.id}`)
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-paths.md:255:| `v13.4.0` | [App Router](/docs/app/getting-started/fetching-data) is now stable with simplified data fetching, including [`generateStaticParams()`](/docs/app/api-reference/functions/generate-static-params) |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-server-side-props.md:61:| `params`        | If this page uses a [dynamic route](/docs/pages/building-your-application/routing/dynamic-routes), `params` contains the route parameters. If the page name is `[id].js`, then `params` will look like `{ id: ... }`. |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/index.md:4:source: app/api-reference/functions
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/userAgent.md:4:source: app/api-reference/functions/userAgent
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:6:`useParams` is a hook that lets you read a route's [dynamic params](/docs/pages/building-your-application/routing/dynamic-routes) filled in by the current URL.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:12:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:14:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:15:    // Render fallback UI while params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:21:  // `params` -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:22:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:30:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:32:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:33:    // Render fallback UI while params are not yet available
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:39:  // `params` -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:40:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:47:const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:76:For pages that are [statically optimized](/docs/pages/building-your-application/rendering/automatic-static-optimization), `useParams` will return `null` on the initial render. After hydration, the value will be updated to the actual params once the router is ready.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:78:This is because params cannot be known during static generation for dynamic routes.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:84:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:86:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:87:    // Return a fallback UI while params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:92:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:100:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:102:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:103:    // Return a fallback UI while params are loading
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:108:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:114:When using [`getServerSideProps`](/docs/pages/building-your-application/data-fetching/get-server-side-props), the page is server-rendered on each request and `useParams` will return the actual params immediately:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:120:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:123:  // params is always available on the server. However, keeping
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:126:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:130:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:142:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:145:  // params is always available on the server. However, keeping
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:148:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:152:  return <>Shop: {params.slug}</>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:170:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:175:  // params -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:187:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:192:  // params -> { slug: 'shoes' }
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:209:  const params = useParams<{ slug: string }>()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:211:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:216:  return <nav>Home / {params.slug}</nav>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:225:  const params = useParams()
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:227:  if (!params) {
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-params.md:232:  return <nav>Home / {params.slug}</nav>
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-request.md:4:source: app/api-reference/functions/next-request
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-response.md:2:title: NextResponse
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-response.md:3:description: API Reference for NextResponse.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-response.md:4:source: app/api-reference/functions/next-response
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/get-static-props.md:51:| `params`           | Contains the route parameters for pages using [dynamic routes](/docs/pages/building-your-application/routing/dynamic-routes). For example, if the page name is `[id].js`, then `params` will look like `{ id: ... }`. You should use this together with `getStaticPaths`, which we'll explain later.                                                                                                                                 |
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-report-web-vitals.md:4:source: app/api-reference/functions/use-report-web-vitals
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md:41:- `asPath`: `String` - The path as shown in the browser including the search params and respecting the `trailingSlash` configuration. `basePath` and `locale` are not included.
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md:43:- `basePath`: `String` - The active [basePath](/docs/app/api-reference/config/next-config-js/basePath) (if enabled).
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md:366:> **Good to know**: Here `url` is the URL shown in the browser, including the [`basePath`](/docs/app/api-reference/config/next-config-js/basePath).
+node_modules/next/dist/docs/02-pages/04-api-reference/06-edge.md:4:source: app/api-reference/edge
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/08-invoking-entrypoints.md:4:source: app/api-reference/adapters/invoking-entrypoints
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/02-creating-an-adapter.md:4:source: app/api-reference/adapters/creating-an-adapter
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/05-routing-with-next-routing.md:4:source: app/api-reference/adapters/routing-with-next-routing
+node_modules/next/dist/docs/02-pages/04-api-reference/01-components/form.md:3:description: Learn how to use the `<Form>` component to handle form submissions and search params updates with client-side navigation.
+node_modules/next/dist/docs/02-pages/04-api-reference/01-components/form.md:4:source: app/api-reference/components/form
+node_modules/next/dist/docs/02-pages/04-api-reference/01-components/index.md:4:source: app/api-reference/components
+
+exec
+/bin/bash -lc "sed -n '1,220p' node_modules/next/dist/docs/01-app/04-api-reference/03-file-conventions/route.md" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ exited 2 in 0ms:
+sed: can't read node_modules/next/dist/docs/01-app/04-api-reference/03-file-conventions/route.md: No such file or directory
+
+exec
+/bin/bash -lc "rg --files node_modules/next/dist/docs | rg '/route\\.md"'$|file-conventions/.+route|api-reference/.+route'"' | sed -n '1,80p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/use-router.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/parallel-routes.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/maxDuration.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/runtime.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/dynamicParams.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/preferredRegion.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route-groups.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/intercepting-routes.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-router.md
+
+exec
+/bin/bash -lc "sed -n '1,260p' node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+---
+title: route.js
+description: API reference for the route.js special file.
+---
+
+Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+
+```ts filename="route.ts" switcher
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+```js filename="route.js" switcher
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+## Reference
+
+### HTTP Methods
+
+A **route** file allows you to create custom request handlers for a given route. The following [HTTP methods](https://developer.mozilla.org/docs/Web/HTTP/Methods) are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
+
+```ts filename="route.ts" switcher
+export async function GET(request: Request) {}
+
+export async function HEAD(request: Request) {}
+
+export async function POST(request: Request) {}
+
+export async function PUT(request: Request) {}
+
+export async function DELETE(request: Request) {}
+
+export async function PATCH(request: Request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request: Request) {}
+```
+
+```js filename="route.js" switcher
+export async function GET(request) {}
+
+export async function HEAD(request) {}
+
+export async function POST(request) {}
+
+export async function PUT(request) {}
+
+export async function DELETE(request) {}
+
+export async function PATCH(request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request) {}
+```
+
+### Parameters
+
+#### `request` (optional)
+
+The `request` object is a [NextRequest](/docs/app/api-reference/functions/next-request) object, which is an extension of the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) API. `NextRequest` gives you further control over the incoming request, including easily accessing `cookies` and an extended, parsed, URL object `nextUrl`.
+
+```ts filename="route.ts" switcher
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const url = request.nextUrl
+}
+```
+
+```js filename="route.js" switcher
+export async function GET(request) {
+  const url = request.nextUrl
+}
+```
+
+#### `context` (optional)
+
+- **`params`**: a promise that resolves to an object containing the [dynamic route parameters](/docs/app/api-reference/file-conventions/dynamic-routes) for the current route.
+
+```ts filename="app/dashboard/[team]/route.ts" switcher
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ team: string }> }
+) {
+  const { team } = await params
+}
+```
+
+```js filename="app/dashboard/[team]/route.js" switcher
+export async function GET(request, { params }) {
+  const { team } = await params
+}
+```
+
+| Example                          | URL            | `params`                           |
+| -------------------------------- | -------------- | ---------------------------------- |
+| `app/dashboard/[team]/route.js`  | `/dashboard/1` | `Promise<{ team: '1' }>`           |
+| `app/shop/[tag]/[item]/route.js` | `/shop/1/2`    | `Promise<{ tag: '1', item: '2' }>` |
+| `app/blog/[...slug]/route.js`    | `/blog/1/2`    | `Promise<{ slug: ['1', '2'] }>`    |
+
+### Route Context Helper
+
+You can type the Route Handler context using `RouteContext` to get strongly typed `params` from a route literal. `RouteContext` is a globally available helper.
+
+```ts filename="app/users/[id]/route.ts"
+import type { NextRequest } from 'next/server'
+
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+  const { id } = await ctx.params
+  return Response.json({ id })
+}
+```
+
+> **Good to know**
+>
+> - Types are generated during `next dev`, `next build` or `next typegen`.
+> - After type generation, the `RouteContext` helper is globally available. It doesn't need to be imported.
+
+## Examples
+
+### Cookies
+
+You can read or set cookies with [`cookies`](/docs/app/api-reference/functions/cookies) from `next/headers`.
+
+```ts filename="route.ts" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request: NextRequest) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+```js filename="route.js" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+Alternatively, you can return a new `Response` using the [`Set-Cookie`](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie) header.
+
+```ts filename="app/api/route.ts" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request: Request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token.value}` },
+  })
+}
+```
+
+```js filename="app/api/route.js" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token.value}` },
+  })
+}
+```
+
+You can also use the underlying Web APIs to read cookies from the request ([`NextRequest`](/docs/app/api-reference/functions/next-request)):
+
+```ts filename="app/api/route.ts" switcher
+import { type NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get('token')
+}
+```
+
+```js filename="app/api/route.js" switcher
+export async function GET(request) {
+  const token = request.cookies.get('token')
+}
+```
+
+### Headers
+
+You can read headers with [`headers`](/docs/app/api-reference/functions/headers) from `next/headers`.
+
+```ts filename="route.ts" switcher
+import { headers } from 'next/headers'
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+}
+```
+
+```js filename="route.js" switcher
+import { headers } from 'next/headers'
+
+export async function GET(request) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+}
+```
+
+This `headers` instance is read-only. To set headers, you need to return a new `Response` with new `headers`.
+
+```ts filename="app/api/route.ts" switcher
+import { headers } from 'next/headers'
+
+export async function GET(request: Request) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { referer: referer },
+  })
+}
+```
+
+```js filename="app/api/route.js" switcher
+import { headers } from 'next/headers'
+
+export async function GET(request) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { referer: referer },
+  })
+}
+```
+
+You can also use the underlying Web APIs to read headers from the request ([`NextRequest`](/docs/app/api-reference/functions/next-request)):
+
+```ts filename="app/api/route.ts" switcher
+import { type NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers)
+}
+```
+
+codex
+Saya memakai skill `nextjs` karena task ini menambah Route Handler App Router dan harus cocok dengan pola Next.js terbaru di repo. Saya baca instruksi skill secara ringkas lalu lanjut implementasi file action + route.
+exec
+/bin/bash -lc "sed -n '1,220p' /home/kotacom/.agents/skills/nextjs/SKILL.md" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+---
+name: nextjs
+description: Next.js App Router expert guidance. Use when building, debugging, or architecting Next.js applications — routing, Server Components, Server Actions, Cache Components, layouts, middleware/proxy, data fetching, rendering strategies, and deployment on Vercel.
+metadata:
+  priority: 5
+  docs:
+    - "https://nextjs.org/docs"
+    - "https://nextjs.org/docs/app"
+  sitemap: "https://nextjs.org/sitemap.xml"
+  pathPatterns:
+    - 'next.config.*'
+    - 'next-env.d.ts'
+    - 'app/**'
+    - 'pages/**'
+    - 'src/app/**'
+    - 'src/pages/**'
+    - 'tailwind.config.*'
+    - 'postcss.config.*'
+    - 'tsconfig.json'
+    - 'tsconfig.*.json'
+    - 'apps/*/app/**'
+    - 'apps/*/pages/**'
+    - 'apps/*/src/app/**'
+    - 'apps/*/src/pages/**'
+    - 'apps/*/next.config.*'
+  bashPatterns:
+    - '\bnext\s+(dev|build|start|lint)\b'
+    - '\bnext\s+experimental-analyze\b'
+    - '\bnpx\s+create-next-app\b'
+    - '\bbunx\s+create-next-app\b'
+    - '\bnpm\s+run\s+(dev|build|start)\b'
+    - '\bpnpm\s+(dev|build)\b'
+    - '\bbun\s+run\s+(dev|build)\b'
+  promptSignals:
+    phrases:
+      - "next.js"
+      - "nextjs"
+      - "app router"
+      - "server component"
+      - "server action"
+    allOf:
+      - [middleware, next]
+      - [layout, route]
+    anyOf:
+      - "pages router"
+      - "getserversideprops"
+      - "use server"
+    noneOf: []
+    minScore: 6
+validate:
+  -
+    pattern: export.*getServerSideProps
+    message: 'getServerSideProps is removed in App Router — use server components or route handlers'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from Pages Router getServerSideProps to App Router server components with async data fetching.'
+  -
+    pattern: getServerSideProps
+    message: 'getServerSideProps is a Pages Router pattern — migrate to App Router server components'
+    severity: warn
+  -
+    pattern: export.*getStaticProps
+    message: 'getStaticProps is removed in App Router — use generateStaticParams + server components instead'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from Pages Router getStaticProps to App Router generateStaticParams with server components.'
+  -
+    pattern: getStaticProps
+    message: 'getStaticProps is a Pages Router pattern — migrate to App Router generateStaticParams + server components'
+    severity: warn
+  -
+    pattern: from\s+['"]next/router['"]
+    message: 'next/router is Pages Router only — use next/navigation for App Router'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from next/router to next/navigation with useRouter, usePathname, useSearchParams hooks.'
+  -
+    pattern: (useState|useEffect)
+    message: 'React hooks require "use client" directive — add it at the top of client components'
+    severity: warn
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: from\s+['"]next/head['"]
+    message: 'next/head is Pages Router — use export const metadata or generateMetadata() in App Router. Run Skill(nextjs) for metadata API guidance.'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from next/head to the App Router metadata API (export const metadata / generateMetadata()).'
+    skipIfFileContains: export\s+(const\s+)?metadata|generateMetadata
+  -
+    pattern: export\s+(default\s+)?function\s+middleware
+    message: 'middleware() is renamed to proxy() in Next.js 16 — rename the function and the file to proxy.ts. Run Skill(routing-middleware) for proxy.ts migration guidance.'
+    severity: recommended
+    upgradeToSkill: routing-middleware
+    upgradeWhy: 'Guides migration from middleware.ts to proxy.ts with correct file placement, runtime config, and request interception patterns.'
+  -
+    pattern: revalidateTag\(\s*['"][^'"]+['"]\s*\)
+    message: 'Single-arg revalidateTag(tag) is deprecated in Next.js 16 — pass a cacheLife profile: revalidateTag(tag, "max")'
+    severity: recommended
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from single-arg revalidateTag to the Next.js 16 two-arg API with cacheLife profiles.'
+  -
+    pattern: '\bcacheHandler\s*:'
+    message: 'Singular cacheHandler is deprecated in Next.js 16 — use cacheHandlers (plural) with per-type handlers'
+    severity: recommended
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from singular cacheHandler to Next.js 16 cacheHandlers (plural) with per-type handler config.'
+  -
+    pattern: useRef\(\s*\)
+    message: 'useRef() requires an initial value in React 19 — use useRef(null) or useRef(0)'
+    severity: error
+  -
+    pattern: next\s+export
+    message: 'next export was removed — use output: "export" in next.config.js for static export'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from next export CLI command to output: "export" in next.config for static site generation.'
+  -
+    pattern: (?<!await )\bcookies\(\s*\)
+    message: 'cookies() is async in Next.js 16 — add await: const cookieStore = await cookies()'
+    severity: error
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: (?<!await )\bheaders\(\s*\)
+    message: 'headers() is async in Next.js 16 — add await: const headersList = await headers()'
+    severity: error
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: =\s*(?!await\b)params\b
+    message: 'params is async in Next.js 16 — add await: const { slug } = await params'
+    severity: recommended
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: =\s*(?!await\b)searchParams\b
+    message: 'searchParams is async in Next.js 16 — add await: const { query } = await searchParams'
+    severity: recommended
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: 'from\s+[''""](next-auth|@auth/core)[''""]|NextAuth\(|getServerSession\('
+    message: 'Legacy auth pattern detected. Modern Vercel apps should use Clerk, Descope, or Auth0 for managed authentication.'
+    severity: recommended
+    upgradeToSkill: auth
+    upgradeWhy: 'Migrate from next-auth/manual JWT to a managed auth provider (Clerk, Descope, Auth0) for better Vercel integration.'
+    skipIfFileContains: '@clerk/|@descope/|@auth0/'
+  -
+    pattern: 'NextApiRequest|NextApiResponse|export\s+default\s+function\s+handler'
+    message: 'Pages Router API handler detected. Use App Router route handlers with named HTTP exports instead.'
+    severity: recommended
+    upgradeToSkill: vercel-functions
+    upgradeWhy: 'Migrate from Pages Router API routes to App Router route handlers with Web Request/Response API.'
+    skipIfFileContains: 'export\s+(async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)'
+  -
+    pattern: 'from\s+[''""](lru-cache|node-cache|memory-cache)[''""]|new\s+(LRUCache|NodeCache)\('
+    message: 'In-process cache detected. Serverless deployments lose process memory between invocations.'
+    severity: recommended
+    upgradeToSkill: runtime-cache
+    upgradeWhy: 'Replace process-memory caches with Vercel Runtime Cache for shared, region-aware caching.'
+  -
+    pattern: 'from\s+[''""](express|fastify|koa|hapi)[''""]|require\s*\(\s*[''""](express|fastify|koa|hapi)[''""]'
+    message: 'Express/Fastify/Koa/Hapi server framework detected in a Next.js project. Use Next.js route handlers or proxy.ts for request handling instead.'
+    severity: recommended
+    upgradeToSkill: routing-middleware
+    upgradeWhy: 'Replace custom server frameworks with Next.js proxy.ts for request interception and route handlers for API endpoints.'
+    skipIfFileContains: 'proxy\.ts|from\s+[''""](next/server)[''""]|@vercel/functions'
+  -
+    pattern: 'from\s+[''""](typeorm|sequelize|mikro-orm|objection|bookshelf|knex)[''""]|require\s*\(\s*[''""](typeorm|sequelize|mikro-orm|objection|bookshelf|knex)[''""]'
+    message: 'Heavy ORM detected. Consider using lightweight serverless-native alternatives like Drizzle, Prisma, or direct Neon for better cold start performance.'
+    severity: recommended
+    upgradeToSkill: vercel-storage
+    upgradeWhy: 'Migrate from heavy ORMs to serverless-native database clients (Drizzle + Neon, Prisma, or @neondatabase/serverless) for faster cold starts.'
+    skipIfFileContains: 'from\s+[''""](drizzle-orm|@neondatabase|@prisma/client|prisma)[''""]'
+  -
+    pattern: 'fonts\.googleapis\.com|from\s+[''""](fontsource|@fontsource)[''""]|<link[^>]*fonts\.googleapis'
+    message: 'External font loader detected. Use next/font for zero-CLS, self-hosted font loading with automatic optimization.'
+    severity: recommended
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from external font loaders to next/font with Geist Sans/Mono for zero-CLS font optimization.'
+    skipIfFileContains: 'next/font'
+chainTo:
+  -
+    pattern: 'export\s+(default\s+)?function\s+middleware'
+    targetSkill: routing-middleware
+    message: 'middleware() is renamed to proxy() in Next.js 16 — loading Routing Middleware guidance for proxy.ts migration.'
+  -
+    pattern: "from\\s+['\"]@vercel/(postgres|kv)['\"]"
+    targetSkill: vercel-storage
+    message: 'Sunset storage package detected — loading Vercel Storage guidance for Neon/Upstash migration.'
+  -
+    pattern: "from\\s+['\"]@ai-sdk/(anthropic|openai)['\"]"
+    targetSkill: ai-gateway
+    message: 'Direct AI provider SDK import — loading AI Gateway guidance for unified model routing with failover and cost tracking.'
+  -
+    pattern: 'from\s+[''""](next-auth|@auth/core)[''""]|NextAuth\(|getServerSession\('
+    targetSkill: auth
+    message: 'Legacy auth pattern detected — loading managed authentication guidance (Clerk, Descope, Auth0).'
+  -
+    pattern: 'NextApiRequest|NextApiResponse|export\s+default\s+function\s+handler'
+    targetSkill: vercel-functions
+    message: 'Pages Router API handler detected — loading Vercel Functions guidance for App Router migration.'
+  -
+    pattern: 'from\s+[''""](lru-cache|node-cache|memory-cache)[''""]|new\s+(LRUCache|NodeCache)\('
+    targetSkill: runtime-cache
+    message: 'In-process cache detected — loading Runtime Cache guidance for serverless-compatible caching.'
+  -
+    pattern: 'fetch\s*\(\s*[''""](https?://)?(api\.openai\.com|api\.anthropic\.com|api\.cohere\.ai)'
+    targetSkill: ai-gateway
+    message: 'Raw AI provider fetch URL detected — loading AI Gateway guidance for unified routing, failover, and OIDC auth.'
+    skipIfFileContains: '@ai-sdk/|from\s+[''""](ai)[''""]|ai-gateway|gateway\('
+  -
+    pattern: 'jwt\.(sign|verify|decode)\(|from\s+[''""](jsonwebtoken)[''""]|new\s+SignJWT\(|jwtVerify\('
+    targetSkill: auth
+    message: 'Manual JWT token handling detected — loading Auth guidance for managed authentication (Clerk, Descope, Auth0).'
+    skipIfFileContains: 'clerkMiddleware|@clerk/|@auth0/|@descope/|from\s+[''""](next-auth)[''""]'
+  -
+    pattern: 'from\s+[''"]@/components/ui/|from\s+[''"]@/components/ui[''""]'
+    targetSkill: shadcn
+    message: 'shadcn/ui component imports detected — loading shadcn guidance for component composition, theming, and registry patterns.'
+    skipIfFileContains: 'shadcn|components\.json'
+  -
+    pattern: 'from\s+[''""](styled-components|@emotion/(react|styled)|@mui/material)[''""]'
+    targetSkill: shadcn
+
+exec
+/bin/bash -lc "rg -n \"survey|hasilSurvey|catatanSurvey|Survei|Survey\" prisma/schema.prisma src | sed -n '1,240p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(dashboard)/pengajuan/[id]/page.tsx:46:    { status: "DISURVEY", label: "Survey", date: pengajuan.tanggalSurvey, done: !!pengajuan.tanggalSurvey },
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+src/app/(dashboard)/docs/panduan-pengguna/page.tsx:328:                    <p className="text-muted-foreground">Owner/Admin dapat membuat user baru sebagai Admin, Teller, Kolektor, Surveyor, Manager, Pimpinan, atau Akuntansi.</p>
+src/app/(dashboard)/settings/user-management-card.tsx:25:  { value: "SURVEYOR", label: "Surveyor" },
+src/app/(dashboard)/settings/user-management-card.tsx:37:  SURVEYOR: "Surveyor",
+src/app/(dashboard)/settings/settings-profile-card.tsx:13:  SURVEYOR: { label: "Surveyor", color: "bg-cyan-100 text-cyan-700" },
+prisma/schema.prisma:79:  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+prisma/schema.prisma:171:  hasilSurvey          String?
+prisma/schema.prisma:175:  tanggalSurvey        DateTime?
+prisma/schema.prisma:177:  surveyorId           String?
+prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+
+exec
+/bin/bash -lc "sed -n '260,560p' src/actions/pengajuan.ts" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+      where: {
+        companyId,
+        jenis: "MASUK",
+        kasJenis,
+        isApproved: false,
+      },
+      _count: { id: true },
+      _sum: { jumlah: true },
+    })
+    const pendingCount = pendingMasuk._count.id
+    const pendingAmount = Number(pendingMasuk._sum.jumlah ?? 0)
+
+    return {
+      error: `Saldo ${kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${nilaiCair.toLocaleString("id-ID")}.${pendingCount > 0 ? ` Ada ${pendingCount} transaksi kas masuk pending (Rp ${pendingAmount.toLocaleString("id-ID")}) yang belum dihitung ke saldo.` : ""} Setor modal/simpanan dan pastikan approval kas selesai sebelum pencairan.`,
+    }
+  }
+
+  // Pastikan kategori kas tersedia sebelum transaksi
+  const ensured = await ensureKasKategori({ jenis: "KELUAR", kategori: "PENCAIRAN" })
+  if ("error" in ensured) return { error: ensured.error }
+
+  // Buat pinjaman + jadwal angsuran dalam 1 transaksi
+  const pinjaman = await prisma.$transaction(async (tx) => {
+    const pin = await tx.pinjaman.create({
+      data: {
+        companyId,
+        nomorKontrak,
+        pengajuanId,
+        pokokPinjaman: new Prisma.Decimal(plafon),
+        tenorType,
+        tenor,
+        bungaPerBulan: new Prisma.Decimal(bunga),
+        angsuranPokok: new Prisma.Decimal(angsuranPokok),
+        angsuranBunga: new Prisma.Decimal(angsuranBunga),
+        totalAngsuran: new Prisma.Decimal(totalAngsuran),
+        potonganAdmin: new Prisma.Decimal(potonganAdmin),
+        potonganProvisi: new Prisma.Decimal(potonganProvisi),
+        nilaiCair: new Prisma.Decimal(nilaiCair),
+        tanggalCair: tglCair,
+        tanggalJatuhTempo: tglJatuhTempo,
+        sisaPinjaman: new Prisma.Decimal(plafon),
+        status: "AKTIF",
+      },
+    })
+
+    // Generate jadwal angsuran
+    const jadwals = Array.from({ length: tenor }, (_, i) => {
+      const tanggalJatuhTempo = tenorType === "MINGGUAN" ? addWeeks(tglCair, i + 1) : addMonths(tglCair, i + 1)
+      return {
+        companyId,
+        pinjamanId: pin.id,
+        angsuranKe: i + 1,
+        tanggalJatuhTempo,
+        pokok: new Prisma.Decimal(angsuranPokok),
+        bunga: new Prisma.Decimal(angsuranBunga),
+        total: new Prisma.Decimal(totalAngsuran),
+      }
+    })
+
+    await tx.jadwalAngsuran.createMany({ data: jadwals })
+
+    // Update status pengajuan
+    await tx.pengajuan.update({
+      where: { id: pengajuanId },
+      data: { status: "DICAIRKAN" },
+    })
+
+    // Catat di kas keluar
+    await tx.kasTransaksi.create({
+      data: {
+        companyId,
+        jenis: "KELUAR",
+        kategoriId: ensured.kategoriId,
+        kategoriKey: ensured.key,
+        deskripsi: `Pencairan pinjaman ${nomorKontrak}`,
+        jumlah: new Prisma.Decimal(nilaiCair),
+        kasJenis,
+        inputOlehId: userId,
+        tanggal: tglCair,
+        referensiId: pin.id,
+      },
+    })
+
+    await postPencairanJournal(tx, {
+      companyId,
+      pinjamanId: pin.id,
+      tanggalCair: tglCair,
+      kasJenis,
+      pokokPinjaman: plafon,
+      nilaiCair,
+      potonganAdmin,
+      potonganProvisi,
+      description: `Pencairan pinjaman ${nomorKontrak}`,
+      postedById: userId,
+    }, { ensureAccounts: false })
+
+    return pin
+  })
+
+  revalidatePath("/pengajuan")
+  revalidatePath("/pencairan")
+  revalidatePath("/kas")
+  revalidatePath("/laporan/buku-besar")
+  revalidatePath("/laporan/neraca")
+  revalidatePath("/laporan/laba-rugi")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PINJAMAN",
+    entityId: pinjaman.id,
+    action: "DISBURSE",
+    metadata: { pengajuanId, nomorKontrak: pinjaman.nomorKontrak, nilaiCair },
+  })
+  return { success: true, data: pinjaman }
+}
+
+export async function getPengajuanSiapCair() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.pengajuan.findMany({
+    where: { companyId, status: "DISETUJUI" },
+    include: {
+      nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+      kelompok: { select: { nama: true } },
+    },
+    orderBy: { tanggalApproval: "desc" },
+  })
+
+  return serializeData(result)
+}
+
+const batalkanPencairanSchema = z.object({
+  pengajuanId: z.string().min(1),
+  alasan: z.string().trim().min(10, "Alasan minimal 10 karakter"),
+})
+
+export async function batalkanPencairanPinjaman(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(
+    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+  )
+
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Hanya admin/manager/pimpinan yang dapat membatalkan pencairan." }
+  }
+
+  const parsed = batalkanPencairanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, alasan } = parsed.data
+
+  const pengajuan = await prisma.pengajuan.findFirst({
+    where: { id: pengajuanId, companyId },
+    include: {
+      pinjaman: {
+        include: {
+          _count: { select: { pembayaran: { where: { isBatalkan: false } } } },
+        },
+      },
+    },
+  })
+
+  if (!pengajuan || !pengajuan.pinjaman) return { error: "Data pencairan pinjaman tidak ditemukan." }
+  if (pengajuan.status !== "DICAIRKAN") {
+    return { error: "Hanya pengajuan berstatus DICAIRKAN yang bisa dibatalkan." }
+  }
+  if (pengajuan.pinjaman._count.pembayaran > 0) {
+    return { error: "Pencairan tidak dapat dibatalkan karena sudah ada pembayaran angsuran." }
+  }
+
+  const pinjaman = pengajuan.pinjaman
+  const nilaiCair = Number(pinjaman.nilaiCair)
+  const potonganAdmin = Number(pinjaman.potonganAdmin) + Number(pinjaman.potonganProvisi)
+
+  const ensured = await ensureKasKategori({ jenis: "MASUK", kategori: "PEMBATALAN_PENCAIRAN" })
+  if ("error" in ensured) return { error: ensured.error }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const existingReversal = await tx.journalEntry.findUnique({
+        where: {
+          sourceType_sourceId: {
+            sourceType: "REVERSAL",
+            sourceId: pinjaman.id,
+          },
+        },
+        select: { id: true },
+      })
+      if (existingReversal) throw new Error("Pencairan sudah dibatalkan sebelumnya.")
+
+      const kasPencairan = await tx.kasTransaksi.findFirst({
+        where: {
+          companyId,
+          referensiId: pinjaman.id,
+          jenis: "KELUAR",
+          kategoriKey: "PENCAIRAN",
+        },
+        orderBy: { createdAt: "desc" },
+      })
+      if (!kasPencairan) throw new Error("Transaksi kas pencairan tidak ditemukan.")
+
+      await tx.kasTransaksi.create({
+        data: {
+          companyId,
+          jenis: "MASUK",
+          kategoriId: ensured.kategoriId,
+          kategoriKey: ensured.key,
+          deskripsi: `Pembatalan pencairan ${pinjaman.nomorKontrak}`,
+          jumlah: new Prisma.Decimal(nilaiCair),
+          kasJenis: kasPencairan.kasJenis,
+          inputOlehId: userId,
+          tanggal: new Date(),
+          referensiId: pinjaman.id,
+        },
+      })
+
+      await postJournalEntry(
+        tx,
+        {
+          companyId,
+          sourceType: "REVERSAL",
+          sourceId: pinjaman.id,
+          entryDate: new Date(),
+          description: `Pembatalan pencairan ${pinjaman.nomorKontrak}`,
+          postedById: userId,
+          lines: [
+            {
+              accountCode: kasPencairan.kasJenis === "BANK" ? "CASH_BANK" : "CASH_TUNAI",
+              debit: nilaiCair,
+              memo: "Kas masuk pembatalan pencairan",
+            },
+            { accountCode: "PENDAPATAN_ADMIN", debit: potonganAdmin, memo: "Reversal admin/provisi" },
+            { accountCode: "PIUTANG_PINJAMAN", credit: Number(pinjaman.pokokPinjaman), memo: "Reversal piutang pinjaman" },
+          ],
+        },
+        { ensureAccounts: false },
+      )
+
+      await tx.jadwalAngsuran.updateMany({
+        where: { companyId, pinjamanId: pinjaman.id },
+        data: {
+          sudahDibayar: true,
+          tanggalBayar: new Date(),
+        },
+      })
+
+      await tx.pinjaman.update({
+        where: { id: pinjaman.id },
+        data: {
+          status: "LUNAS",
+          sisaPinjaman: new Prisma.Decimal(0),
+        },
+      })
+
+      const note = `[PEMBATALAN PENCAIRAN] ${alasan}`
+      const previous = pengajuan.catatanApproval?.trim()
+      const nextNote = previous ? `${previous}\n${note}` : note
+
+      await tx.pengajuan.update({
+        where: { id: pengajuanId },
+        data: {
+          status: "SELESAI",
+          catatanApproval: nextNote,
+        },
+      })
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Gagal membatalkan pencairan."
+    return { error: message }
+  }
+
+  revalidatePath("/pengajuan")
+  revalidatePath(`/pengajuan/${pengajuanId}`)
+  revalidatePath("/pencairan")
+  revalidatePath("/pembayaran")
+  revalidatePath("/monitoring/tunggakan")
+  revalidatePath("/kas")
+  revalidatePath("/laporan/buku-besar")
+  revalidatePath("/laporan/neraca")
+  revalidatePath("/laporan/laba-rugi")
+
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PINJAMAN",
+    entityId: pinjaman.id,
+    action: "UPDATE",
+    metadata: {
+      event: "CANCEL_DISBURSEMENT",
+      pengajuanId,
+      nomorKontrak: pinjaman.nomorKontrak,
+      nilaiCair,
+      alasan,
+    },
+  })
+
+  return { success: true }
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/actions/pengajuan.ts" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { pengajuanSchema, approvalSchema, pencairanSchema } from "@/lib/validations/pengajuan"
+import { addMonths, addWeeks } from "date-fns"
+import { ApprovalStatus, Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { writeApprovalLog, writeAuditLog } from "@/lib/audit"
+import { ensureKasKategori } from "./kas"
+import { serializeData } from "@/lib/utils"
+import { ensureAccountingAccounts, getCashBalanceByJenis, postJournalEntry, postPencairanJournal } from "@/lib/accounting"
+import { requireCompanyId } from "@/lib/tenant"
+import { z } from "zod"
+
+function parseDateOnly(input: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return date
+}
+
+// ========================
+// PENGAJUAN
+// ========================
+
+export async function getPengajuanList(params: {
+  page?: number
+  status?: string
+  search?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const page = params.page ?? 1
+  const limit = 20
+
+  const where = {
+    AND: [
+      { companyId },
+      params.status ? { status: params.status as "DRAFT" | "DIAJUKAN" | "DISURVEY" | "DISETUJUI" | "DITOLAK" | "DICAIRKAN" | "SELESAI" } : {},
+      params.search ? {
+        nasabah: { namaLengkap: { contains: params.search, mode: "insensitive" as const } }
+      } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.pengajuan.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { tanggalPengajuan: "desc" },
+      include: {
+        nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+        kelompok: { select: { nama: true } },
+      },
+    }),
+    prisma.pengajuan.count({ where }),
+  ])
+
+  return serializeData({ data, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getPengajuanById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.pengajuan.findFirst({
+    where: { id, companyId },
+    include: {
+      nasabah: true,
+      kelompok: true,
+      surveyor: { select: { name: true } },
+      approver: { select: { name: true } },
+      pinjaman: {
+        include: {
+          jadwalAngsuran: { take: 5, orderBy: { angsuranKe: "asc" } },
+          _count: { select: { pembayaran: { where: { isBatalkan: false } } } },
+        },
+      },
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function getNasabahPengajuanOptions() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.nasabah.findMany({
+    where: { companyId, status: "AKTIF" },
+    select: {
+      id: true,
+      nomorAnggota: true,
+      namaLengkap: true,
+      kelompokId: true,
+      kelompok: { select: { nama: true } },
+      kolektor: { select: { name: true } },
+    },
+    orderBy: { namaLengkap: "asc" },
+  })
+}
+
+export async function createPengajuan(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const userId = session.user?.id
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = pengajuanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { bungaPerBulan, plafonDiajukan, dokumenPendukungUrls, ...rest } = parsed.data
+
+  const nasabah = await prisma.nasabah.findUnique({
+    where: { id: parsed.data.nasabahId },
+    select: { id: true, kelompokId: true },
+  })
+  if (!nasabah) {
+    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+  }
+
+  const pengajuan = await prisma.pengajuan.create({
+    data: {
+      companyId,
+      ...rest,
+      kelompokId: rest.kelompokId || nasabah.kelompokId || null,
+      plafonDiajukan: new Prisma.Decimal(plafonDiajukan),
+      bungaPerBulan: new Prisma.Decimal(bungaPerBulan / 100),
+      dokumenPendukungUrls: dokumenPendukungUrls ?? [],
+      status: "DIAJUKAN",
+    },
+  })
+
+  revalidatePath("/pengajuan")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PENGAJUAN",
+    entityId: pengajuan.id,
+    action: "CREATE",
+    afterData: { status: pengajuan.status, nasabahId: pengajuan.nasabahId },
+  })
+  return { success: true, data: pengajuan }
+}
+
+export async function approvePengajuan(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.MANAGER, RoleType.PIMPINAN, RoleType.ADMIN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk menyetujui pengajuan." }
+  }
+
+  const parsed = approvalSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, aksi, plafonDisetujui, catatanApproval } = parsed.data
+
+  let updated;
+  try {
+    updated = await prisma.pengajuan.update({
+      where: { id: pengajuanId },
+      data: {
+        status: aksi === "SETUJU" ? "DISETUJUI" : "DITOLAK",
+        approverId: userId,
+        tanggalApproval: new Date(),
+        plafonDisetujui: plafonDisetujui ? new Prisma.Decimal(plafonDisetujui) : undefined,
+        catatanApproval: catatanApproval,
+      },
+    })
+  } catch (err) {
+    console.error("[approvePengajuan][error]", err)
+    return { error: "Terjadi kesalahan database. Silakan coba login ulang (mungkin sesi kadaluarsa setelah reset database)." }
+  }
+
+  revalidatePath("/pengajuan")
+  revalidatePath(`/pengajuan/${pengajuanId}`)
+  await writeApprovalLog({
+    entityType: "PENGAJUAN",
+    entityId: pengajuanId,
+    status: aksi === "SETUJU" ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED,
+    catatan: catatanApproval,
+    requestedById: userId,
+    approvedById: userId,
+  })
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "PENGAJUAN",
+    entityId: pengajuanId,
+    action: aksi === "SETUJU" ? "APPROVE" : "REJECT",
+    afterData: { status: updated.status, plafonDisetujui: updated.plafonDisetujui?.toString() },
+  })
+  return { success: true }
+}
+
+// ========================
+// PENCAIRAN
+// ========================
+
+export async function cairkanPinjaman(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(
+    session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+  )
+  let userId: string
+  try {
+    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+    userId = required.userId
+  } catch {
+    return { error: "Tidak memiliki hak akses untuk mencairkan pinjaman." }
+  }
+
+  const parsed = pencairanSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const { pengajuanId, potonganAdmin, potonganProvisi, tanggalCair, kasJenis } = parsed.data
+
+  const pengajuan = await prisma.pengajuan.findFirst({
+    where: { id: pengajuanId, companyId, status: "DISETUJUI" },
+  })
+  if (!pengajuan) return { error: "Pengajuan tidak ditemukan atau belum disetujui." }
+
+  const plafon = Number(pengajuan.plafonDisetujui ?? pengajuan.plafonDiajukan)
+  const bunga = Number(pengajuan.bungaPerBulan)
+  const tenor = pengajuan.tenor
+  const tenorType = pengajuan.tenorType
+
+  const angsuranPokok = plafon / tenor
+  const angsuranBunga = plafon * bunga
+  const totalAngsuran = angsuranPokok + angsuranBunga
+  const nilaiCair = plafon - potonganAdmin - potonganProvisi
+
+  const tglCair = parseDateOnly(tanggalCair)
+  if (!tglCair) return { error: "Tanggal pencairan tidak valid." }
+  const tglCairEndOfDay = new Date(tglCair)
+  tglCairEndOfDay.setHours(23, 59, 59, 999)
+  const tglJatuhTempo = tenorType === "MINGGUAN" ? addWeeks(tglCair, tenor) : addMonths(tglCair, tenor)
+  const nomorKontrak = `KNT-${Date.now().toString(36).toUpperCase()}`
+
+  await ensureAccountingAccounts(companyId)
+  const saldoKas = await getCashBalanceByJenis(companyId, kasJenis, tglCairEndOfDay)
+  if (saldoKas < nilaiCair) {
+    const pendingMasuk = await prisma.kasTransaksi.aggregate({
+      where: {
+
+exec
+/bin/bash -lc "rg -n \"hasilSurvey|catatan.*survey|survey note|survey\" src/app src/actions | sed -n '1,260p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+src/app/(marketing)/contact/page.tsx:30:                Kami akan bantu petakan demo berdasarkan proses nyata: pengajuan, survey, pencairan, pembayaran, kas, dan laporan pengurus.
+src/app/(marketing)/_components/marketing-data.ts:87:    excerpt: "Mulai dari data anggota, survey, approval, pencairan, hingga dokumen kontrak tanpa kehilangan jejak keputusan.",
+src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+
+exec
+/bin/bash -lc "sed -n '1,220p' src/lib/roles.ts" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+  }
+} | null
+
+export function extractRoles(session: SessionLike): RoleType[] {
+  const roles = session?.user?.roles ?? []
+  return roles.filter((role): role is RoleType =>
+    Object.values(RoleType).includes(role as RoleType)
+  )
+}
+
+export function requireRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const userId = session?.user?.id
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const roles = extractRoles(session)
+  const allowed = roles.some((role) => allowedRoles.includes(role))
+
+  if (!allowed) {
+    throw new Error("Forbidden")
+  }
+
+  return { userId, roles }
+}
+
+export function hasAnyRole(session: SessionLike, allowedRoles: RoleType[]) {
+  const roles = extractRoles(session)
+  return roles.some((role) => allowedRoles.includes(role))
+}
+
+exec
+/bin/bash -lc "rg -n \"enum RoleType|SURVEYOR|MANAGER|PIMPINAN\" prisma/schema.prisma src/lib src/actions | sed -n '1,220p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+prisma/schema.prisma:508:enum RoleType {
+prisma/schema.prisma:512:  SURVEYOR
+prisma/schema.prisma:513:  MANAGER
+prisma/schema.prisma:514:  PIMPINAN
+src/actions/company-users.ts:23:  RoleType.SURVEYOR,
+src/actions/company-users.ts:24:  RoleType.MANAGER,
+src/actions/company-users.ts:25:  RoleType.PIMPINAN,
+src/actions/kelompok.ts:182:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/nasabah.ts:405:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/akuntansi.ts:22:  return requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:54:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/akuntansi.ts:113:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+src/actions/pengajuan.ts:163:    const required = requireRoles(session, [RoleType.MANAGER, RoleType.PIMPINAN, RoleType.ADMIN])
+src/actions/pengajuan.ts:223:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pengajuan.ts:405:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/settings.ts:110:    requireRoles(session, [RoleType.ADMIN, RoleType.PIMPINAN])
+src/actions/settings.ts:204:    requireRoles(session, [RoleType.ADMIN, RoleType.PIMPINAN])
+src/actions/kas.ts:133:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:176:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:237:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:410:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/kas.ts:412:    isPrivileged = hasAnyRole(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:499:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:581:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:625:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kas.ts:649:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:389:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/pembayaran.ts:1075:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.TELLER, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:1156:    const required = requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/pembayaran.ts:1317:    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.TELLER])
+src/actions/kolektor.ts:136:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:163:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:202:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+src/actions/kolektor.ts:243:  requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+
+exec
+/bin/bash -lc "sed -n '1,180p' src/lib/tenant.ts" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+export function requireCompanyId(session: SessionLike) {
+  const userId = session?.user?.id
+  if (!userId) throw new Error("Unauthorized")
+
+  const companyId = session.user?.companyId
+  if (!companyId) {
+    // SUPER_ADMIN is allowed to exist without a company context.
+    const roles = session.user?.roles ?? []
+    if (roles.includes(RoleType.SUPER_ADMIN)) {
+      throw new Error("Company context required")
+    }
+    throw new Error("Akun belum terhubung ke company.")
+  }
+
+  return { userId, companyId }
+}
+
+export function requireCompanyRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const { userId } = requireRoles(session, allowedRoles)
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+  return { userId, companyId }
+}
+
+
+exec
+/bin/bash -lc "sed -n '500,580p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum StatusNasabah {
+  AKTIF
+  NON_AKTIF
+  KELUAR
+}
+
+enum JenisPinjaman {
+  REGULAR
+  MIKRO
+  USAHA
+}
+
+enum TenorType {
+  BULANAN
+  MINGGUAN
+}
+
+enum StatusPengajuan {
+  DRAFT
+  DIAJUKAN
+  DISURVEY
+  DISETUJUI
+  DITOLAK
+  DICAIRKAN
+  SELESAI
+}
+
+enum StatusPinjaman {
+  AKTIF
+  MENUNGGAK
+  MACET
+  LUNAS
+}
+
+enum MetodeBayar {
+  TUNAI
+  TRANSFER
+}
+
+enum JenisKas {
+  MASUK
+  KELUAR
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalSourceType {
+  PEMBAYARAN
+  PENCAIRAN
+
+exec
+/bin/bash -lc "rg -n \"nasabah-survey|/survey|survey note|catatan survey|hasilSurvey|DISURVEY|surveyor\" -S . | sed -n '1,260p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+./docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:29:- Survey workflow detail (status `DISURVEY`, input hasil survey, tanggal survey) + alur operasional surveyor.
+./docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:115:- Catatan lapangan: catatan survey/kunjungan (timeline).
+./docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md:119:- [ ] Tambah model `NasabahActivity` (visit/survey/call) dengan field: jenis, catatan, tanggal, actorId, lampiranUrls.
+./docs/superpowers/plans/accounting-scoring-plan.md:49:  - Cek SLIK OJK / BI Checking (status Kol 1 s/d Kol 5 diisikan oleh surveyor saat evaluasi).
+./src/actions/pengajuan.ts:50:      params.status ? { status: params.status as "DRAFT" | "DIAJUKAN" | "DISURVEY" | "DISETUJUI" | "DITOLAK" | "DICAIRKAN" | "SELESAI" } : {},
+./src/actions/pengajuan.ts:83:      surveyor: { select: { name: true } },
+./src/actions/platform-admin.ts:256:    prisma.pengajuan.count({ where: { companyId, status: { in: ["DIAJUKAN", "DISURVEY", "DISETUJUI"] } } }),
+./src/app/(dashboard)/pengajuan/[id]/page.tsx:17:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700" },
+./src/app/(dashboard)/pengajuan/[id]/page.tsx:46:    { status: "DISURVEY", label: "Survey", date: pengajuan.tanggalSurvey, done: !!pengajuan.tanggalSurvey },
+./src/app/(dashboard)/pengajuan/page.tsx:13:  DISURVEY: { label: "Disurvey", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" },
+./src/app/(dashboard)/pengajuan/page.tsx:37:  const STATUS_OPTIONS = ["DIAJUKAN", "DISURVEY", "DISETUJUI", "DITOLAK", "DICAIRKAN"]
+./src/app/(dashboard)/nasabah/[id]/page.tsx:28:  DISURVEY: "bg-violet-100 text-violet-700",
+./prisma/migrations/20260418204642_init/migration.sql:11:CREATE TYPE "StatusPengajuan" AS ENUM ('DRAFT', 'DIAJUKAN', 'DISURVEY', 'DISETUJUI', 'DITOLAK', 'DICAIRKAN', 'SELESAI');
+./prisma/migrations/20260418204642_init/migration.sql:111:    "hasilSurvey" TEXT,
+./prisma/migrations/20260418204642_init/migration.sql:117:    "surveyorId" TEXT,
+./prisma/migrations/20260418204642_init/migration.sql:260:ALTER TABLE "pengajuan" ADD CONSTRAINT "pengajuan_surveyorId_fkey" FOREIGN KEY ("surveyorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+./prisma/schema.prisma:171:  hasilSurvey          String?
+./prisma/schema.prisma:177:  surveyorId           String?
+./prisma/schema.prisma:189:  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+./prisma/schema.prisma:546:  DISURVEY
+./proposal_premium.html:628:              <p>Workflow pengajuan dari DIAJUKAN → DISURVEY → DISETUJUI → DICAIRKAN.</p>
+
+codex
+Saya menemukan bahwa schema belum punya model khusus `SurveyNote`, jadi kemungkinan paling aman adalah menyimpan catatan survey di `Pengajuan.hasilSurvey` (sudah ada). Saya cek halaman detail nasabah untuk memastikan format data yang cocok sebelum menulis action API.
+exec
+/bin/bash -lc "sed -n '1,260p' src/app/(dashboard)/nasabah/[id]/page.tsx" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' src/app/(dashboard)/nasabah/[id]/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'src/app/(dashboard)/nasabah/[id]/page.tsx'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { getNasabahById } from "@/actions/nasabah"
+import { getRankingConfig } from "@/actions/settings"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+import { computeRanking, explainRanking } from "@/lib/ranking"
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+const statusPinjaman: Record<string, string> = {
+  AKTIF: "bg-blue-100 text-blue-700",
+  MENUNGGAK: "bg-orange-100 text-orange-700",
+  MACET: "bg-red-100 text-red-700",
+  LUNAS: "bg-emerald-100 text-emerald-700",
+}
+
+const statusPengajuan: Record<string, string> = {
+  DRAFT: "bg-gray-100 text-gray-600",
+  DIAJUKAN: "bg-blue-100 text-blue-700",
+  DISURVEY: "bg-violet-100 text-violet-700",
+  DISETUJUI: "bg-emerald-100 text-emerald-700",
+  DITOLAK: "bg-red-100 text-red-700",
+  DICAIRKAN: "bg-teal-100 text-teal-700",
+  SELESAI: "bg-gray-100 text-gray-600",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+function rankingBadge(rank: string) {
+  if (rank === "A") return <Badge className="bg-emerald-100 text-emerald-700">A - Sangat Lancar</Badge>
+  if (rank === "B") return <Badge className="bg-blue-100 text-blue-700">B - Lancar</Badge>
+  if (rank === "C") return <Badge className="bg-amber-100 text-amber-700">C - Perlu Pantau</Badge>
+  return <Badge className="bg-red-100 text-red-700">D - Risiko</Badge>
+}
+
+export default async function NasabahDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const nasabah = await getNasabahById(id)
+  if (!nasabah) notFound()
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  // Indikator konsistensi dan ranking (mengikuti logika laporan).
+  const indikator = (() => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let anomaliPembayaran = 0
+    let anomaliNominal = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      const pembayaranTagMap = new Map<string, number>()
+
+      for (const p of pinjaman.pembayaran) {
+        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+        if (tags.length === 0) {
+          anomaliPembayaran += 1
+          anomaliNominal += Number(p.totalBayar)
+          continue
+        }
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+        }
+      }
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      tunggakanNominal,
+      telat,
+      belumJatuhTempo,
+      belumBayar,
+      outstanding,
+      ranking,
+      anomaliPembayaran,
+      anomaliNominal,
+    }
+  })()
+  const rankingExplain = explainRanking(
+    { telat: indikator.telat, tunggakanNominal: indikator.tunggakanNominal },
+    rankingConfig
+  )
+
+  const transaksiTerjadi = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.pembayaran ?? []).map((bayar) => ({
+        id: bayar.id,
+        tanggal: bayar.tanggalBayar,
+        kontrak: p.pinjaman?.nomorKontrak ?? "-",
+        total: Number(bayar.totalBayar),
+        pokok: Number(bayar.pokok),
+        bunga: Number(bayar.bunga),
+        denda: Number(bayar.denda),
+        metode: bayar.metode,
+        petugas: bayar.inputOleh.name,
+      }))
+    )
+    .sort((a, b) => b.tanggal.getTime() - a.tanggal.getTime())
+
+  const transaksiAkanDatang = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.jadwalAngsuran ?? [])
+        .filter((jadwal) => !jadwal.sudahDibayar)
+        .map((jadwal) => ({
+          id: jadwal.id,
+          tanggalJatuhTempo: jadwal.tanggalJatuhTempo,
+          kontrak: p.pinjaman?.nomorKontrak ?? "-",
+          angsuranKe: jadwal.angsuranKe,
+          total: Number(jadwal.total),
+          pokok: Number(jadwal.pokok),
+          bunga: Number(jadwal.bunga),
+          status: jadwal.tanggalJatuhTempo < now ? "TERLAMBAT" : "UPCOMING",
+        }))
+    )
+    .sort((a, b) => a.tanggalJatuhTempo.getTime() - b.tanggalJatuhTempo.getTime())
+
+  const infoItems = [
+    { icon: Phone, label: "No. HP", value: nasabah.noHp },
+    { icon: MapPin, label: "Alamat", value: `${nasabah.alamat}${nasabah.kecamatan ? `, Kec. ${nasabah.kecamatan}` : ""}${nasabah.kotaKab ? `, ${nasabah.kotaKab}` : ""}` },
+    { icon: CalendarDays, label: "Tempat/Tgl. Lahir", value: nasabah.tanggalLahir ? `${nasabah.tempatLahir ?? "—"}, ${new Date(nasabah.tanggalLahir).toLocaleDateString("id-ID")}` : (nasabah.tempatLahir ?? "—") },
+    { icon: Briefcase, label: "Pekerjaan", value: nasabah.pekerjaan ?? "—" },
+    { icon: Store, label: "Nama Usaha", value: nasabah.namaUsaha ?? "—" },
+    { icon: CreditCard, label: "NIK", value: nasabah.nik },
+  ]
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/nasabah"><ArrowLeft className="size-4" /></Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{nasabah.namaLengkap}</h1>
+            <p className="text-muted-foreground text-sm font-mono">{nasabah.nomorAnggota}</p>
+          </div>
+        </div>
+        <Button asChild variant="outline">
+          <Link href={`/nasabah/${id}/edit`}>
+            <Edit className="size-4" /> Edit
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" asChild>
+          <a href="#informasi">Informasi</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#penjamin">Penjamin ({nasabah.penjamin.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#dokumen">Dokumen ({nasabah.dokumenUrls.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#pengajuan">Pengajuan ({nasabah.pengajuan.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#transaksi">Transaksi ({transaksiTerjadi.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#jadwal">Jadwal ({transaksiAkanDatang.length})</a>
+        </Button>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Info Utama */}
+        <Card id="informasi" className="lg:col-span-2 scroll-mt-24">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Informasi Nasabah</CardTitle>
+              <Badge className={nasabah.status === "AKTIF" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}>
+                {nasabah.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {nasabah.fotoUrl ? (
+              <div className="flex items-center gap-3 rounded-md border bg-muted/20 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={nasabah.fotoUrl}
+                  alt="Foto nasabah"
+                  className="h-14 w-14 rounded-md border bg-white object-cover"
+                />
+                <div className="text-xs text-muted-foreground">
+                  Foto profil nasabah.
+                </div>
+              </div>
+            ) : null}
+            {infoItems.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <Icon className="size-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-sm">{value}</p>
+                </div>
+              </div>
+            ))}
+            <Separator />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Kelompok</p>
+                <p>{nasabah.kelompok?.nama ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Kolektor</p>
+                <p>{nasabah.kolektor?.name ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tgl. Gabung</p>
+                <p>{new Date(nasabah.tanggalGabung).toLocaleDateString("id-ID")}</p>
+              </div>
+            </div>
+
+exec
+/bin/bash -lc "rg -n \"Response\\.json\\(|NextResponse\\.json\\(|success: true|success: false|error:\" src/app/api src/actions | sed -n '1,260p'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+src/actions/company-users.ts:126:  return { success: true, message: "User company berhasil dibuat." }
+src/actions/maintenance.ts:86:type MaintenanceActionResult = { success: true; message: string } | { success: false; error: string }
+src/actions/maintenance.ts:88:function errorMessage(error: unknown) {
+src/actions/maintenance.ts:684:      return { success: false, error: "Ketik BERSIHKAN untuk menjalankan cleanup database." }
+src/actions/maintenance.ts:687:      return { success: false, error: "Pilih minimal satu scope cleanup." }
+src/actions/maintenance.ts:698:    return { success: true, message: "Cleanup database company aktif selesai." }
+src/actions/maintenance.ts:701:    return { success: false, error: errorMessage(error) }
+src/actions/maintenance.ts:711:      return { success: false, error: "Ketik DEMO untuk import data demo." }
+src/actions/maintenance.ts:722:    return { success: true, message: "Import demo data selesai." }
+src/actions/maintenance.ts:725:    return { success: false, error: errorMessage(error) }
+src/actions/maintenance.ts:735:      return { success: false, error: "Ketik JURNAL untuk backfill jurnal akuntansi." }
+src/actions/maintenance.ts:746:    return { success: true, message: `Backfill jurnal selesai. ${result.created} jurnal dibuat.` }
+src/actions/maintenance.ts:749:    return { success: false, error: errorMessage(error) }
+src/actions/auth-registration.ts:113:    success: true,
+src/actions/pengajuan.ts:123:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:132:    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+src/actions/pengajuan.ts:155:  return { success: true, data: pengajuan }
+src/actions/pengajuan.ts:166:    return { error: "Tidak memiliki hak akses untuk menyetujui pengajuan." }
+src/actions/pengajuan.ts:170:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:188:    return { error: "Terjadi kesalahan database. Silakan coba login ulang (mungkin sesi kadaluarsa setelah reset database)." }
+src/actions/pengajuan.ts:208:  return { success: true }
+src/actions/pengajuan.ts:226:    return { error: "Tidak memiliki hak akses untuk mencairkan pinjaman." }
+src/actions/pengajuan.ts:230:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:237:  if (!pengajuan) return { error: "Pengajuan tidak ditemukan atau belum disetujui." }
+src/actions/pengajuan.ts:250:  if (!tglCair) return { error: "Tanggal pencairan tidak valid." }
+src/actions/pengajuan.ts:273:      error: `Saldo ${kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${nilaiCair.toLocaleString("id-ID")}.${pendingCount > 0 ? ` Ada ${pendingCount} transaksi kas masuk pending (Rp ${pendingAmount.toLocaleString("id-ID")}) yang belum dihitung ke saldo.` : ""} Setor modal/simpanan dan pastikan approval kas selesai sebelum pencairan.`,
+src/actions/pengajuan.ts:279:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pengajuan.ts:372:  return { success: true, data: pinjaman }
+src/actions/pengajuan.ts:408:    return { error: "Hanya admin/manager/pimpinan yang dapat membatalkan pencairan." }
+src/actions/pengajuan.ts:412:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/pengajuan.ts:427:  if (!pengajuan || !pengajuan.pinjaman) return { error: "Data pencairan pinjaman tidak ditemukan." }
+src/actions/pengajuan.ts:429:    return { error: "Hanya pengajuan berstatus DICAIRKAN yang bisa dibatalkan." }
+src/actions/pengajuan.ts:432:    return { error: "Pencairan tidak dapat dibatalkan karena sudah ada pembayaran angsuran." }
+src/actions/pengajuan.ts:440:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pengajuan.ts:533:    return { error: message }
+src/actions/pengajuan.ts:560:  return { success: true }
+src/actions/settings.ts:112:    return { error: "Hanya admin/pimpinan yang dapat mengubah pengaturan ranking." }
+src/actions/settings.ts:116:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:140:  return { success: true }
+src/actions/settings.ts:164:    return { error: "Hanya admin yang dapat mengubah mode akuntansi." }
+src/actions/settings.ts:168:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:177:  return { success: true }
+src/actions/settings.ts:206:    return { error: "Hanya admin/pimpinan yang dapat mengubah informasi perusahaan." }
+src/actions/settings.ts:210:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/settings.ts:221:  return { success: true }
+src/actions/nasabah.ts:16:  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+src/actions/nasabah.ts:17:  | { error: NasabahActionError }
+src/actions/nasabah.ts:18:type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+src/actions/nasabah.ts:32:function getUniqueConstraintFields(error: unknown): string[] {
+src/actions/nasabah.ts:266:    return { error: parsed.error.flatten().fieldErrors }
+src/actions/nasabah.ts:277:      error: {
+src/actions/nasabah.ts:286:      return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+src/actions/nasabah.ts:309:      return { success: true, data: nasabah }
+src/actions/nasabah.ts:313:        return { error: { nik: ["NIK sudah terdaftar."] } }
+src/actions/nasabah.ts:317:        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:324:  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+src/actions/nasabah.ts:333:  if (!current) return { error: { nik: ["Nasabah tidak ditemukan."] } }
+src/actions/nasabah.ts:352:        error: {
+src/actions/nasabah.ts:361:    if (!kelompok) return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+src/actions/nasabah.ts:376:      return { error: { nik: ["NIK sudah terdaftar."] } }
+src/actions/nasabah.ts:384:  return { success: true }
+src/actions/nasabah.ts:393:  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+src/actions/nasabah.ts:396:  return { success: true }
+src/actions/nasabah.ts:407:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+src/actions/nasabah.ts:425:    return { success: false, error: "Nasabah tidak ditemukan." }
+src/actions/nasabah.ts:429:  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+src/actions/nasabah.ts:433:      success: false,
+src/actions/nasabah.ts:434:      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+src/actions/nasabah.ts:443:  return { success: true }
+src/actions/platform-admin.ts:76:function errorMessage(error: unknown) {
+src/actions/platform-admin.ts:89:  if (!companyId) return { error: "Company tidak valid." as const }
+src/actions/platform-admin.ts:95:  if (!company) return { error: "Company tidak ditemukan." as const }
+src/actions/platform-admin.ts:97:    return { error: `Company berstatus ${company.status}. Context operasional hanya untuk company ACTIVE.` as const }
+src/actions/platform-admin.ts:114:    success: true as const,
+src/actions/platform-admin.ts:130:  return { success: true as const }
+src/actions/platform-admin.ts:327:  | { success: true; message: string }
+src/actions/platform-admin.ts:328:  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+src/actions/platform-admin.ts:336:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status company." }
+src/actions/platform-admin.ts:347:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:354:    if (!before) return { success: false, error: "Company tidak ditemukan." }
+src/actions/platform-admin.ts:393:    return { success: true, message: `Status company diubah menjadi ${nextStatus}.` }
+src/actions/platform-admin.ts:396:    return { success: false, error: errorMessage(error) }
+src/actions/platform-admin.ts:412:      return { success: false, error: "Keluar dulu dari mode company context sebelum soft delete company." }
+src/actions/platform-admin.ts:421:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:428:    if (!company) return { success: false, error: "Company tidak ditemukan." }
+src/actions/platform-admin.ts:432:      return { success: false, error: `Konfirmasi salah. Ketik: ${expected}` }
+src/actions/platform-admin.ts:464:    return { success: true, message: "Company berhasil di-soft delete (status DELETED)." }
+src/actions/platform-admin.ts:467:    return { success: false, error: errorMessage(error) }
+src/actions/platform-admin.ts:521:  | { success: true; message: string; tempPassword?: string }
+src/actions/platform-admin.ts:522:  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+src/actions/platform-admin.ts:530:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status user." }
+src/actions/platform-admin.ts:539:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:546:    if (!before) return { success: false, error: "User tidak ditemukan." }
+src/actions/platform-admin.ts:566:    return { success: true, message: `User ${nextActive ? "diaktifkan" : "dinonaktifkan"}.` }
+src/actions/platform-admin.ts:569:    return { success: false, error: errorMessage(error) }
+src/actions/platform-admin.ts:584:      return { success: false, error: "Keluar dulu dari mode company context sebelum reset password user." }
+src/actions/platform-admin.ts:592:      return { success: false, error: "Input tidak valid.", fieldErrors: parsed.error.flatten().fieldErrors }
+src/actions/platform-admin.ts:599:    if (!user) return { success: false, error: "User tidak ditemukan." }
+src/actions/platform-admin.ts:619:    return { success: true, message: "Password berhasil direset.", tempPassword }
+src/actions/platform-admin.ts:622:    return { success: false, error: errorMessage(error) }
+src/actions/pembayaran.ts:392:    return { error: "Tidak memiliki hak akses untuk input pembayaran." }
+src/actions/pembayaran.ts:397:    return { error: "Akun pengguna tidak ditemukan di database. Silakan login ulang." }
+src/actions/pembayaran.ts:409:  if (!jadwal) return { error: "Data angsuran tidak ditemukan." }
+src/actions/pembayaran.ts:411:    return { error: "Angsuran ini sudah dibayar." }
+src/actions/pembayaran.ts:427:    return { error: "Tidak ada sisa tagihan untuk angsuran ini." }
+src/actions/pembayaran.ts:440:    return { error: "Jumlah pembayaran tidak valid." }
+src/actions/pembayaran.ts:443:    return { error: "Untuk mode parsial, jumlah harus lebih kecil dari total tagihan sisa." }
+src/actions/pembayaran.ts:446:    return { error: "Jumlah pembayaran melebihi total tagihan sisa." }
+src/actions/pembayaran.ts:461:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pembayaran.ts:581:  return { success: true, ...result }
+src/actions/pembayaran.ts:584:      error: error instanceof Error ? error.message : "Gagal memproses pembayaran.",
+src/actions/pembayaran.ts:1078:    return { error: "Tidak memiliki hak akses untuk meminta pembatalan." }
+src/actions/pembayaran.ts:1082:  if (!pembayaran) return { error: "Data pembayaran tidak ditemukan." }
+src/actions/pembayaran.ts:1083:  if (pembayaran.isBatalkan) return { error: "Pembayaran sudah dibatalkan." }
+src/actions/pembayaran.ts:1093:  if (pending) return { error: "Sudah ada approval pembatalan yang masih pending." }
+src/actions/pembayaran.ts:1117:  return { success: true }
+src/actions/pembayaran.ts:1159:    return { error: "Hanya manager/admin/pimpinan yang dapat menyetujui pembatalan." }
+src/actions/pembayaran.ts:1170:    return { error: "Approval pembayaran tidak ditemukan." }
+src/actions/pembayaran.ts:1173:    return { error: "Approval sudah diproses sebelumnya." }
+src/actions/pembayaran.ts:1198:    return { success: true }
+src/actions/pembayaran.ts:1205:  if (!pembayaran) return { error: "Pembayaran tidak ditemukan." }
+src/actions/pembayaran.ts:1206:  if (pembayaran.isBatalkan) return { error: "Pembayaran sudah dibatalkan." }
+src/actions/pembayaran.ts:1209:  if ("error" in ensured) return { error: ensured.error }
+src/actions/pembayaran.ts:1303:  return { success: true }
+src/actions/pembayaran.ts:1319:    return { error: "Tidak memiliki hak akses untuk mengedit." }
+src/actions/pembayaran.ts:1323:  if (!existing) return { error: "Transaksi tidak ditemukan." }
+src/actions/pembayaran.ts:1324:  if (existing.isBatalkan) return { error: "Transaksi batal tidak bisa diedit." }
+src/actions/pembayaran.ts:1345:  return { success: true }
+src/actions/kolektor.ts:139:    return { error: "Nama, email, dan password wajib diisi." }
+src/actions/kolektor.ts:151:  return { success: true }
+src/actions/kolektor.ts:170:  if (!nasabah) return { error: "Nasabah tidak ditemukan." }
+src/actions/kolektor.ts:190:  return { success: true, defaultEmail: generatedEmail }
+src/actions/kolektor.ts:213:  if (!kelompok) return { error: "Kelompok tidak ditemukan." }
+src/actions/kolektor.ts:216:  if (!ketuaNasabah) return { error: "Kelompok belum memiliki anggota untuk dijadikan kolektor." }
+src/actions/kolektor.ts:236:  return { success: true, defaultEmail: generatedEmail }
+src/app/api/upload/pengajuan/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pengajuan/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pengajuan/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/pengajuan/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/nasabah/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/nasabah/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/nasabah/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/nasabah/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/pembayaran/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/pembayaran/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/pembayaran/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/pembayaran/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/actions/akuntansi.ts:58:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/akuntansi.ts:61:  if (existing) return { error: `Kode akun "${existing.code}" sudah ada.` }
+src/actions/akuntansi.ts:82:  return { success: true, data: row }
+src/actions/akuntansi.ts:117:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/akuntansi.ts:120:  if (!existing) return { error: "Kategori kas tidak ditemukan." }
+src/actions/akuntansi.ts:124:    if (!acc) return { error: "Akun tidak ditemukan." }
+src/actions/akuntansi.ts:145:  return { success: true, data: updated }
+src/actions/akuntansi.ts:199:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/akuntansi.ts:202:  if (!account) return { error: "Akun tidak ditemukan." }
+src/actions/akuntansi.ts:204:    return { error: "Rekonsiliasi saat ini hanya untuk akun kas tunai dan kas bank." }
+src/actions/akuntansi.ts:260:  return serializeData({ success: true, data: row })
+src/actions/akuntansi.ts:269:  if (!row) return { error: "Data rekonsiliasi tidak ditemukan." }
+src/actions/akuntansi.ts:284:  return { success: true }
+src/actions/kelompok.ts:81:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kelompok.ts:87:  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+src/actions/kelompok.ts:119:  return { success: true, data: kelompok }
+src/actions/kelompok.ts:128:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kelompok.ts:134:  if (existing) return { error: { kode: ["Kode kelompok sudah digunakan."] } }
+src/actions/kelompok.ts:173:  return { success: true }
+src/actions/kelompok.ts:184:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus kelompok." }
+src/actions/kelompok.ts:201:    return { success: false, error: "Kelompok tidak ditemukan." }
+src/actions/kelompok.ts:206:      success: false,
+src/actions/kelompok.ts:207:      error: "Kelompok sudah dipakai di histori pengajuan. Edit atau kosongkan anggota, jangan hapus histori kelompok.",
+src/actions/kelompok.ts:224:  return { success: true }
+src/app/api/upload/logo/route.ts:15:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/logo/route.ts:23:    return Response.json({ error: "Tidak ada file logo yang diupload." }, { status: 400 })
+src/app/api/upload/logo/route.ts:31:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/logo/route.ts:34:    return Response.json({ error: message }, { status: 400 })
+src/app/api/upload/kas/route.ts:7:    return Response.json({ error: "Unauthorized" }, { status: 401 })
+src/app/api/upload/kas/route.ts:14:    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+src/app/api/upload/kas/route.ts:19:    return Response.json({ urls: uploadedUrls })
+src/app/api/upload/kas/route.ts:22:    return Response.json({ error: message }, { status: 400 })
+src/actions/kas.ts:50:  if (!session) return { error: "Unauthorized" as const }
+src/actions/kas.ts:54:  if (!key) return { error: "Kategori tidak boleh kosong." as const }
+src/actions/kas.ts:58:    return { error: `Kategori "${existing.nama}" sudah terpakai untuk jenis ${existing.jenis}. Kategori masuk dan keluar tidak boleh sama.` as const }
+src/actions/kas.ts:136:    return { error: "Tidak memiliki hak akses untuk menambah kategori kas." }
+src/actions/kas.ts:140:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:145:    return { error: `Kategori "${existing.nama}" sudah ada (jenis ${existing.jenis}). Kategori masuk dan keluar tidak boleh sama.` }
+src/actions/kas.ts:167:  return { success: true, data: row }
+src/actions/kas.ts:179:    return { error: "Tidak memiliki hak akses untuk mengubah kategori kas." }
+src/actions/kas.ts:183:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:186:  if (!existing) return { error: "Kategori tidak ditemukan." }
+src/actions/kas.ts:187:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:196:      return { error: `Kategori dengan nama "${parsed.data.nama}" sudah ada.` }
+src/actions/kas.ts:228:  return { success: true, data: row }
+src/actions/kas.ts:240:    return { error: "Tidak memiliki hak akses untuk menghapus kategori kas." }
+src/actions/kas.ts:246:  if (!existing) return { error: "Kategori tidak ditemukan." }
+src/actions/kas.ts:247:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:272:  return { success: true }
+src/actions/kas.ts:414:    return { error: "Tidak memiliki hak akses untuk input transaksi kas." }
+src/actions/kas.ts:418:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:423:  if ("error" in ensured) return { error: ensured.error }
+src/actions/kas.ts:426:  if (!tanggalTransaksi) return { error: "Tanggal transaksi tidak valid." }
+src/actions/kas.ts:432:        error: `Saldo ${rest.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup. Tersedia Rp ${saldoKas.toLocaleString("id-ID")}, perlu Rp ${jumlah.toLocaleString("id-ID")}.`,
+src/actions/kas.ts:474:      return { error: "Gagal menyimpan kas. Silakan ulangi beberapa saat lagi." }
+src/actions/kas.ts:490:  return { success: true, data: { id: kas.id, isApproved: kas.isApproved } }
+src/actions/kas.ts:502:    return { error: "Tidak memiliki hak akses." }
+src/actions/kas.ts:506:  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+src/actions/kas.ts:511:  if ("error" in ensured) return { error: ensured.error }
+src/actions/kas.ts:514:  if (!existing) return { error: "Data tidak ditemukan." }
+src/actions/kas.ts:515:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:518:    return { error: "Transaksi kas ini masih menunggu persetujuan. Selesaikan approval sebelum edit." }
+src/actions/kas.ts:522:  if (!tanggalTransaksi) return { error: "Tanggal transaksi tidak valid." }
+src/actions/kas.ts:532:        error: `Saldo ${rest.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup untuk perubahan transaksi ini.`,
+src/actions/kas.ts:572:  return { success: true }
+src/actions/kas.ts:584:    return { error: "Tidak memiliki hak akses." }
+src/actions/kas.ts:588:  if (!existing) return { error: "Data tidak ditemukan." }
+src/actions/kas.ts:589:  if (existing.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:592:    return { error: "Transaksi kas ini masih menunggu persetujuan. Selesaikan approval sebelum hapus." }
+src/actions/kas.ts:616:  return { success: true }
+src/actions/kas.ts:627:    return { error: "Tidak memiliki hak akses untuk melihat approval kas." as const }
+src/actions/kas.ts:639:  return serializeData({ success: true as const, data: rows })
+src/actions/kas.ts:652:    return { error: "Tidak memiliki hak akses untuk memproses approval kas." }
+src/actions/kas.ts:656:  if (!row) return { error: "Transaksi kas tidak ditemukan." }
+src/actions/kas.ts:657:  if (row.companyId !== companyId) return { error: "Forbidden" }
+src/actions/kas.ts:658:  if (row.isApproved && input.action === "APPROVE") return { error: "Transaksi kas sudah disetujui." }
+src/actions/kas.ts:679:        error: `Saldo ${row.kasJenis === "BANK" ? "Kas Bank" : "Kas Tunai"} tidak cukup untuk approve transaksi ini.`,
+src/actions/kas.ts:732:  return { success: true }
+
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "rg -n \"model AuditLog|model ApprovalLog|entityType|metadata\" prisma/schema.prisma && sed -n '420,520p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+411:model AuditLog {
+414:  entityType String
+419:  metadata   Json?
+424:  @@index([entityType, entityId])
+429:model ApprovalLog {
+431:  entityType    ApprovalEntityType
+442:  @@index([entityType, entityId])
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model ApprovalLog {
+  id            String             @id @default(cuid())
+  entityType    ApprovalEntityType
+  entityId      String
+  status        ApprovalStatus     @default(PENDING)
+  catatan       String?
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  approvedBy    User?              @relation("ApprovalApprover", fields: [approvedById], references: [id])
+  requestedBy   User               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([requestedById, createdAt])
+  @@map("approval_logs")
+}
+
+model KolektorTarget {
+  id                 String   @id @default(cuid())
+  kolektorId         String
+  periodMonth        Int
+  periodYear         Int
+  targetTagihan      Decimal  @db.Decimal(15, 2)
+  realisasiTagihan   Decimal  @default(0) @db.Decimal(15, 2)
+  targetKunjungan    Int      @default(0)
+  realisasiKunjungan Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kolektor           User     @relation("KolektorTargetUser", fields: [kolektorId], references: [id], onDelete: Cascade)
+
+  @@unique([kolektorId, periodMonth, periodYear])
+  @@index([periodYear, periodMonth])
+  @@index([companyId])
+  @@map("kolektor_targets")
+}
+
+model Notifikasi {
+  id        String          @id @default(cuid())
+  userId    String?
+  jenis     NotifikasiJenis
+  judul     String
+  pesan     String
+  link      String?
+  isRead    Boolean         @default(false)
+  readAt    DateTime?
+  createdAt DateTime        @default(now())
+  companyId String
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User?           @relation("UserNotifikasi", fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@index([companyId])
+  @@map("notifikasi")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
+
+model CompanySetting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+
+exec
+/bin/bash -lc "sed -n '384,434p' prisma/schema.prisma" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+  @@map("kas_kategori")
+}
+
+model KasTransaksi {
+  id          String      @id @default(cuid())
+  tanggal     DateTime    @default(now())
+  jenis       JenisKas
+  kategoriKey String
+  deskripsi   String
+  jumlah      Decimal     @db.Decimal(15, 2)
+  kasJenis    String      @default("TUNAI")
+  buktiUrl    String?
+  inputOlehId String
+  isApproved  Boolean     @default(true)
+  referensiId String?
+  createdAt   DateTime    @default(now())
+  companyId   String
+  kategoriId  String
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh   User        @relation(fields: [inputOlehId], references: [id])
+  kat         KasKategori @relation(fields: [kategoriId], references: [id])
+
+  @@index([companyId])
+  @@index([kategoriId])
+  @@map("kas_transaksi")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  entityType String
+  entityId   String?
+  action     AuditAction
+  beforeData Json?
+  afterData  Json?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model ApprovalLog {
+  id            String             @id @default(cuid())
+  entityType    ApprovalEntityType
+  entityId      String
+  status        ApprovalStatus     @default(PENDING)
+  catatan       String?
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/lib/audit.ts" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+import { AuditAction, ApprovalEntityType, ApprovalStatus, Prisma } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
+
+type JsonPayload = Prisma.InputJsonValue | undefined
+
+export async function writeAuditLog(input: {
+  actorId?: string
+  entityType: string
+  entityId?: string
+  action: AuditAction
+  beforeData?: JsonPayload
+  afterData?: JsonPayload
+  metadata?: JsonPayload
+  ipAddress?: string
+}) {
+  try {
+    let finalActorId = input.actorId
+    if (finalActorId) {
+      const user = await prisma.user.findUnique({ where: { id: finalActorId }, select: { id: true } })
+      if (!user) finalActorId = undefined
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: finalActorId,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        action: input.action,
+        beforeData: input.beforeData,
+        afterData: input.afterData,
+        metadata: input.metadata,
+        ipAddress: input.ipAddress,
+      },
+    })
+  } catch (error) {
+    // Non-blocking while migration rollout is in progress.
+    console.warn("Audit log write skipped:", error)
+  }
+}
+
+export async function writeApprovalLog(input: {
+  entityType: ApprovalEntityType
+  entityId: string
+  status?: ApprovalStatus
+  catatan?: string
+  requestedById: string
+  approvedById?: string
+}) {
+  try {
+    // Basic existence checks to avoid foreign key violations
+    const requester = await prisma.user.findUnique({ where: { id: input.requestedById }, select: { id: true } })
+    if (!requester) return // Cannot log without valid requester
+
+    let finalApprovedById = input.approvedById
+    if (finalApprovedById) {
+      const approver = await prisma.user.findUnique({ where: { id: finalApprovedById }, select: { id: true } })
+      if (!approver) finalApprovedById = undefined
+    }
+
+    await prisma.approvalLog.create({
+      data: {
+        entityType: input.entityType,
+        entityId: input.entityId,
+        status: input.status ?? ApprovalStatus.PENDING,
+        catatan: input.catatan,
+        requestedById: input.requestedById,
+        approvedById: finalApprovedById,
+      },
+    })
+  } catch (error) {
+    console.warn("Approval log write skipped:", error)
+  }
+}
+
+codex
+Saya lanjut ke implementasi file action dulu: akan menambah fungsi list/create dengan tenant scoping (`companyId`), role guard, validasi `note` (`trim`, non-empty, max length), dan format hasil yang stabil. Setelah itu saya commit dulu sebagai subtask pertama, baru lanjut file route API.
+exec
+/bin/bash -lc "cat > src/actions/nasabah-survey.ts <<'EOF'
+\"use server\"
+
+import { RoleType, type Prisma } from \"@prisma/client\"
+import { z } from \"zod\"
+import { auth } from \"@/lib/auth\"
+import { prisma } from \"@/lib/prisma\"
+import { requireCompanyId } from \"@/lib/tenant\"
+import { requireRoles } from \"@/lib/roles\"
+
+const SURVEY_NOTE_ENTITY_TYPE = \"NASABAH_SURVEY_NOTE\"
+const MAX_SURVEY_NOTE_LENGTH = 1500
+
+const nasabahIdSchema = z.string().trim().min(1, \"ID nasabah wajib diisi.\")
+const createSurveyNoteSchema = z.object({
+  note: z
+    .string()
+    .trim()
+    .min(1, \"Catatan survey wajib diisi.\")
+    .max(MAX_SURVEY_NOTE_LENGTH, "'`Catatan survey maksimal ${MAX_SURVEY_NOTE_LENGTH} karakter.`),
+})
+
+type ApiError = {
+  success: false
+  error: {
+    code: string
+    message: string
+    details?: unknown
+  }
+}
+
+type ApiSuccess<T> = {
+  success: true
+  data: T
+}
+
+type ApiResult<T> = {
+  status: number
+  body: ApiSuccess<T> | ApiError
+}
+
+type SurveyNoteItem = {
+  id: string
+  note: string
+  createdAt: string
+  createdBy: {
+    id: string
+    name: string | null
+    email: string | null
+  } | null
+}
+
+function ok<T>(status: number, data: T): ApiResult<T> {
+  return { status, body: { success: true, data } }
+}
+
+function fail(status: number, code: string, message: string, details?: unknown): ApiResult<never> {
+  return {
+    status,
+    body: {
+      success: false,
+      error: {
+        code,
+        message,
+        ...(details !== undefined ? { details } : {}),
+      },
+    },
+  }
+}
+
+function getNoteFromJson(json: Prisma.JsonValue | null): string {
+  if (!json || typeof json !== "object" || Array.isArray(json)) return ""
+  const candidate = (json as Record<string, unknown>).note
+  return typeof candidate === "string" ? candidate : ""
+}
+
+function mapSurveyNote(row: {
+  id: string
+  createdAt: Date
+  actor: { id: string; name: string | null; email: string | null } | null
+  afterData: Prisma.JsonValue | null
+}): SurveyNoteItem {
+  return {
+    id: row.id,
+    note: getNoteFromJson(row.afterData),
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.actor
+      ? {
+          id: row.actor.id,
+          name: row.actor.name,
+          email: row.actor.email,
+        }
+      : null,
+  }
+}
+
+async function ensureNasabahInCompany(companyId: string, nasabahId: string) {
+  const nasabah = await prisma.nasabah.findFirst({
+    where: { id: nasabahId, companyId },
+    select: { id: true },
+  })
+
+  return Boolean(nasabah)
+}
+
+const VIEW_ROLES: RoleType[] = [
+  RoleType.OWNER,
+  RoleType.ADMIN,
+  RoleType.MANAGER,
+  RoleType.PIMPINAN,
+  RoleType.SURVEYOR,
+  RoleType.KOLEKTOR,
+]
+
+const CREATE_ROLES: RoleType[] = [
+  RoleType.OWNER,
+  RoleType.ADMIN,
+  RoleType.MANAGER,
+  RoleType.PIMPINAN,
+  RoleType.SURVEYOR,
+]
+
+export async function listNasabahSurveyNotes(nasabahIdInput: string): Promise<ApiResult<{ notes: SurveyNoteItem[] }>> {
+  const session = await auth()
+  if (!session) return fail(401, "UNAUTHORIZED", "Unauthorized")
+
+  const parsedNasabahId = nasabahIdSchema.safeParse(nasabahIdInput)
+  if (!parsedNasabahId.success) {
+    return fail(400, "INVALID_NASABAH_ID", "ID nasabah tidak valid.", parsedNasabahId.error.flatten().fieldErrors)
+  }
+
+  const nasabahId = parsedNasabahId.data
+
+  let companyId: string
+  try {
+    companyId = requireCompanyId(
+      session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+    ).companyId
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized"
+    if (message === "Unauthorized") return fail(401, "UNAUTHORIZED", "Unauthorized")
+    return fail(403, "FORBIDDEN", message)
+  }
+
+  try {
+    requireRoles(session, VIEW_ROLES)
+  } catch {
+    return fail(403, "FORBIDDEN", "Tidak memiliki hak akses untuk melihat catatan survey.")
+  }
+
+  try {
+    const exists = await ensureNasabahInCompany(companyId, nasabahId)
+    if (!exists) {
+      return fail(404, "NASABAH_NOT_FOUND", "Nasabah tidak ditemukan.")
+    }
+
+    const rows = await prisma.auditLog.findMany({
+      where: {
+        entityType: SURVEY_NOTE_ENTITY_TYPE,
+        entityId: nasabahId,
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        afterData: true,
+        actor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    const notes = rows.map(mapSurveyNote).filter((item) => item.note.trim().length > 0)
+    return ok(200, { notes })
+  } catch (error) {
+    console.error("[listNasabahSurveyNotes]", error)
+    return fail(500, "INTERNAL_ERROR", "Gagal mengambil catatan survey.")
+  }
+}
+
+export async function createNasabahSurveyNote(
+  nasabahIdInput: string,
+  payload: unknown,
+): Promise<ApiResult<{ note: SurveyNoteItem }>> {
+  const session = await auth()
+  if (!session) return fail(401, "UNAUTHORIZED", "Unauthorized")
+
+  const parsedNasabahId = nasabahIdSchema.safeParse(nasabahIdInput)
+  if (!parsedNasabahId.success) {
+    return fail(400, "INVALID_NASABAH_ID", "ID nasabah tidak valid.", parsedNasabahId.error.flatten().fieldErrors)
+  }
+
+  let companyId: string
+  let userId: string
+  try {
+    const scoped = requireCompanyId(
+      session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null,
+    )
+    companyId = scoped.companyId
+    userId = scoped.userId
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized"
+    if (message === "Unauthorized") return fail(401, "UNAUTHORIZED", "Unauthorized")
+    return fail(403, "FORBIDDEN", message)
+  }
+
+  try {
+    requireRoles(session, CREATE_ROLES)
+  } catch {
+    return fail(403, "FORBIDDEN", "Tidak memiliki hak akses untuk menulis catatan survey.")
+  }
+
+  const parsedBody = createSurveyNoteSchema.safeParse(payload)
+  if (!parsedBody.success) {
+    return fail(400, "VALIDATION_ERROR", "Input tidak valid.", parsedBody.error.flatten().fieldErrors)
+  }
+
+  const nasabahId = parsedNasabahId.data
+
+  try {
+    const exists = await ensureNasabahInCompany(companyId, nasabahId)
+    if (!exists) {
+      return fail(404, "NASABAH_NOT_FOUND", "Nasabah tidak ditemukan.")
+    }
+
+    const created = await prisma.auditLog.create({
+      data: {
+        actorId: userId,
+        entityType: SURVEY_NOTE_ENTITY_TYPE,
+        entityId: nasabahId,
+        action: "CREATE",
+        afterData: {
+          note: parsedBody.data.note,
+        },
+        metadata: {
+          companyId,
+          nasabahId,
+          source: "api.nasabah.survey",
+        },
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        afterData: true,
+        actor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    return ok(201, { note: mapSurveyNote(created) })
+  } catch (error) {
+    console.error("[createNasabahSurveyNote]", error)
+    return fail(500, "INTERNAL_ERROR", "Gagal menyimpan catatan survey.")
+  }
+}
+EOF' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+codex
+File action sudah saya tulis. Saya jalankan lint cepat untuk file ini dulu; jika bersih saya commit sebagai checkpoint pertama sebelum lanjut route handler.
+exec
+/bin/bash -lc 'npx eslint src/actions/nasabah-survey.ts' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 11739ms:
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+?? src/actions/nasabah-survey.ts
+
+exec
+/bin/bash -lc 'git add src/actions/nasabah-survey.ts && git commit -m "feat: add tenant-scoped nasabah survey note actions"' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+[codex_20260423_1736_p1d-survey-actions-api a769e35] feat: add tenant-scoped nasabah survey note actions
+ 1 file changed, 263 insertions(+)
+ create mode 100644 dashboard/src/actions/nasabah-survey.ts
+
+codex
+Checkpoint pertama sudah di-commit. Saya lanjut implement route `src/app/api/nasabah/[id]/survey/route.ts` untuk `GET/POST` yang memanggil action baru dan mempertahankan format response JSON yang konsisten.
+exec
+/bin/bash -lc "mkdir -p 'src/app/api/nasabah/[id]/survey' && cat > 'src/app/api/nasabah/[id]/survey/route.ts' <<'EOF'
+import { createNasabahSurveyNote, listNasabahSurveyNotes } from \"@/actions/nasabah-survey\"
+
+type SurveyRouteContext = {
+  params: Promise<{ id: string }>
+}
+
+function invalidJsonResponse() {
+  return Response.json(
+    {
+      success: false,
+      error: {
+        code: \"INVALID_JSON\",
+        message: \"Body JSON tidak valid.\",
+      },
+    },
+    { status: 400 },
+  )
+}
+
+export async function GET(_request: Request, context: SurveyRouteContext) {
+  const { id } = await context.params
+  const result = await listNasabahSurveyNotes(id)
+  return Response.json(result.body, { status: result.status })
+}
+
+export async function POST(request: Request, context: SurveyRouteContext) {
+  const { id } = await context.params
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return invalidJsonResponse()
+  }
+
+  const result = await createNasabahSurveyNote(id, body)
+  return Response.json(result.body, { status: result.status })
+}
+EOF" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc "npx eslint src/actions/nasabah-survey.ts 'src/app/api/nasabah/[id]/survey/route.ts'" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 11223ms:
+exec
+/bin/bash -lc "git add 'src/app/api/nasabah/[id]/survey/route.ts' && git commit -m \"feat: add nasabah survey notes route handlers\"" in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+[codex_20260423_1736_p1d-survey-actions-api eaff484] feat: add nasabah survey notes route handlers
+ 1 file changed, 38 insertions(+)
+ create mode 100644 dashboard/src/app/api/nasabah/[id]/survey/route.ts
+
+codex
+Route handler sudah di-commit sebagai subtask kedua. Saya jalankan verifikasi akhir: lint untuk file terkait dan `npm run build` sesuai runbook, lalu jika ada perbaikan saya commit lagi.
+exec
+/bin/bash -lc 'npm run build' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ exited 1 in 7272ms:
+
+> dashboard@0.1.0 build
+> next build
+
+▲ Next.js 16.2.4 (Turbopack)
+
+  Creating an optimized production build ...
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /tmp/next-panic-5eebecd6a30037132f8b1a6aca0fe478.log.
+
+To help make Turbopack better, report this error by clicking here: https://bugs.nextjs.org/search?category=turbopack-error-report&title=Turbopack%20Error%3A%20Symlink%20%5Bproject%5D%2Fnode_modules%20is%20invalid%2C%20it%20points%20out%20of%20the%20filesystem%20root&body=Turbopack%20version%3A%20%60e0739832%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0ASymlink%20%5Bproject%5D%2Fnode_modules%20is%20invalid%2C%20it%20points%20out%20of%20the%20filesystem%20root%0A%0ADebug%20info%3A%0A-%20Execution%20of%20get_all_written_entrypoints_with_issues_operation%20failed%0A-%20Execution%20of%20EntrypointsOperation%3A%3Anew%20failed%0A-%20Execution%20of%20all_entrypoints_write_to_disk_operation%20failed%0A-%20Execution%20of%20output_assets_operation%20failed%0A-%20Execution%20of%20Project%3A%3Aget_all_endpoint_groups_with_app_route_filter%20failed%0A-%20Execution%20of%20Project%3A%3Aentrypoints_with_app_route_filter%20failed%0A-%20Execution%20of%20AppProject%3A%3Aroutes_with_filter%20failed%0A-%20Execution%20of%20directory_tree_to_entrypoints_internal%20failed%0A-%20Execution%20of%20try_get_next_package%20failed%0A-%20Execution%20of%20%2AResolveResult%3A%3Afirst_source%20failed%0A-%20Execution%20of%20resolve%20failed%0A-%20Execution%20of%20resolve_internal%20failed%0A-%20Execution%20of%20find_package%20failed%0A-%20Symlink%20%5Bproject%5D%2Fnode_modules%20is%20invalid%2C%20it%20points%20out%20of%20the%20filesystem%20root%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace
+-----
+
+
+> Build error occurred
+Error [TurbopackInternalError]: Symlink [project]/node_modules is invalid, it points out of the filesystem root
+
+Debug info:
+- Execution of get_all_written_entrypoints_with_issues_operation failed
+- Execution of EntrypointsOperation::new failed
+- Execution of all_entrypoints_write_to_disk_operation failed
+- Execution of output_assets_operation failed
+- Execution of Project::get_all_endpoint_groups_with_app_route_filter failed
+- Execution of Project::entrypoints_with_app_route_filter failed
+- Execution of AppProject::routes_with_filter failed
+- Execution of directory_tree_to_entrypoints_internal failed
+- Execution of try_get_next_package failed
+- Execution of *ResolveResult::first_source failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of find_package failed
+- Symlink [project]/node_modules is invalid, it points out of the filesystem root
+    at ignore-listed frames {
+  type: 'TurbopackInternalError',
+  location: undefined
+}
+
+exec
+/bin/bash -lc 'npx tsc --noEmit' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 120399ms:
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc 'git log --oneline -n 5' in /tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard
+ succeeded in 0ms:
+eaff484 feat: add nasabah survey notes route handlers
+a769e35 feat: add tenant-scoped nasabah survey note actions
+1cf4435 Harden superadmin actions when acting as company context
+ddd70d4 Add superadmin context audit trail and deleted-company impersonation guard
+8f37dce Add superadmin company impersonation context with enter/exit controls
+
+codex
+Implemented and committed in 2 checkpoints.
+
+Commits:
+1. `a769e35` `feat: add tenant-scoped nasabah survey note actions`
+2. `eaff484` `feat: add nasabah survey notes route handlers`
+
+Changed files:
+- [src/actions/nasabah-survey.ts](/tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard/src/actions/nasabah-survey.ts)
+- [src/app/api/nasabah/[id]/survey/route.ts](/tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard/src/app/api/nasabah/[id]/survey/route.ts)
+
+What’s implemented:
+- Added list/create survey note server actions, tenant-scoped via `requireCompanyId`.
+- Added role guard:
+  - List: `OWNER, ADMIN, MANAGER, PIMPINAN, SURVEYOR, KOLEKTOR`
+  - Create: `OWNER, ADMIN, MANAGER, PIMPINAN, SURVEYOR`
+- Validation:
+  - `nasabahId` required non-empty.
+  - `note` required non-empty (trimmed), max length `1500`.
+- Concise error handling with stable response shape:
+  - Success: `{ success: true, data: ... }`
+  - Error: `{ success: false, error: { code, message, details? } }`
+- Route handler supports:
+  - `GET /api/nasabah/[id]/survey`
+  - `POST /api/nasabah/[id]/survey`
+  - Handles invalid JSON body with stable `400` response.
+
+Storage adaptation note:
+- Since no dedicated survey-note model exists in current schema, notes are stored as `AuditLog` entries (`entityType: "NASABAH_SURVEY_NOTE"`) tied to `entityId = nasabahId` with `companyId` in metadata.
+
+Checks run:
+- `npx eslint src/actions/nasabah-survey.ts 'src/app/api/nasabah/[id]/survey/route.ts'` passed.
+- `npx tsc --noEmit` passed.
+- `npm run build` failed due environment symlink/Turbopack issue (`node_modules` symlink points outside filesystem root), not from code changes.
+tokens used
+62,884
+Implemented and committed in 2 checkpoints.
+
+Commits:
+1. `a769e35` `feat: add tenant-scoped nasabah survey note actions`
+2. `eaff484` `feat: add nasabah survey notes route handlers`
+
+Changed files:
+- [src/actions/nasabah-survey.ts](/tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard/src/actions/nasabah-survey.ts)
+- [src/app/api/nasabah/[id]/survey/route.ts](/tmp/codex-fanout/20260423_172356/p1d-survey-actions-api/dashboard/src/app/api/nasabah/[id]/survey/route.ts)
+
+What’s implemented:
+- Added list/create survey note server actions, tenant-scoped via `requireCompanyId`.
+- Added role guard:
+  - List: `OWNER, ADMIN, MANAGER, PIMPINAN, SURVEYOR, KOLEKTOR`
+  - Create: `OWNER, ADMIN, MANAGER, PIMPINAN, SURVEYOR`
+- Validation:
+  - `nasabahId` required non-empty.
+  - `note` required non-empty (trimmed), max length `1500`.
+- Concise error handling with stable response shape:
+  - Success: `{ success: true, data: ... }`
+  - Error: `{ success: false, error: { code, message, details? } }`
+- Route handler supports:
+  - `GET /api/nasabah/[id]/survey`
+  - `POST /api/nasabah/[id]/survey`
+  - Handles invalid JSON body with stable `400` response.
+
+Storage adaptation note:
+- Since no dedicated survey-note model exists in current schema, notes are stored as `AuditLog` entries (`entityType: "NASABAH_SURVEY_NOTE"`) tied to `entityId = nasabahId` with `companyId` in metadata.
+
+Checks run:
+- `npx eslint src/actions/nasabah-survey.ts 'src/app/api/nasabah/[id]/survey/route.ts'` passed.
+- `npx tsc --noEmit` passed.
+- `npm run build` failed due environment symlink/Turbopack issue (`node_modules` symlink points outside filesystem root), not from code changes.

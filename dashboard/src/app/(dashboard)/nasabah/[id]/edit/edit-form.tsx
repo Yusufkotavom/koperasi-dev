@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NasabahSurveyNotes } from "@/components/nasabah-survey-notes"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { useState } from "react"
+import { StatusLifecycleControls } from "./status-lifecycle-controls"
 
 function docTitle(url: string) {
   const clean = url.split("?")[0]
@@ -35,7 +37,7 @@ type FormNasabah = {
   pekerjaan: string | null
   namaUsaha: string | null
   dokumenUrls: string[]
-  status: "AKTIF" | "NON_AKTIF" | "KELUAR"
+  status: "CALON" | "AKTIF" | "NON_AKTIF" | "KELUAR"
   kelompokId: string | null
   kolektorId: string | null
 }
@@ -51,6 +53,7 @@ export function EditNasabahForm({
 }) {
   const [isPending, startTransition] = useTransition()
   const [isUploadingDokumen, setIsUploadingDokumen] = useState(false)
+  const [currentStatus, setCurrentStatus] = useState<FormNasabah["status"]>(nasabah.status)
   const [dokumenText, setDokumenText] = useState("")
   const [uploadedDokumen, setUploadedDokumen] = useState<string[]>(nasabah.dokumenUrls ?? [])
   const router = useRouter()
@@ -70,7 +73,7 @@ export function EditNasabahForm({
       pekerjaan: nasabah.pekerjaan ?? "",
       namaUsaha: nasabah.namaUsaha ?? "",
       dokumenUrls: nasabah.dokumenUrls ?? [],
-      status: nasabah.status,
+      status: currentStatus,
       kelompokId: nasabah.kelompokId ?? undefined,
       kolektorId: nasabah.kolektorId ?? undefined,
     },
@@ -198,18 +201,19 @@ export function EditNasabahForm({
               <Label htmlFor="namaUsaha">Nama Usaha</Label>
               <Input id="namaUsaha" {...register("namaUsaha")} />
             </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select defaultValue={nasabah.status} onValueChange={(v) => setValue("status", v as NasabahInput["status"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AKTIF">Aktif</SelectItem>
-                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
-                  <SelectItem value="KELUAR">Keluar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="space-y-2" />
           </div>
+
+          <StatusLifecycleControls
+            nasabahId={nasabah.id}
+            status={currentStatus}
+            onStatusChange={(next) => {
+              setCurrentStatus(next)
+              setValue("status", next, { shouldDirty: true, shouldValidate: true })
+            }}
+          />
+
+          <NasabahSurveyNotes nasabahId={nasabah.id} editable />
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">

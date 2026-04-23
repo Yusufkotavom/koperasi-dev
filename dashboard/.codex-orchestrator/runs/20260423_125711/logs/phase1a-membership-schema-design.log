@@ -1,0 +1,1473 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba6a-742c-7913-a9b7-7a6eed1aca1f
+--------
+user
+You are worker P1-A. Create detailed technical design doc for membership lifecycle model (candidate/active/inactive/exit), audit trail, and migration strategy compatible with current prisma schema. Output docs/internal/phase1-membership-schema-design.md and include rollout + rollback plan and testing strategy. Commit branch.
+2026-04-23T12:57:12.663200Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll create the design doc in the requested path, make sure it aligns with the existing Prisma schema, then add rollout/rollback and testing sections, and commit it on this branch. I’m starting by checking the repo structure and current Prisma models.
+exec
+/bin/bash -lc "ls -la /home/kotacom/.codex/skills/using-superpowers && sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+total 20
+drwxr-xr-x 3 kotacom kotacom 4096 Apr 19 14:17 .
+drwxr-xr-x 4 kotacom kotacom 4096 Apr 19 14:17 ..
+-rw-r--r-- 1 kotacom kotacom 5421 Apr 19 14:17 SKILL.md
+drwxr-xr-x 2 kotacom kotacom 4096 Apr 19 14:17 references
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+codex
+Using `using-superpowers` to ensure the required skill-selection workflow is followed before implementation. I’m now checking for additional skills relevant to schema design and migrations.
+exec
+/bin/bash -lc 'pwd && ls -la' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 12:57 .
+drwxr-xr-x  4 kotacom kotacom 4096 Apr 23 12:57 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 12:57 .codex
+-rw-r--r--  1 kotacom kotacom   95 Apr 23 12:57 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 12:57 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 12:57 dashboard
+
+exec
+/bin/bash -lc 'rg -n "model|enum|membership|member|status|audit|lifecycle|candidate|active|inactive|exit" prisma -S || true' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+exec
+/bin/bash -lc "rg --files | rg -i 'prisma|schema|migration|docs/internal|membership'" in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+prisma: No such file or directory (os error 2)
+
+ succeeded in 0ms:
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/src/lib/prisma.ts
+dashboard/prisma.config.ts
+dashboard/prisma/seed.ts
+dashboard/prisma/migrations/20260422103000_company_user_scope/migration.sql
+dashboard/prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+dashboard/prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+dashboard/prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+dashboard/prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+dashboard/prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+dashboard/prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+dashboard/prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+dashboard/prisma/migrations/20260421110000_journal_entries/migration.sql
+dashboard/prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+dashboard/prisma/migrations/20260418204642_init/migration.sql
+dashboard/prisma/migrations/migration_lock.toml
+dashboard/prisma/migrations/20260422120000_company_status_fields/migration.sql
+dashboard/prisma/seed.cjs
+dashboard/prisma/schema.prisma
+
+codex
+I found the project under `dashboard/` and identified the Prisma schema plus migration history. Next I’m reading the current membership-related models/enums so the design doc stays compatible with what already exists.
+exec
+/bin/bash -lc "sed -n '260,620p' dashboard/prisma/schema.prisma" in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/prisma/schema.prisma" in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserRole {
+  id     String   @id @default(cuid())
+  userId String
+  role   RoleType
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+model Company {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  address         String?
+  phone           String?
+  email           String?
+  isActive        Boolean           @default(true)
+  ownerId         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  status          CompanyStatus     @default(ACTIVE)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  suspendedUntil  DateTime?
+  deletedAt       DateTime?
+  deletedReason   String?
+  accounts        Account[]
+  owner           User              @relation("CompanyOwner", fields: [ownerId], references: [id])
+  settings        CompanySetting[]
+  jadwalAngsuran  JadwalAngsuran[]
+  journalEntries  JournalEntry[]
+  kasKategori     KasKategori[]
+  kasTransaksi    KasTransaksi[]
+  kelompok        Kelompok[]
+  kolektorTargets KolektorTarget[]
+  nasabah         Nasabah[]
+  notifikasi      Notifikasi[]
+  pembayaran      Pembayaran[]
+  pengajuan       Pengajuan[]
+  penjamin        Penjamin[]
+  pinjaman        Pinjaman[]
+  rekonsiliasi    RekonsiliasiKas[]
+  simpanan        Simpanan[]
+  users           User[]            @relation("UserCompany")
+
+  @@index([ownerId])
+  @@map("companies")
+}
+
+model User {
+  id                     String            @id @default(cuid())
+  name                   String
+  email                  String            @unique
+  password               String
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  companyId              String?
+  approvalApproved       ApprovalLog[]     @relation("ApprovalApprover")
+  approvalRequested      ApprovalLog[]     @relation("ApprovalRequester")
+  auditLogs              AuditLog[]        @relation("AuditActor")
+  ownedCompanies         Company[]         @relation("CompanyOwner")
+  journalPosted          JournalEntry[]    @relation("JournalPostedBy")
+  kasDiinput             KasTransaksi[]
+  kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+  notifikasi             Notifikasi[]      @relation("UserNotifikasi")
+  pembayaranDiinput      Pembayaran[]
+  pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+  rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  roles                  UserRole[]
+  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model Nasabah {
+  id            String        @id @default(cuid())
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  id              String      @id @default(cuid())
+  kode            String
+  nama            String
+  ketua           String?
+  wilayah         String?
+  jadwalPertemuan String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  companyId       String
+  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah         Nasabah[]
+  pengajuan       Pengajuan[]
+
+  @@unique([companyId, kode])
+  @@index([companyId])
+  @@map("kelompok")
+}
+
+model Pengajuan {
+  id                   String          @id @default(cuid())
+  nomorPengajuan       String          @unique @default(cuid())
+  nasabahId            String
+  kelompokId           String?
+  jenisPinjaman        JenisPinjaman   @default(REGULAR)
+  plafonDiajukan       Decimal         @db.Decimal(15, 2)
+  plafonDisetujui      Decimal?        @db.Decimal(15, 2)
+  tenor                Int
+  bungaPerBulan        Decimal         @db.Decimal(5, 4)
+  tujuanPinjaman       String?
+  agunan               String?
+  hasilSurvey          String?
+  catatanApproval      String?
+  status               StatusPengajuan @default(DRAFT)
+  tanggalPengajuan     DateTime        @default(now())
+  tanggalSurvey        DateTime?
+  tanggalApproval      DateTime?
+  surveyorId           String?
+  approverId           String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  tenorType            TenorType       @default(BULANAN)
+  catatanPengajuan     String?
+  dokumenPendukungUrls String[]        @default([])
+  companyId            String
+  approver             User?           @relation("ApproverPengajuan", fields: [approverId], references: [id])
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok             Kelompok?       @relation(fields: [kelompokId], references: [id])
+  nasabah              Nasabah         @relation(fields: [nasabahId], references: [id])
+  surveyor             User?           @relation("SurveyorPengajuan", fields: [surveyorId], references: [id])
+  pinjaman             Pinjaman?
+
+  @@index([companyId])
+  @@map("pengajuan")
+}
+
+model Pinjaman {
+  id                String           @id @default(cuid())
+  nomorKontrak      String           @unique
+  pengajuanId       String           @unique
+  pokokPinjaman     Decimal          @db.Decimal(15, 2)
+  tenor             Int
+  bungaPerBulan     Decimal          @db.Decimal(5, 4)
+  angsuranPokok     Decimal          @db.Decimal(15, 2)
+  angsuranBunga     Decimal          @db.Decimal(15, 2)
+  totalAngsuran     Decimal          @db.Decimal(15, 2)
+  potonganAdmin     Decimal          @default(0) @db.Decimal(15, 2)
+  potonganProvisi   Decimal          @default(0) @db.Decimal(15, 2)
+  nilaiCair         Decimal          @db.Decimal(15, 2)
+  tanggalCair       DateTime
+  tanggalJatuhTempo DateTime
+  sisaPinjaman      Decimal          @db.Decimal(15, 2)
+  status            StatusPinjaman   @default(AKTIF)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenorType         TenorType        @default(BULANAN)
+  companyId         String
+  jadwalAngsuran    JadwalAngsuran[]
+  pembayaran        Pembayaran[]
+  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pengajuan         Pengajuan        @relation(fields: [pengajuanId], references: [id])
+
+  @@index([companyId])
+  @@map("pinjaman")
+}
+
+model JadwalAngsuran {
+  id                String    @id @default(cuid())
+  pinjamanId        String
+  angsuranKe        Int
+  tanggalJatuhTempo DateTime
+  pokok             Decimal   @db.Decimal(15, 2)
+  bunga             Decimal   @db.Decimal(15, 2)
+  total             Decimal   @db.Decimal(15, 2)
+  sudahDibayar      Boolean   @default(false)
+  tanggalBayar      DateTime?
+  dendaHarian       Decimal   @default(0) @db.Decimal(15, 2)
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pinjaman          Pinjaman  @relation(fields: [pinjamanId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("jadwal_angsuran")
+}
+
+model Pembayaran {
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique @default(cuid())
+  pinjamanId     String
+  tanggalBayar   DateTime    @default(now())
+  pokok          Decimal     @db.Decimal(15, 2)
+  bunga          Decimal     @db.Decimal(15, 2)
+  denda          Decimal     @default(0) @db.Decimal(15, 2)
+  totalBayar     Decimal     @db.Decimal(15, 2)
+  metode         MetodeBayar @default(TUNAI)
+  catatan        String?
+  inputOlehId    String
+  isBatalkan     Boolean     @default(false)
+  alasanBatal    String?
+  createdAt      DateTime    @default(now())
+  buktiBayarUrl  String?
+
+ succeeded in 0ms:
+  buktiBayarUrl  String?
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh      User        @relation(fields: [inputOlehId], references: [id])
+  pinjaman       Pinjaman    @relation(fields: [pinjamanId], references: [id])
+
+  @@index([companyId])
+  @@map("pembayaran")
+}
+
+model Simpanan {
+  id        String   @id @default(cuid())
+  nasabahId String
+  jenis     String
+  jumlah    Decimal  @db.Decimal(15, 2)
+  tanggal   DateTime @default(now())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id])
+
+  @@index([companyId])
+  @@map("simpanan")
+}
+
+model Account {
+  id           String            @id @default(cuid())
+  code         String
+  name         String
+  type         AccountType
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  companyId    String
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journalLines JournalLine[]
+  kasKategori  KasKategori[]
+  rekonsiliasi RekonsiliasiKas[]
+
+  @@unique([companyId, code])
+  @@index([type, isActive])
+  @@index([companyId])
+  @@map("accounts")
+}
+
+model JournalEntry {
+  id          String            @id @default(cuid())
+  entryNo     String            @unique @default(cuid())
+  entryDate   DateTime
+  description String
+  sourceType  JournalSourceType
+  sourceId    String?
+  status      JournalStatus     @default(POSTED)
+  postedById  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  companyId   String
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  postedBy    User?             @relation("JournalPostedBy", fields: [postedById], references: [id])
+  lines       JournalLine[]
+
+  @@unique([sourceType, sourceId])
+  @@index([entryDate])
+  @@index([sourceType, sourceId])
+  @@index([companyId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal      @default(0) @db.Decimal(15, 2)
+  credit         Decimal      @default(0) @db.Decimal(15, 2)
+  memo           String?
+  createdAt      DateTime     @default(now())
+  account        Account      @relation(fields: [accountId], references: [id])
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}
+
+model RekonsiliasiKas {
+  id             String             @id @default(cuid())
+  accountId      String
+  periodMonth    Int
+  periodYear     Int
+  saldoStatement Decimal            @db.Decimal(15, 2)
+  saldoBook      Decimal            @db.Decimal(15, 2)
+  selisih        Decimal            @db.Decimal(15, 2)
+  catatan        String?
+  buktiUrl       String?
+  status         RekonsiliasiStatus @default(DRAFT)
+  createdById    String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  companyId      String
+  account        Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy      User               @relation("RekonsiliasiCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, periodMonth, periodYear], map: "rekonsiliasi_kas_account_period_key")
+  @@index([companyId])
+  @@index([periodYear, periodMonth], map: "rekonsiliasi_kas_period_idx")
+  @@map("rekonsiliasi_kas")
+}
+
+model KasKategori {
+  id           String         @id @default(cuid())
+  nama         String
+  key          String
+  jenis        JenisKas
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  accountId    String?
+  companyId    String
+  account      Account?       @relation(fields: [accountId], references: [id])
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kasTransaksi KasTransaksi[]
+
+  @@unique([companyId, key])
+  @@index([companyId])
+  @@map("kas_kategori")
+}
+
+model KasTransaksi {
+  id          String      @id @default(cuid())
+  tanggal     DateTime    @default(now())
+  jenis       JenisKas
+  kategoriKey String
+  deskripsi   String
+  jumlah      Decimal     @db.Decimal(15, 2)
+  kasJenis    String      @default("TUNAI")
+  buktiUrl    String?
+  inputOlehId String
+  isApproved  Boolean     @default(true)
+  referensiId String?
+  createdAt   DateTime    @default(now())
+  companyId   String
+  kategoriId  String
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inputOleh   User        @relation(fields: [inputOlehId], references: [id])
+  kat         KasKategori @relation(fields: [kategoriId], references: [id])
+
+  @@index([companyId])
+  @@index([kategoriId])
+  @@map("kas_transaksi")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  entityType String
+  entityId   String?
+  action     AuditAction
+  beforeData Json?
+  afterData  Json?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model ApprovalLog {
+  id            String             @id @default(cuid())
+  entityType    ApprovalEntityType
+  entityId      String
+  status        ApprovalStatus     @default(PENDING)
+  catatan       String?
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  approvedBy    User?              @relation("ApprovalApprover", fields: [approvedById], references: [id])
+  requestedBy   User               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([requestedById, createdAt])
+  @@map("approval_logs")
+}
+
+model KolektorTarget {
+  id                 String   @id @default(cuid())
+  kolektorId         String
+  periodMonth        Int
+  periodYear         Int
+  targetTagihan      Decimal  @db.Decimal(15, 2)
+  realisasiTagihan   Decimal  @default(0) @db.Decimal(15, 2)
+  targetKunjungan    Int      @default(0)
+  realisasiKunjungan Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  companyId          String
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kolektor           User     @relation("KolektorTargetUser", fields: [kolektorId], references: [id], onDelete: Cascade)
+
+  @@unique([kolektorId, periodMonth, periodYear])
+  @@index([periodYear, periodMonth])
+  @@index([companyId])
+  @@map("kolektor_targets")
+}
+
+model Notifikasi {
+  id        String          @id @default(cuid())
+  userId    String?
+  jenis     NotifikasiJenis
+  judul     String
+  pesan     String
+  link      String?
+  isRead    Boolean         @default(false)
+  readAt    DateTime?
+  createdAt DateTime        @default(now())
+  companyId String
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User?           @relation("UserNotifikasi", fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@index([companyId])
+  @@map("notifikasi")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("app_settings")
+}
+
+model CompanySetting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([key])
+  @@map("company_settings")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+  KOLEKTOR
+  SURVEYOR
+  MANAGER
+  PIMPINAN
+  AKUNTANSI
+  SUPER_ADMIN
+  OWNER
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum StatusNasabah {
+  AKTIF
+  NON_AKTIF
+  KELUAR
+}
+
+enum JenisPinjaman {
+  REGULAR
+  MIKRO
+  USAHA
+}
+
+enum TenorType {
+  BULANAN
+  MINGGUAN
+}
+
+enum StatusPengajuan {
+  DRAFT
+  DIAJUKAN
+  DISURVEY
+  DISETUJUI
+  DITOLAK
+  DICAIRKAN
+  SELESAI
+}
+
+enum StatusPinjaman {
+  AKTIF
+  MENUNGGAK
+  MACET
+  LUNAS
+}
+
+enum MetodeBayar {
+  TUNAI
+  TRANSFER
+}
+
+enum JenisKas {
+  MASUK
+  KELUAR
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalSourceType {
+  PEMBAYARAN
+  PENCAIRAN
+  KAS
+  SIMPANAN
+  ADJUSTMENT
+  REVERSAL
+  DEMO_IMPORT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum RekonsiliasiStatus {
+  DRAFT
+  SELESAI
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  DISBURSE
+  PAYMENT
+  CASH
+  LOGIN
+  LOGOUT
+}
+
+enum ApprovalEntityType {
+  PENGAJUAN
+  PEMBAYARAN
+  KAS
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+
+exec
+/bin/bash -lc 'rg -n "model|enum|Membership|member|status|candidate|active|inactive|exit|audit" dashboard/prisma/schema.prisma -S' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+9:model UserRole {
+19:model Company {
+30:  status          CompanyStatus     @default(ACTIVE)
+59:model User {
+70:  auditLogs              AuditLog[]        @relation("AuditActor")
+88:model Nasabah {
+102:  status        StatusNasabah @default(AKTIF)
+124:model Penjamin {
+140:model Kelompok {
+159:model Pengajuan {
+173:  status               StatusPengajuan @default(DRAFT)
+196:model Pinjaman {
+212:  status            StatusPinjaman   @default(AKTIF)
+226:model JadwalAngsuran {
+245:model Pembayaran {
+270:model Simpanan {
+284:model Account {
+304:model JournalEntry {
+311:  status      JournalStatus     @default(POSTED)
+327:model JournalLine {
+343:model RekonsiliasiKas {
+353:  status         RekonsiliasiStatus @default(DRAFT)
+368:model KasKategori {
+387:model KasTransaksi {
+411:model AuditLog {
+426:  @@map("audit_logs")
+429:model ApprovalLog {
+433:  status        ApprovalStatus     @default(PENDING)
+447:model KolektorTarget {
+468:model Notifikasi {
+487:model AppSetting {
+495:model CompanySetting {
+508:enum RoleType {
+520:enum CompanyStatus {
+526:enum StatusNasabah {
+532:enum JenisPinjaman {
+538:enum TenorType {
+543:enum StatusPengajuan {
+553:enum StatusPinjaman {
+560:enum MetodeBayar {
+565:enum JenisKas {
+570:enum AccountType {
+578:enum JournalSourceType {
+588:enum JournalStatus {
+594:enum RekonsiliasiStatus {
+599:enum AuditAction {
+612:enum ApprovalEntityType {
+618:enum ApprovalStatus {
+624:enum NotifikasiJenis {
+
+codex
+I confirmed the current schema already has `Nasabah.status` (`AKTIF/NON_AKTIF/KELUAR`) and a generic `AuditLog` model, but no explicit `CANDIDATE` membership state yet. I’ll now draft a design doc that introduces lifecycle compatibility via additive schema changes and a safe migration path.
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/docs/internal/accounting-extension-plan.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+# Accounting Extension Plan
+
+## Current Gap
+
+Modul akuntansi saat ini masih berbasis operasional kas:
+
+- Buku besar hanya membaca mutasi `KasTransaksi` untuk `Kas Tunai` dan `Kas Bank`.
+- Laba rugi masih mengelompokkan transaksi kas masuk/keluar, belum dari jurnal pendapatan dan beban.
+- Neraca menghitung ekuitas sebagai selisih aset dan kewajiban, sehingga modal terlihat seperti angka residual tanpa batas.
+- Pembayaran, pencairan, simpanan, dan pembatalan belum menghasilkan jurnal debit/kredit yang seimbang.
+
+## Target
+
+Bangun akuntansi koperasi berbasis double-entry agar laporan utama berasal dari sumber yang sama:
+
+- `JournalEntry` sebagai header transaksi akuntansi.
+- `JournalLine` sebagai baris debit/kredit per akun.
+- Semua transaksi posted wajib seimbang: total debit = total kredit.
+- Semua jurnal punya `sourceType` dan `sourceId` untuk audit ke transaksi operasional.
+- Pembatalan tidak mengubah histori jurnal, tetapi membuat reversal entry.
+
+## Proposed Schema
+
+### JournalEntry
+
+- `id`
+- `entryNo`
+- `entryDate`
+- `description`
+- `sourceType`: `PEMBAYARAN`, `PENCAIRAN`, `SIMPANAN`, `KAS`, `ADJUSTMENT`, `CLOSING`
+- `sourceId`
+- `status`: `DRAFT`, `POSTED`, `VOIDED`
+- `postedById`
+- `postedAt`
+- `createdAt`
+- `updatedAt`
+
+### JournalLine
+
+- `id`
+- `journalEntryId`
+- `accountId`
+- `debit`
+- `credit`
+- `memo`
+- `createdAt`
+
+### AccountingPeriod
+
+- `id`
+- `month`
+- `year`
+- `status`: `OPEN`, `CLOSED`
+- `closedById`
+- `closedAt`
+
+## COA Expansion
+
+### Asset
+
+- `CASH_TUNAI`
+- `CASH_BANK`
+- `PIUTANG_PINJAMAN`
+- `PIUTANG_BUNGA`
+- `PIUTANG_DENDA`
+- `CADANGAN_KERUGIAN_PIUTANG`
+
+### Liability
+
+- `SIMPANAN_POKOK`
+- `SIMPANAN_WAJIB`
+- `SIMPANAN_SUKARELA`
+- `UTANG_BIAYA`
+- `TITIPAN_ANGGOTA`
+
+### Equity
+
+- `MODAL_DISETOR`
+- `SHU_TAHUN_BERJALAN`
+- `SHU_DITAHAN`
+
+### Revenue
+
+- `PENDAPATAN_BUNGA`
+- `PENDAPATAN_ADMIN`
+- `PENDAPATAN_DENDA`
+
+### Expense
+
+- `BEBAN_OPERASIONAL`
+- `BEBAN_GAJI`
+- `BEBAN_PENYISIHAN_PIUTANG`
+- `BEBAN_LAINNYA`
+
+## Posting Rules
+
+### Pencairan Pinjaman
+
+- Debit `PIUTANG_PINJAMAN`
+- Kredit `CASH_TUNAI` atau `CASH_BANK`
+- Kredit `PENDAPATAN_ADMIN` bila ada potongan admin
+
+### Pembayaran Angsuran
+
+- Debit `CASH_TUNAI` atau `CASH_BANK`
+- Kredit `PIUTANG_PINJAMAN` untuk pokok
+- Kredit `PENDAPATAN_BUNGA` untuk jasa/bunga
+- Kredit `PENDAPATAN_DENDA` untuk denda
+
+### Simpanan Anggota
+
+- Debit `CASH_TUNAI` atau `CASH_BANK`
+- Kredit akun simpanan sesuai jenis: pokok, wajib, sukarela
+
+### Kas Keluar
+
+- Debit akun beban/aset/utang sesuai mapping kategori
+- Kredit `CASH_TUNAI` atau `CASH_BANK`
+
+### Pembatalan
+
+- Buat reversal journal dari entry asli.
+- Tandai entry asli tetap `POSTED`.
+- Link reversal ke sumber pembatalan untuk audit.
+
+## Report Migration
+
+### Buku Besar
+
+- Filter semua akun aktif, bukan hanya kas.
+- Ambil opening balance dari akumulasi `JournalLine` sebelum tanggal mulai.
+- Tampilkan debit, kredit, saldo berjalan.
+
+### Neraca Saldo
+
+- Tampilkan total debit/kredit per akun.
+- Validasi total debit = total kredit.
+- Highlight akun tidak balance atau belum dimapping.
+
+### Laba Rugi
+
+- Ambil dari akun `REVENUE` dan `EXPENSE`.
+- Dukung periode bulanan, mingguan, dan custom date range.
+- Pisahkan pendapatan bunga, admin, denda, dan beban operasional.
+
+### Neraca
+
+- Aset, kewajiban, dan ekuitas berasal dari saldo jurnal.
+- `SHU_TAHUN_BERJALAN` dihitung dari laba rugi periode berjalan.
+- Hindari ekuitas residual tanpa akun sumber.
+
+### Piutang dan Aging
+
+- Pisahkan piutang pokok, bunga, dan denda.
+- Kelompokkan aging: belum jatuh tempo, 1-30 hari, 31-60 hari, 61-90 hari, >90 hari.
+- Tambahkan kolektibilitas berdasarkan tunggakan dan umur piutang.
+
+## Migration Steps
+
+1. Tambah schema `JournalEntry`, `JournalLine`, dan `AccountingPeriod`.
+2. Seed COA koperasi yang lebih lengkap.
+3. Implement posting service shared, misalnya `postJournalEntry()`.
+4. Tambah posting otomatis untuk pencairan, pembayaran, simpanan, dan kas.
+5. Tambah reversal untuk pembatalan pembayaran dan koreksi kas.
+6. Backfill jurnal dari data lama.
+7. Ganti laporan akuntansi agar membaca jurnal.
+8. Tambah closing period dan adjustment journal.
+9. Tambah audit report untuk transaksi tanpa jurnal atau jurnal tidak balance.
+
+## Validation Rules
+
+- Setiap journal posted wajib balance.
+- Periode closed tidak boleh menerima posting baru kecuali adjustment resmi.
+- Transaksi operasional tidak boleh dihapus jika sudah punya jurnal posted.
+- Pembatalan wajib reversal, bukan mutasi ulang baris lama.
+- Mapping kategori kas wajib ada sebelum posting kas non-pinjaman.
+
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/docs/internal/panduan-pengguna.md" in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+# Panduan Pengguna (Internal)
+
+Dokumen utama ada di:
+
+- `dashboard/PANDUAN-PENGGUNA.md`
+
+Halaman panduan di dalam aplikasi:
+
+- `/docs/panduan-pengguna`
+
+
+exec
+/bin/bash -lc 'git -C dashboard status --short --branch' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+## codex/20260423_125711/phase1a-membership-schema-design
+
+exec
+/bin/bash -lc 'find . -maxdepth 3 -type d | sort' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+.
+./dashboard
+./dashboard/.agents
+./dashboard/.agents/skills
+./dashboard/.claude
+./dashboard/.claude/skills
+./dashboard/.kiro
+./dashboard/.kiro/skills
+./dashboard/.qwen
+./dashboard/.qwen/skills
+./dashboard/docs
+./dashboard/docs/internal
+./dashboard/docs/superpowers
+./dashboard/prisma
+./dashboard/prisma/migrations
+./dashboard/public
+./dashboard/public/docs
+./dashboard/public/snitch
+./dashboard/public/static
+./dashboard/public/uploads
+./dashboard/skills
+./dashboard/src
+./dashboard/src/actions
+./dashboard/src/app
+./dashboard/src/components
+./dashboard/src/hooks
+./dashboard/src/lib
+
+codex
+I have enough context from the current Prisma schema and migration history. I’m drafting the doc with these sections: target lifecycle model, schema delta (additive + backward-compatible), audit trail design, data migration strategy, phased rollout/rollback, and test strategy tied to Prisma + service-level transitions.
+exec
+/bin/bash -lc "git status --short --branch && mkdir -p docs/internal && cat > docs/internal/phase1-membership-schema-design.md <<'EOF'
+# Phase 1 Membership Schema Design
+
+## Objective
+
+Define a membership lifecycle model with explicit states ("'`candidate`, `active`, `inactive`, `exit`), complete status-change auditability, and a migration path that is compatible with the current Prisma schema (`Nasabah`, `StatusNasabah`, and existing `AuditLog`).
+
+## Current State (As-Is)
+
+From `dashboard/prisma/schema.prisma`:
+
+- Membership master data is represented by `Nasabah`.
+- `Nasabah.status` uses enum `StatusNasabah` with values:
+  - `AKTIF`
+  - `NON_AKTIF`
+  - `KELUAR`
+- There is no first-class `candidate` state in the current enum.
+- Generic audit table `AuditLog` exists, with `beforeData`, `afterData`, and `metadata` JSON fields.
+- Multi-tenant scope is at `companyId` level.
+
+Implication:
+
+- Existing production behavior for member activation/deactivation/exit must remain valid.
+- Any design must avoid disruptive enum replacement in Phase 1.
+
+## Target Lifecycle Model (To-Be)
+
+### Canonical Lifecycle States
+
+- `CANDIDATE`: Prospect / onboarding in progress, not yet an active member.
+- `ACTIVE`: Fully registered and operational member.
+- `INACTIVE`: Temporarily not active (e.g., administrative hold, dormancy).
+- `EXIT`: Membership ended permanently.
+
+### Transition Rules
+
+Allowed transitions:
+
+- `CANDIDATE -> ACTIVE`
+- `CANDIDATE -> EXIT`
+- `ACTIVE -> INACTIVE`
+- `INACTIVE -> ACTIVE`
+- `ACTIVE -> EXIT`
+- `INACTIVE -> EXIT`
+
+Disallowed transitions:
+
+- `EXIT -> *` (terminal state)
+- direct `CANDIDATE -> INACTIVE` (unless explicitly required later)
+
+### Invariants
+
+- Every transition must be captured in a dedicated lifecycle audit row.
+- State changes are idempotent at API/service layer (no-op if same state requested).
+- `EXIT` requires reason code.
+- `companyId` scope must be preserved for all lifecycle data.
+
+## Backward-Compatible Schema Strategy
+
+Phase 1 uses additive schema changes only, keeping existing `StatusNasabah` untouched.
+
+### 1) Add canonical lifecycle columns to `Nasabah`
+
+Add fields (Prisma-level proposal):
+
+- `membershipState String @default("ACTIVE")`
+- `membershipStateSince DateTime @default(now())`
+- `membershipExitedAt DateTime?`
+- `membershipExitReason String?`
+
+Notes:
+
+- Keep type as `String` for Phase 1 to avoid enum migration risk and simplify rollback.
+- Values constrained in application/service layer to `CANDIDATE|ACTIVE|INACTIVE|EXIT`.
+- Existing `status` (`StatusNasabah`) remains source of truth for legacy flows during migration.
+
+### 2) Add dedicated status history table
+
+Create model `MembershipStatusHistory`:
+
+- `id String @id @default(cuid())`
+- `nasabahId String`
+- `companyId String`
+- `fromState String?`
+- `toState String`
+- `transitionAt DateTime @default(now())`
+- `reasonCode String?`
+- `reasonText String?`
+- `changedById String?`
+- `source String @default("SYSTEM")` (e.g., `SYSTEM`, `BACKFILL`, `API`, `BATCH`)
+- `requestId String?`
+- `metadata Json?`
+- `createdAt DateTime @default(now())`
+
+Indexes:
+
+- `@@index([companyId, nasabahId, transitionAt])`
+- `@@index([toState, transitionAt])`
+- `@@index([changedById, transitionAt])`
+
+Relations:
+
+- FK `nasabahId -> Nasabah.id` with `onDelete: Cascade`.
+- FK `changedById -> User.id` nullable.
+- FK `companyId -> Company.id` with `onDelete: Cascade`.
+
+### 3) Compatibility mapping between old and new status
+
+During transition period:
+
+- Legacy `status=AKTIF` maps to canonical `ACTIVE`
+- Legacy `status=NON_AKTIF` maps to canonical `INACTIVE`
+- Legacy `status=KELUAR` maps to canonical `EXIT`
+- `CANDIDATE` exists only in `membershipState` (not representable in current `StatusNasabah`)
+
+Write strategy (temporary dual-write):
+
+- Membership service writes `membershipState` + history table.
+- For canonical values representable in old enum, also write `status` for backward compatibility.
+- For `CANDIDATE`, keep `status` at safe legacy value by policy:
+  - Option A (recommended): set `status=NON_AKTIF` until activation.
+  - Ensure all legacy consumers are updated not to treat every `NON_AKTIF` as historically equivalent.
+
+## Audit Trail Design
+
+### Dedicated lifecycle audit (primary)
+
+`MembershipStatusHistory` is the source of truth for status transitions:
+
+- Immutable append-only records.
+- Captures actor, reason, source, and request correlation.
+- Supports timeline reconstruction and compliance review.
+
+### Integration with generic `AuditLog` (secondary)
+
+Keep using existing `AuditLog` for broad entity-change tracing:
+
+- On status changes, add `AuditLog` row with:
+  - `entityType = "NASABAH"`
+  - `entityId = nasabahId`
+  - `action = UPDATE`
+  - `beforeData` / `afterData` include legacy `status` + canonical `membershipState`
+  - `metadata` includes `reasonCode`, `requestId`, and `source`
+
+Rationale:
+
+- Avoid overloading `AuditLog` as lifecycle source.
+- Preserve existing observability and admin tooling compatibility.
+
+## Migration Strategy
+
+## Phase 1A: Schema Expand
+
+1. Add columns to `nasabah` table:
+   - `membership_state` (default `ACTIVE`)
+   - `membership_state_since` (default `now()`)
+   - `membership_exited_at` nullable
+   - `membership_exit_reason` nullable
+2. Create `membership_status_history` table.
+3. Add required indexes and foreign keys.
+
+No existing column removal or enum mutation.
+
+## Phase 1B: Backfill
+
+Backfill canonical state from existing `status`:
+
+- `AKTIF -> ACTIVE`
+- `NON_AKTIF -> INACTIVE`
+- `KELUAR -> EXIT`
+
+For each existing `nasabah`, insert one synthetic history row:
+
+- `fromState = null`
+- `toState = mapped state`
+- `source = BACKFILL`
+- `reasonCode = "INITIAL_MIGRATION"`
+
+If mapped to `EXIT`:
+
+- set `membership_exited_at` to best available timestamp:
+  - prefer domain-specific exit date if available later,
+  - otherwise fallback to `updatedAt` at migration time.
+
+## Phase 1C: Application Dual-Write
+
+Update membership mutation paths:
+
+- New service API enforces transition rules.
+- On transition:
+  - insert `MembershipStatusHistory`
+  - update `nasabah.membershipState*` fields
+  - update `nasabah.status` when representable
+  - insert generic `AuditLog`
+
+All writes in single DB transaction.
+
+## Phase 1D: Read Path Migration
+
+Gradually move readers from `Nasabah.status` to `Nasabah.membershipState`:
+
+- Admin list/filter
+- Detail page timeline
+- Reporting pipelines
+- Eligibility logic (loan/savings operations)
+
+Add temporary parity checks in logs/metrics to detect divergence.
+
+## Phase 1E: Contract Tightening (Future)
+
+After full cutover:
+
+- Optional: migrate `membershipState` from `String` to enum.
+- Optional: deprecate direct business reads on legacy `status`.
+- Keep legacy `status` field until downstream dependencies are fully retired.
+
+## Rollout Plan
+
+1. Deploy schema migration (expand only).
+2. Run backfill job in controlled batches per `companyId`.
+3. Enable dual-write behind feature flag (`membership_lifecycle_dual_write`).
+4. Enable read-from-canonical behind feature flag (`membership_lifecycle_read_canonical`) per module.
+5. Observe metrics for 1-2 full business cycles:
+   - transition write failures
+   - canonical vs legacy mismatch count
+   - missing history rows
+6. Promote canonical read to default.
+7. Keep dual-write enabled until rollback window closes.
+
+### Operational Safeguards
+
+- Batch backfill with checkpointing (`last_processed_id` per company).
+- Re-runnable backfill using idempotency key (`nasabahId + INITIAL_MIGRATION`).
+- Alert when status update happens without corresponding history insert.
+
+## Rollback Plan
+
+Rollback objective: return application behavior to legacy `Nasabah.status` without data loss.
+
+1. Disable `membership_lifecycle_read_canonical` flag.
+2. Disable `membership_lifecycle_dual_write` flag.
+3. Revert service to legacy write path (`status` only).
+4. Keep new schema objects in place (do not drop during emergency rollback).
+5. If needed, run repair script to sync `status` from latest canonical state for impacted rows:
+   - `ACTIVE -> AKTIF`
+   - `INACTIVE -> NON_AKTIF`
+   - `EXIT -> KELUAR`
+   - `CANDIDATE -> NON_AKTIF` (compatibility fallback)
+6. Keep `membership_status_history` for forensic analysis.
+
+Why non-destructive rollback:
+
+- Dropping columns/tables during incident increases risk.
+- Preserving additive schema enables fast roll-forward after fix.
+
+## Testing Strategy
+
+### 1) Migration Tests
+
+- Apply migration on fresh DB and verify table/column/index creation.
+- Apply migration on realistic snapshot and verify no enum breakage.
+- Verify backfill populates all rows exactly once.
+- Verify rollback script (feature flags + sync script) on staging dataset.
+
+### 2) Service Unit Tests
+
+- Transition matrix validation:
+  - allow only configured transitions
+  - reject invalid transitions with deterministic errors
+- Idempotency:
+  - same-state transition request does not duplicate history
+- Exit behavior:
+  - requires `reasonCode`
+  - sets `membershipExitedAt`
+
+### 3) Transactional Integrity Tests
+
+For each valid transition, assert in one transaction:
+
+- `Nasabah.membershipState` updated
+- legacy `status` updated when representable
+- `MembershipStatusHistory` inserted exactly once
+- `AuditLog` inserted with expected metadata
+
+Inject failures mid-transaction to confirm atomic rollback.
+
+### 4) Integration/API Tests
+
+- Endpoints for create candidate, activate, deactivate, exit.
+- Authorization checks by role and `companyId` tenant boundary.
+- Read APIs return canonical state and history timeline consistently.
+
+### 5) Data Quality & Observability Tests
+
+- Reconciliation query: latest history `toState` must equal `nasabah.membershipState`.
+- Reconciliation query: canonical-to-legacy mapping parity for representable states.
+- Dashboard/alerts for:
+  - transitions without history
+  - history without actor/source context
+  - cross-tenant anomalies
+
+## Prisma Compatibility Notes
+
+- Existing enum `StatusNasabah` remains unchanged in Phase 1.
+- Existing `AuditLog` is reused, not replaced.
+- New lifecycle design is additive and does not break existing relational constraints.
+- Multi-tenant integrity preserved by including `companyId` in history model and indexes.
+
+## Proposed Deliverables
+
+- Prisma migration for schema expand (`membership_state` columns + history table).
+- Backfill script with idempotent checkpoints.
+- Membership lifecycle service (transition validator + transactional writer).
+- Feature flags for dual-write and canonical read.
+- Reconciliation SQL and monitoring panel.
+
+## Open Decisions
+
+- Final policy for legacy `status` value while in `CANDIDATE` (`NON_AKTIF` recommended for now).
+- Standardized `reasonCode` taxonomy for transitions.
+- Whether to promote `membershipState` to enum in Phase 2 after full cutover.
+EOF
+
+git status --short' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+## codex/20260423_125711/phase1a-membership-schema-design
+?? docs/
+
+codex
+I’ve drafted the full Phase 1 design doc at the exact requested path, covering lifecycle states, additive Prisma-compatible schema design, audit model, phased migration, rollout/rollback, and testing strategy. I’ll now commit it on the current branch.
+exec
+/bin/bash -lc 'git add docs/internal/phase1-membership-schema-design.md && git commit -m "docs: add phase1 membership lifecycle schema design" && git log -1 --oneline' in /tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design
+ succeeded in 0ms:
+[codex/20260423_125711/phase1a-membership-schema-design 5578e13] docs: add phase1 membership lifecycle schema design
+ 1 file changed, 320 insertions(+)
+ create mode 100644 docs/internal/phase1-membership-schema-design.md
+5578e13 docs: add phase1 membership lifecycle schema design
+
+codex
+Created and committed the requested technical design doc.
+
+- File: [docs/internal/phase1-membership-schema-design.md](/tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design/docs/internal/phase1-membership-schema-design.md)
+- Commit: `5578e13`
+- Branch: `codex/20260423_125711/phase1a-membership-schema-design`
+
+The doc includes:
+- Membership lifecycle model (`candidate/active/inactive/exit`)
+- Additive Prisma-compatible schema design
+- Dedicated + generic audit trail strategy
+- Phased migration strategy
+- Rollout plan
+- Rollback plan
+- Testing strategy (migration, unit, transaction, integration, observability)
+tokens used
+29,836
+Created and committed the requested technical design doc.
+
+- File: [docs/internal/phase1-membership-schema-design.md](/tmp/codex-fanout/20260423_125711/phase1a-membership-schema-design/docs/internal/phase1-membership-schema-design.md)
+- Commit: `5578e13`
+- Branch: `codex/20260423_125711/phase1a-membership-schema-design`
+
+The doc includes:
+- Membership lifecycle model (`candidate/active/inactive/exit`)
+- Additive Prisma-compatible schema design
+- Dedicated + generic audit trail strategy
+- Phased migration strategy
+- Rollout plan
+- Rollback plan
+- Testing strategy (migration, unit, transaction, integration, observability)

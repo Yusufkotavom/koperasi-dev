@@ -1,0 +1,52 @@
+[
+  {
+    "id": "p1c-test-infra",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-test-infra on branch task. Ownership (exclusive): package.json, vitest.config.ts (or vite config for tests), tests/setup.ts, docs/internal/testing-baseline.md, .github/workflows/quality-gate.yml. Task: establish robust test baseline for this Next.js repo with clear scripts: test, test:watch, test:coverage; ensure lint/build/test flow in CI is deterministic and non-interactive. Keep changes minimal and production-safe. Run tests/lint/build as far as feasible and commit. IMPORTANT: You are not alone in codebase. Do not revert others' edits. Output: summary + exact commands run + files changed."
+  },
+  {
+    "id": "p1c-upload-hardening",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-upload-hardening. Ownership (exclusive): src/app/api/upload/nasabah/route.ts and src/app/api/upload/nasabah/__tests__/route.test.ts (create if missing). Task: harden upload endpoint with MIME allowlist, max size, max file count per request, tenant-aware path prefix using companyId/session context, and clear error responses. Add focused tests for unauthorized, invalid MIME, too many files, too large file, success path. Keep API backward compatible where possible. Run targeted tests and commit. You are not alone in codebase; do not revert unrelated files."
+  },
+  {
+    "id": "p1c-export-api",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-export-api. Ownership: src/app/api/nasabah/export/route.ts (new), plus minimal shared helper under src/lib if needed with unique name. Task: implement CSV export endpoint for nasabah list filters (search/status/kelompokId) scoped by companyId and auth. Include safe filename, proper content-type/disposition, and deterministic column order. Add minimal tests if test infra allows. Run lint/build or targeted checks and commit. You are not alone; do not touch unrelated files."
+  },
+  {
+    "id": "p1c-survey-schema",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-survey-schema. Ownership: prisma/schema.prisma and new prisma/migrations/*survey*. Task: add minimal schema for nasabah survey notes timeline (table linked to Nasabah, Company, optional User actor) with tenant-aware indexes. Keep additive and backward compatible. Generate migration SQL. Do not edit app code beyond schema/migration. Commit. You are not alone in codebase; do not revert others' changes."
+  },
+  {
+    "id": "p1c-survey-actions-api",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-survey-actions-api. Ownership: src/actions/nasabah-survey.ts (new), src/app/api/nasabah/[id]/survey/route.ts (new). Task: implement create/list survey note APIs scoped by companyId with role checks and validation (non-empty note). Keep response format simple and stable. If model names differ, adapt to existing prisma schema gracefully. Do not modify unrelated nasabah core actions. Add minimal tests if practical. Commit. You are not alone; do not revert others' edits."
+  },
+  {
+    "id": "p1c-nasabah-hardening",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-nasabah-hardening. Ownership: src/actions/nasabah.ts only. Task: harden createNasabah nomorAnggota generation for race conditions (transaction-safe strategy) and add consistent audit logging for create/update/status/delete operations. Preserve existing behavior and tenant guards. Keep signatures backward compatible. Run lint/build or targeted checks and commit. You are not alone in codebase; do not revert others."
+  },
+  {
+    "id": "p1c-ui-export",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-ui-export. Ownership: src/app/(dashboard)/nasabah/page.tsx only (plus tiny local helper component in same folder if needed). Task: wire Export Data button to nasabah export API with current filters and downloading CSV in browser-safe way. Include loading state/toast error handling. Keep UX minimal and consistent. Run typecheck/build if possible and commit. You are not alone; do not revert unrelated edits."
+  },
+  {
+    "id": "p1c-ui-survey",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-ui-survey. Ownership: src/app/(dashboard)/nasabah/[id]/page.tsx, src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx, and optional new component files under src/app/(dashboard)/nasabah/[id]/edit/. Task: add survey notes timeline display on detail page and quick add/edit survey note field on edit page using API endpoints /api/nasabah/[id]/survey. Keep client/server boundaries valid for Next.js 16 and avoid hydration mismatch. Commit after checks. You are not alone; do not revert others."
+  },
+  {
+    "id": "p1c-e2e-smoke",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-e2e-smoke. Ownership: tests/e2e/smoke.spec.ts and possibly additional tests/e2e/*.spec.ts plus playwright.config.ts only if needed. Task: strengthen smoke tests to catch simple regressions (login page hydration text consistency, dashboard access, nasabah page load, dokumen route availability). Keep tests robust and low flake. Commit. You are not alone; do not revert unrelated files."
+  },
+  {
+    "id": "p1c-docs-evidence",
+    "mode": "danger",
+    "prompt": "You are Worker p1c-docs-evidence. Ownership: docs/internal/MASTER-PLAN-KOPERASI-UMUM.md, docs/internal/progress/PHASE-1-PROGRESS.md, CHANGELOG.md. Task: update phase-1 evidence-gated checklist with current orchestrator structure, run-log template references, and placeholders where execution proof is pending. Do not mark done without evidence. Keep changelog factual with UTC date. Commit docs-only changes. You are not alone; do not revert others."
+  }
+]

@@ -1,0 +1,1 @@
+Worker 5 ownership: src/app/(dashboard)/nasabah/[id]/edit/* and src/app/(dashboard)/nasabah/[id]/page.tsx only. Add lifecycle controls/display for status transition UX (non-destructive), wired to action endpoint if available. Run lint/build. Commit.

@@ -1,0 +1,1 @@
+Worker 3 ownership: src/actions/nasabah.ts and optional new src/actions/nasabah-status.ts only. Implement explicit server action for status transition with authorization, tenant safety, and audit log write. Keep backward compatibility. Run lint/build and add command evidence to README_WORKER.md. Commit.

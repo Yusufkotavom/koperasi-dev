@@ -1,0 +1,1 @@
+You are worker P1-A. Create detailed technical design doc for membership lifecycle model (candidate/active/inactive/exit), audit trail, and migration strategy compatible with current prisma schema. Output docs/internal/phase1-membership-schema-design.md and include rollout + rollback plan and testing strategy. Commit branch.

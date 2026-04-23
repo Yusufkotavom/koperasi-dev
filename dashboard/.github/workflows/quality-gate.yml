@@ -1,0 +1,44 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality-gate:
+    name: Lint + Build + Smoke Placeholder
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke placeholder
+        env:
+          SMOKE_TEST_URL: ${{ secrets.SMOKE_TEST_URL }}
+        run: |
+          if [ -n "$SMOKE_TEST_URL" ]; then
+            echo "Running smoke placeholder against $SMOKE_TEST_URL"
+            curl --fail --silent --show-error --max-time 20 "$SMOKE_TEST_URL" > /dev/null
+            echo "Smoke placeholder passed"
+          else
+            echo "SMOKE_TEST_URL is not configured. Skipping smoke placeholder (non-blocking fallback)."
+          fi

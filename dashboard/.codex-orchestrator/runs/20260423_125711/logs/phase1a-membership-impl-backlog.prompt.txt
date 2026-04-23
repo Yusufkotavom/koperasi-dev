@@ -1,0 +1,1 @@
+You are worker P1-B. Create implementation backlog with executable checklist for Phase 1 membership module (API/actions/pages/tests), mapped to MASTER-PLAN-KOPERASI-UMUM.md. Output docs/internal/phase1-membership-implementation-backlog.md and update progress file with next sprint targets. Commit branch.

@@ -1,0 +1,1738 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba6c-1f8c-7171-ba48-053132929259
+--------
+user
+Worker 6 ownership: tests/e2e/* and playwright config files only. Create initial Playwright smoke skeleton for login, dashboard, nasabah list flow with @smoke tags. Add npm scripts test:e2e and test:smoke in package.json. Do not break existing scripts. Commit.
+2026-04-23T12:59:02.123758Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll implement Worker 6 scope only: create a Playwright smoke skeleton under `tests/e2e/*`, update Playwright config files, add `test:e2e` and `test:smoke` scripts in `package.json` without disturbing existing scripts, then run a quick validation and commit. I’m checking the current repo layout and existing test/config setup first.
+exec
+/bin/bash -lc "sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+codex
+Using `using-superpowers` to enforce the required workflow: I’ve confirmed the applicable-skill check and I’m proceeding with the scoped implementation now.
+exec
+/bin/bash -lc 'pwd && ls -la' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 12:58 .
+drwxr-xr-x 10 kotacom kotacom 4096 Apr 23 12:59 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 12:58 .codex
+-rw-r--r--  1 kotacom kotacom   86 Apr 23 12:58 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 12:58 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 12:59 dashboard
+
+exec
+/bin/bash -lc 'rg --files' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+dashboard/skills-lock.json
+dashboard/fix-inputs.js
+dashboard/README.md
+dashboard/postcss.config.mjs
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/docs/superpowers/using-superpowers.md
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+dashboard/docs/superpowers/plans/plan.md
+dashboard/docs/superpowers/plans/accounting-scoring-plan.md
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+dashboard/package-lock.json
+dashboard/docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+dashboard/AGENTS.md
+dashboard/USING-SUPERPOWERS.md
+dashboard/eslint.config.mjs
+dashboard/PANDUAN-PENGGUNA.md
+dashboard/middleware.ts
+dashboard/307
+dashboard/package.json
+dashboard/next.config.ts
+dashboard/CLAUDE.md
+dashboard/src/actions/company-users.ts
+dashboard/src/actions/kelompok.ts
+dashboard/src/actions/nasabah.ts
+dashboard/src/actions/akuntansi.ts
+dashboard/src/actions/maintenance.ts
+dashboard/src/actions/auth-registration.ts
+dashboard/src/actions/pengajuan.ts
+dashboard/src/actions/settings.ts
+dashboard/src/actions/kas.ts
+dashboard/src/actions/platform-admin.ts
+dashboard/src/actions/dashboard.ts
+dashboard/src/actions/pembayaran.ts
+dashboard/src/actions/kolektor.ts
+dashboard/src/app/favicon.ico
+dashboard/src/app/layout.tsx
+dashboard/src/app/(auth)/login/page.tsx
+dashboard/src/components/nav-main.tsx
+dashboard/src/lib/pembayaran.ts
+dashboard/src/lib/auth.ts
+dashboard/src/hooks/use-mobile.ts
+dashboard/src/app/(auth)/layout.tsx
+dashboard/src/app/(auth)/loading.tsx
+dashboard/src/lib/accounting.ts
+dashboard/src/lib/report-period.ts
+dashboard/src/lib/prisma.ts
+dashboard/src/lib/validations/kelompok.ts
+dashboard/src/lib/blob-upload.ts
+dashboard/src/lib/validations/nasabah.ts
+dashboard/src/lib/validations/pengajuan.ts
+dashboard/src/lib/validations/pembayaran.ts
+dashboard/src/lib/tenant.ts
+dashboard/src/lib/roles.ts
+dashboard/src/lib/utils.ts
+dashboard/src/lib/datetime.ts
+dashboard/src/lib/pembayaran-notes.ts
+dashboard/src/lib/audit.ts
+dashboard/src/components/theme-provider.tsx
+dashboard/src/lib/accounting-mode.ts
+dashboard/src/lib/ranking.ts
+dashboard/src/components/nav-user.tsx
+dashboard/src/app/(auth)/register/page.tsx
+dashboard/src/components/page-view-transition.tsx
+dashboard/src/app/(marketing)/page.tsx
+dashboard/src/components/ui/alert.tsx
+dashboard/src/components/ui/separator.tsx
+dashboard/src/components/ui/skeleton.tsx
+dashboard/src/app/(marketing)/_components/marketing-shell.tsx
+dashboard/src/app/(marketing)/_components/marketing-data.ts
+dashboard/src/components/ui/dropdown-menu.tsx
+dashboard/src/components/ui/table.tsx
+dashboard/src/components/ui/input.tsx
+dashboard/src/components/ui/label.tsx
+dashboard/src/app/(marketing)/penawaran/page.tsx
+dashboard/src/components/ui/textarea.tsx
+dashboard/src/components/ui/dialog.tsx
+dashboard/src/components/ui/collapsible.tsx
+dashboard/src/components/ui/sidebar.tsx
+dashboard/src/components/ui/select.tsx
+dashboard/src/components/ui/badge.tsx
+dashboard/src/components/ui/tooltip.tsx
+dashboard/src/components/ui/button.tsx
+dashboard/src/components/ui/sonner.tsx
+dashboard/src/components/ui/breadcrumb.tsx
+dashboard/src/components/ui/sheet.tsx
+dashboard/src/components/ui/card.tsx
+dashboard/src/components/ui/tabs.tsx
+dashboard/src/components/ui/field.tsx
+dashboard/src/components/ui/avatar.tsx
+dashboard/src/app/(marketing)/contact/page.tsx
+dashboard/src/app/(marketing)/penawaran/_lib/screenshots.ts
+dashboard/src/app/(marketing)/blog/page.tsx
+dashboard/src/components/print/company-document-header.tsx
+dashboard/src/app/(marketing)/about/page.tsx
+dashboard/src/app/(marketing)/product/page.tsx
+dashboard/src/components/app-link.tsx
+dashboard/src/components/navigation-indicator.tsx
+dashboard/src/components/print-button.tsx
+dashboard/src/components/markdown.tsx
+dashboard/src/components/app-sidebar.tsx
+dashboard/src/app/globals.css
+dashboard/src/components/nav-secondary.tsx
+dashboard/src/app/(marketing)/home/page.tsx
+dashboard/public/globe.svg
+dashboard/src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+dashboard/public/next.svg
+dashboard/src/app/(dashboard)/pengajuan/[id]/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+dashboard/public/window.svg
+dashboard/src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+dashboard/public/file.svg
+dashboard/public/vercel.svg
+dashboard/public/docs/screenshots/error-login.png
+dashboard/public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+dashboard/public/uploads/nasabah/1776613912086-44c59630-5991-4c7d-b064-c8e9a6096319.jpeg
+dashboard/public/uploads/nasabah/1776851508256-de1ba137-c597-44e0-8d9c-5a24a8578751.pdf
+dashboard/public/uploads/nasabah/1776618214801-f5c7641f-ee89-4e0d-ade6-672c31aef520.jpeg
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/screen.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/screen.png
+dashboard/public/snitch/project/login_cooperative_management_dashboard/screen.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/laporan.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/screen.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png
+dashboard/public/snitch/project/vault_cooperative_management_landing_page/screen.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/dashboard.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/screen.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/nasabah.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/screen.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/screen.png
+dashboard/public/snitch/project/settings_user_role_management/screen.png
+dashboard/public/snitch/project/settings_user_role_management/settings.png
+dashboard/public/docs/screenshots/debug-login-page.png
+dashboard/src/app/(dashboard)/pengajuan/page.tsx
+dashboard/public/static/sw.js
+dashboard/src/app/api/auth/[...nextauth]/route.ts
+dashboard/public/uploads/pembayaran/1776700680512-a635469f-803c-4b6c-b940-9e710a4fa1bb.jpeg
+dashboard/src/app/(dashboard)/pengajuan/baru/page.tsx
+dashboard/src/app/(dashboard)/roadmap/page.tsx
+dashboard/src/app/(dashboard)/roadmap/roadmap-client.tsx
+dashboard/src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+dashboard/src/app/(dashboard)/docs/using-superpowers/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/edit-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/bayar-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/manual-input.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+dashboard/src/app/(dashboard)/nasabah/page.tsx
+dashboard/src/app/(dashboard)/layout.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+dashboard/src/app/(dashboard)/platform/page.tsx
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx
+dashboard/src/app/(dashboard)/_components/dashboard-header.tsx
+dashboard/src/app/(dashboard)/_components/top-bar.tsx
+dashboard/src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+dashboard/src/app/(dashboard)/platform/users/page.tsx
+dashboard/src/app/(dashboard)/platform/users/user-admin-table.tsx
+dashboard/src/app/(dashboard)/platform/companies/page.tsx
+dashboard/src/app/(dashboard)/monitoring/tunggakan/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+dashboard/src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/page.tsx
+dashboard/src/app/(dashboard)/kelompok/page.tsx
+dashboard/src/app/(dashboard)/monitoring/kolektor/page.tsx
+dashboard/src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+dashboard/src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+dashboard/src/app/(dashboard)/kelompok/baru/page.tsx
+dashboard/src/app/(dashboard)/loading.tsx
+dashboard/src/app/(dashboard)/settings/page.tsx
+dashboard/src/app/(dashboard)/kas/page.tsx
+dashboard/src/app/(dashboard)/settings/db-maintenance-card.tsx
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx
+dashboard/src/app/(dashboard)/settings/ranking-settings-form.tsx
+dashboard/src/app/(dashboard)/laporan/buku-besar/page.tsx
+dashboard/src/app/(dashboard)/settings/company/page.tsx
+dashboard/src/app/(dashboard)/settings/user-management-card.tsx
+dashboard/src/app/(dashboard)/settings/accounting-mode-card.tsx
+dashboard/src/app/(dashboard)/settings/accounting/page.tsx
+dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx
+dashboard/src/app/(dashboard)/settings/ranking/page.tsx
+dashboard/src/app/(dashboard)/kas/kas-client.tsx
+dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/users/page.tsx
+dashboard/src/app/(dashboard)/settings/maintenance/page.tsx
+dashboard/src/app/(dashboard)/laporan/laba-rugi/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+dashboard/src/app/(dashboard)/settings/settings-profile-card.tsx
+dashboard/src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+dashboard/src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+dashboard/src/app/(dashboard)/settings/profile/page.tsx
+dashboard/src/app/(dashboard)/laporan/arus-kas/page.tsx
+dashboard/src/app/(dashboard)/pencairan/pencairan-form.tsx
+dashboard/src/app/(dashboard)/laporan/neraca/page.tsx
+dashboard/src/app/(dashboard)/pencairan/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+dashboard/src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+dashboard/src/app/(dashboard)/dashboard/page.tsx
+dashboard/src/app/(dashboard)/kolektor/page.tsx
+dashboard/src/app/(dashboard)/kolektor/kolektor-management.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/page.tsx
+dashboard/prisma.config.ts
+dashboard/tsconfig.json
+dashboard/components.json
+dashboard/SUPER-ADMIN-PLAN.md
+dashboard/prisma/seed.ts
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+dashboard/src/app/api/upload/nasabah/route.ts
+dashboard/src/app/api/upload/pembayaran/route.ts
+dashboard/prisma/seed.cjs
+dashboard/src/app/api/upload/pengajuan/route.ts
+dashboard/src/app/api/upload/logo/route.ts
+dashboard/src/app/api/upload/kas/route.ts
+dashboard/prisma/migrations/20260422103000_company_user_scope/migration.sql
+dashboard/prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+dashboard/prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+dashboard/prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+dashboard/prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+dashboard/prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+dashboard/prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+dashboard/prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+dashboard/prisma/migrations/migration_lock.toml
+dashboard/prisma/migrations/20260418204642_init/migration.sql
+dashboard/prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+dashboard/prisma/schema.prisma
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+dashboard/proposal_premium.html
+dashboard/capture-screenshots.mjs
+dashboard/prisma/migrations/20260422120000_company_status_fields/migration.sql
+dashboard/prisma/migrations/20260421110000_journal_entries/migration.sql
+
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 1 in 0ms:
+cat: package.json: No such file or directory
+
+codex
+I found the working project in `dashboard/`; next I’m checking its existing npm scripts and whether Playwright config/tests already exist so I can add a minimal smoke skeleton without touching unrelated areas.
+exec
+/bin/bash -lc 'cat /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package.json' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "ls -la /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard | sed -n '1,200p'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 12:59 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 12:58 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 12:58 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 12:58 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 12:58 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 12:58 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 12:58 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 12:58 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 12:58 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 12:58 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 12:58 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 12:58 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 12:58 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 12:58 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 12:58 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 12:58 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 12:58 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 12:58 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 12:58 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 12:58 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 12:58 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 12:58 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 12:59 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 12:59 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 12:59 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 12:59 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 12:59 tsconfig.json
+
+exec
+/bin/bash -lc 'rg -n "playwright|e2e|@smoke" /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard -S' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:48:        "@playwright/test": "^1.59.1",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:55:        "playwright": "^1.59.1",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:2097:    "node_modules/@playwright/test": {
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:2099:      "resolved": "https://registry.npmjs.org/@playwright/test/-/test-1.59.1.tgz",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:2104:        "playwright": "1.59.1"
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:2107:        "playwright": "cli.js"
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:9712:        "@playwright/test": "^1.51.1",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:9722:        "@playwright/test": {
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10478:    "node_modules/playwright": {
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10480:      "resolved": "https://registry.npmjs.org/playwright/-/playwright-1.59.1.tgz",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10485:        "playwright-core": "1.59.1"
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10488:        "playwright": "cli.js"
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10497:    "node_modules/playwright-core": {
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10499:      "resolved": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.59.1.tgz",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:10504:        "playwright-core": "cli.js"
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package-lock.json:11087:      "integrity": "sha512-YTUo+Flmw4ZXiWfQKGcwwc11KnoRAYgzAE2E7mXKCjSviTKShtxBsN6YUUBB2gtaBzKzeKunxhUwNHQuRryhWA==",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package.json:57:    "@playwright/test": "^1.59.1",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package.json:64:    "playwright": "^1.59.1",
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/capture-screenshots.mjs:1:import { chromium } from 'playwright';
+
+exec
+/bin/bash -lc "sed -n '1,220p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/AGENTS.md" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+# Agent Handoff: Koperasi Pinjam Dashboard
+
+Dokumen ini adalah konteks kerja cepat untuk agent berikutnya agar langsung paham arsitektur, batasan data, dan flow kritis.
+
+## 1. Stack & Struktur Utama
+
+- Framework: Next.js `16.2.4` (App Router, Turbopack)
+- Runtime UI: React `19.2.4`
+- ORM: Prisma `7.7.0` + PostgreSQL (`@prisma/adapter-pg`)
+- Auth: NextAuth v5 beta (Credentials provider)
+- UI: shadcn + Tailwind
+
+Folder penting:
+- `src/app`: routes App Router (auth, dashboard, platform)
+- `src/actions`: server actions domain bisnis
+- `src/lib`: auth, tenant, accounting, prisma client, utils
+- `prisma/schema.prisma`: source of truth model database
+- `prisma/seed.ts`: seed default accounts/demo users
+
+## 2. Rule Wajib Sebelum Ngoding
+
+1. Baca panduan Next.js lokal di `node_modules/next/dist/docs/` untuk API yang mau disentuh.
+2. Jangan asumsi API lama Next.js masih sama.
+3. Untuk perubahan signifikan, validasi minimal dengan:
+   - `npm run build`
+   - bila schema berubah: `npm run db:generate`
+
+## 3. Multi-Tenant & Auth (Sangat Penting)
+
+### Registrasi
+- Route: `/register`
+- Action: `src/actions/auth-registration.ts`
+- Efek:
+  - create user baru
+  - create company baru (`slug` unik)
+  - assign role `OWNER` + `ADMIN`
+  - set `user.companyId = company.id`
+
+### Login
+- Auth di `src/lib/auth.ts`.
+- User ditolak login jika:
+  - `user.isActive = false`
+  - company non-active (`isActive=false` atau `status != ACTIVE`)
+
+### Isolasi tenant
+- Gunakan `requireCompanyId` (`src/lib/tenant.ts`) di action tenant.
+- Semua query bisnis wajib filter `companyId`.
+- `SUPER_ADMIN` bisa tanpa `companyId`, tapi diarahkan untuk operasi lintas tenant lewat `/platform`.
+
+### Middleware akses
+- `middleware.ts` mengatur route-level role guard.
+- `/platform` hanya untuk `SUPER_ADMIN`.
+
+## 4. Prisma/DB: Ringkasan Model Kritis
+
+Sumber resmi: `prisma/schema.prisma`.
+
+### Entitas inti bisnis
+- `Company`, `User`, `UserRole`
+- `Nasabah`, `Kelompok`, `Pengajuan`, `Pinjaman`, `JadwalAngsuran`, `Pembayaran`
+- `KasKategori`, `KasTransaksi`
+- `Account`, `JournalEntry`, `JournalLine`, `RekonsiliasiKas`
+- `CompanySetting`, `AppSetting`
+
+### Constraint penting
+- `Nasabah`: unique `[companyId, nik]`, `[companyId, nomorAnggota]`
+- `Kelompok`: unique `[companyId, kode]`
+- `Account`: unique `[companyId, code]`
+- `KasKategori`: unique `[companyId, key]`
+- `JournalEntry`: unique `[sourceType, sourceId]` (idempotensi posting jurnal)
+- `CompanySetting`: unique `[companyId, key]`
+
+### Catatan tenant safety
+- Mayoritas tabel operasional sudah punya `companyId`.
+- `AuditLog` dan `ApprovalLog` tidak punya `companyId`; gunakan metadata/entity untuk pelacakan konteks.
+
+## 5. Akuntansi: Cara Kerja Saat Ini
+
+File utama: `src/lib/accounting.ts`
+
+- Daftar akun default dibuat via `ensureAccountingAccounts(companyId)`.
+- Mode akuntansi: `SIMPLE` / `PROPER` (`src/lib/accounting-mode.ts`, setting per company di `CompanySetting` key `ACCOUNTING_MODE`).
+- Saldo kas dihitung dari `JournalLine` akun kas (`CASH_TUNAI`/`CASH_BANK`) dengan `JournalEntry.status = POSTED`.
+- Posting jurnal idempotent berdasarkan `(sourceType, sourceId)`.
+
+Flow jurnal utama:
+- Pencairan pinjaman -> `postPencairanJournal`
+- Pembayaran angsuran -> `postPembayaranJournal`
+- Kas umum approved -> `postKasTransactionJournal`
+
+## 6. Flow Pencairan (Bagian Paling Sensitif)
+
+File: `src/actions/pengajuan.ts` (`cairkanPinjaman`)
+
+Validasi saldo:
+- Cek saldo berdasarkan `kasJenis` (`TUNAI`/`BANK`).
+- Gunakan tanggal akhir hari pencairan (`23:59:59.999`) untuk menghindari false negative jika kas masuk terjadi di hari yang sama.
+
+Penyebab umum error `Saldo kas tidak cukup`:
+1. Transaksi modal/simpanan masih `isApproved=false`.
+2. Kas masuk di `BANK`, tapi pencairan memilih `TUNAI` (atau sebaliknya).
+3. Jurnal kas tidak terbentuk (mis. transaksi belum approved).
+
+UI pencairan:
+- `src/app/(dashboard)/pencairan/pencairan-form.tsx`
+- Sudah ada submit lock untuk mencegah double submit/toast bentrok.
+
+## 7. Kas & Approval
+
+File: `src/actions/kas.ts`
+
+- User role non-privileged input kas -> default pending (`isApproved=false`) + `ApprovalLog`.
+- Role privileged (`ADMIN/MANAGER/PIMPINAN`) -> auto approved + langsung post jurnal.
+- Pengeluaran (`KELUAR`) divalidasi saldo kas dulu sebelum simpan/approve.
+
+## 8. Super Admin (Platform)
+
+File utama:
+- `src/actions/platform-admin.ts`
+- pages: `/platform/users`, `/platform/companies`, `/platform/companies/[id]`
+
+Kemampuan inti:
+- Suspend/activate/delete company (soft delete via status)
+- Disable/enable user
+- Reset password user (temporary password)
+- Semua aksi high-impact masuk audit log
+
+Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
+
+## 9. Runbook DB Prisma
+
+### Lokal development
+1. Set `.env` (minimal `DATABASE_URL`, `NEXTAUTH_SECRET`)
+2. Install deps:
+   - `npm install`
+3. Generate prisma client:
+   - `npm run db:generate`
+4. Sinkron schema ke DB (non-migration):
+   - `npm run db:push`
+5. (Opsional) seed:
+   - `npm run db:seed`
+
+### Tarik struktur dari DB existing (mis. prod snapshot)
+- `npx prisma db pull`
+- review perubahan `prisma/schema.prisma`
+- `npm run db:generate`
+
+### Catatan migration
+- `prisma.config.ts` memakai `DIRECT_URL` untuk migration jika tersedia.
+- Untuk perubahan production, hindari asumsi; cek skema aktual dulu (`db pull`) sebelum buat migration.
+
+## 10. Known Pitfalls Cepat
+
+- Error `Can't resolve 'tailwindcss'` biasanya karena menjalankan command dari folder salah (harus di `dashboard/` yang punya `package.json` dan `node_modules`).
+- Hydration mismatch sering dari text non-deterministic antara server/client (hindari data berubah saat render awal).
+- Untuk unique `nik` nasabah: error sudah expected, tampilkan pesan user-friendly; cek scoping `companyId`.
+
+## 11. Checklist Wajib Sebelum Selesai Task
+
+1. Pastikan query/action tenant-aware (`companyId` tidak hilang).
+2. Jalankan `npm run build`.
+3. Jika menyentuh akuntansi:
+   - cek jurnal balance
+   - cek dampak ke `Neraca`, `Laba Rugi`, `Buku Besar`
+4. Jika menyentuh auth/role:
+   - cek login user biasa
+   - cek login `SUPER_ADMIN`
+   - cek guard middleware untuk route sensitif
+
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && rg --files | rg 'playwright\\.config|tests/e2e|\\.spec\\.|\\.test\\.'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 1 in 0ms:
+codex
+I confirmed there is no Playwright setup yet. I’m now reading the login, dashboard, and nasabah pages to choose stable selectors/URLs for the smoke skeleton before I add the new config and tests.
+exec
+/bin/bash -lc "sed -n '1,240p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(auth)/login/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,240p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(auth)/login/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(dashboard)/dashboard/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(dashboard)/dashboard/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,260p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(dashboard)/nasabah/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,260p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(dashboard)/nasabah/page.tsx'
+
+codex
+I hit shell escaping issues with route-group paths; I’m re-running those reads with proper quoting and then drafting the tests.
+exec
+/bin/bash -lc "sed -n '1,260p' '/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(auth)/login/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+"use client"
+
+import { useState, useSyncExternalStore, useTransition, addTransitionType } from "react"
+import Link from "next/link"
+import { getSession, signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Building2, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+
+const loginSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
+const subscribeNoop = () => () => {}
+const getDemoTextSnapshot = () => "admin@koperasi.id / admin123"
+// Keep server + client snapshot identical to avoid hydration mismatch.
+const getEmptySnapshot = getDemoTextSnapshot
+
+async function waitForSession(maxRetry = 6, delayMs = 150) {
+  for (let i = 0; i < maxRetry; i += 1) {
+    const session = await getSession()
+    if (session?.user?.id) return true
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+  return false
+}
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const demoText = useSyncExternalStore(subscribeNoop, getDemoTextSnapshot, getEmptySnapshot)
+  const [, startTransition] = useTransition()
+
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  async function onSubmit(data: LoginForm) {
+    setIsLoading(true)
+    setError("")
+    const res = await signIn("credentials", {
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      redirect: false,
+      callbackUrl: "/dashboard",
+    })
+
+    if (res?.error) {
+      setIsLoading(false)
+      setError("Email atau password salah.")
+      return
+    }
+
+    const hasSession = await waitForSession()
+    setIsLoading(false)
+    if (!hasSession) {
+      setError("Login berhasil, tetapi sesi belum aktif. Silakan klik masuk sekali lagi.")
+      return
+    } else {
+      startTransition(() => {
+        addTransitionType("nav-forward")
+        router.push("/dashboard")
+        router.refresh()
+      })
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.14),transparent_24rem),linear-gradient(135deg,hsl(var(--background)),hsl(var(--muted)/0.55))]">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 p-12 text-white">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-white/15 bg-white/20 p-2 backdrop-blur">
+            <Building2 className="size-7" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight">KoperasiApp</span>
+        </div>
+        <div className="flex flex-col gap-6">
+          <h1 className="text-4xl font-bold leading-tight">
+            Sistem Informasi<br />Koperasi Simpan Pinjam
+          </h1>
+          <p className="text-emerald-100 text-lg leading-relaxed">
+            Kelola nasabah, pinjaman, angsuran, dan laporan keuangan koperasi Anda dengan mudah, aman, dan terpercaya.
+          </p>
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            {[
+              { label: "Nasabah Aktif", value: "1.2K+" },
+              { label: "Pinjaman", value: "840+" },
+              { label: "Akurasi Data", value: "99.9%" },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-emerald-200 text-sm">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-emerald-200 text-sm">© 2024 KoperasiApp. All rights reserved.</p>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+        <div className="flex w-full max-w-md flex-col gap-8">
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="bg-emerald-600 rounded-xl p-2 text-white">
+              <Building2 className="size-6" />
+            </div>
+            <span className="text-xl font-bold">KoperasiApp</span>
+          </div>
+
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Selamat Datang</h2>
+            <p className="text-muted-foreground mt-2">Masuk ke akun Anda untuk melanjutkan</p>
+          </div>
+
+          <Card>
+            <CardContent>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <FieldGroup className="gap-5">
+                  {error && (
+                    <div role="alert" aria-live="polite" className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                      {error}
+                    </div>
+                  )}
+                  <Field data-invalid={!!errors.email}>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@koperasi.id…"
+                      autoComplete="email"
+                      spellCheck={false}
+                      aria-invalid={!!errors.email}
+                      {...register("email")}
+                    />
+                    <FieldError>{errors.email?.message}</FieldError>
+                  </Field>
+                  <Field data-invalid={!!errors.password}>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Masukkan password…"
+                        autoComplete="current-password"
+                        aria-invalid={!!errors.password}
+                        {...register("password")}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                        onClick={() => setShowPassword((current) => !current)}
+                        className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
+                    <FieldError>{errors.password?.message}</FieldError>
+                  </Field>
+                  <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading} size="lg">
+                    {isLoading && <Loader2 className="animate-spin" data-icon="inline-start" />}
+                    {isLoading ? "Masuk…" : "Masuk"}
+                  </Button>
+                </FieldGroup>
+              </form>
+            </CardContent>
+          </Card>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Belum punya akun?{" "}
+            <Link href="/register" className="font-medium text-emerald-700 hover:text-emerald-800">
+              Daftar
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Demo:</span>{" "}
+            {demoText}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' '/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(dashboard)/dashboard/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+import { getDashboardStats } from "@/actions/dashboard"
+import Link from "next/link"
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { DashboardHeader } from "../_components/dashboard-header"
+import { ViewTransition } from "react"
+import { getCompanyInfo } from "@/actions/settings"
+import { formatTimeId, normalizeTimeZone } from "@/lib/datetime"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Users, Banknote, TrendingUp, AlertTriangle,
+  ArrowUpRight, ArrowDownRight, Clock, UserPlus, ClipboardList,
+  HandCoins, WalletCards, Layers3, BarChart3,
+} from "lucide-react"
+
+function fmt(n: number) {
+  if (n >= 1_000_000_000) return `Rp ${(n / 1_000_000_000).toFixed(1)}M`
+  if (n >= 1_000_000) return `Rp ${(n / 1_000_000).toFixed(1)}Jt`
+  if (n >= 1_000) return `Rp ${(n / 1_000).toFixed(0)}Rb`
+  return `Rp ${n.toLocaleString("id-ID")}`
+}
+
+function BarChart({ data }: { data: { bulan: string; masuk: number; keluar: number }[] }) {
+  const max = Math.max(...data.flatMap((d) => [d.masuk, d.keluar]), 1)
+  return (
+    <div className="flex items-end gap-3 h-40 pt-2">
+      {data.map((d) => (
+        <div key={d.bulan} className="flex-1 flex flex-col items-center gap-1">
+          <div className="flex items-end gap-0.5 w-full" style={{ height: "120px" }}>
+            <div className="flex-1 bg-emerald-500 rounded-t-sm opacity-90 transition-all hover:opacity-100" style={{ height: `${(d.masuk / max) * 100}%` }} />
+            <div className="flex-1 bg-rose-400 rounded-t-sm opacity-80 transition-all hover:opacity-100" style={{ height: `${(d.keluar / max) * 100}%` }} />
+          </div>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{d.bulan}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default async function DashboardPage() {
+  const stats = await getDashboardStats()
+  const company = await getCompanyInfo()
+  const timeZone = normalizeTimeZone(company.timeZone)
+
+  const today = new Intl.DateTimeFormat("id-ID", {
+    timeZone,
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date())
+  const currentTime = formatTimeId(new Date(), { timeZone })
+
+  const surplusBulanIni = stats.arusKas6Bulan.at(-1)
+  const surplusVal = (surplusBulanIni?.masuk ?? 0) - (surplusBulanIni?.keluar ?? 0)
+
+  const statCards = [
+    { title: "Total Nasabah Aktif", value: stats.totalNasabah.toLocaleString("id-ID"), change: "Nasabah aktif", trend: "up", icon: Users, color: "text-blue-600", bg: "bg-blue-50/80", id: "total-nasabah" },
+    { title: "Pinjaman Aktif", value: stats.pinjamanAktif.toLocaleString("id-ID"), change: "Kontrak berjalan", trend: "up", icon: Banknote, color: "text-emerald-600", bg: "bg-emerald-50/80", id: "pinjaman-aktif" },
+    { title: "Total Outstanding", value: fmt(stats.totalOutstanding), change: "Sisa pokok pinjaman", trend: "neutral", icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50/80", id: "total-outstanding" },
+    { title: "Total Tunggakan", value: fmt(stats.totalTunggakan), change: "Angsuran belum dibayar", trend: "down", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50/80", id: "total-tunggakan" },
+  ]
+
+  const quickMenus = [
+    {
+      title: "Tambah Nasabah",
+      description: "Input anggota baru",
+      href: "/nasabah/baru",
+      icon: UserPlus,
+      className: "from-sky-500 to-cyan-500",
+      id: "tambah-nasabah",
+    },
+    {
+      title: "Ajukan Pinjaman",
+      description: "Buat pengajuan baru",
+      href: "/pengajuan/baru",
+      icon: ClipboardList,
+      className: "from-emerald-500 to-teal-500",
+      id: "ajukan-pinjaman",
+    },
+    {
+      title: "Proses Pencairan",
+      description: "Tindak lanjut pengajuan",
+      href: "/pencairan",
+      icon: HandCoins,
+      className: "from-amber-500 to-orange-500",
+      id: "proses-pencairan",
+    },
+    {
+      title: "Catat Pembayaran",
+      description: "Input angsuran masuk",
+      href: "/pembayaran",
+      icon: WalletCards,
+      className: "from-violet-500 to-fuchsia-500",
+      id: "catat-pembayaran",
+    },
+    {
+      title: "Data Kelompok",
+      description: "Kelola kelompok nasabah",
+      href: "/kelompok",
+      icon: Layers3,
+      className: "from-slate-700 to-slate-900",
+      id: "data-kelompok",
+    },
+    {
+      title: "Laporan Kas",
+      description: "Pantau laporan utama",
+      href: "/laporan/arus-kas",
+      icon: BarChart3,
+      className: "from-rose-500 to-pink-500",
+      id: "laporan-kas",
+    },
+  ]
+
+  return (
+    <div className="p-6 space-y-8">
+      <DashboardHeader
+        title="Dashboard Overview"
+        description="Ringkasan cepat kondisi koperasi, arus kas, tunggakan, dan notifikasi penagihan hari ini."
+        dateLabel={today}
+        initialTimeLabel={currentTime}
+        notificationCount={stats.penagihanHariIni}
+      />
+
+      {/* Quick Menu */}
+      <Card className="border-none shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Quick Menu</CardTitle>
+              <CardDescription>Akses cepat ke modul yang paling sering dipakai</CardDescription>
+            </div>
+            <Badge variant="secondary" className="hidden sm:inline-flex bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              Fast access
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+            {quickMenus.map((menu) => (
+              <Button key={menu.href} asChild variant="outline" className="h-auto items-stretch justify-start p-0 border-slate-100 hover:border-primary/20 hover:bg-primary/5 transition-all">
+                <Link href={menu.href} className="w-full">
+                  <div className="flex h-full w-full flex-col gap-3 rounded-xl p-4 text-left transition-colors">
+                    <ViewTransition name={`quick-icon-${menu.id}`} share="morph">
+                      <div className={`inline-flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${menu.className} text-white shadow-md shadow-slate-200/50 dark:shadow-none`}>
+                        <menu.icon className="size-4.5" />
+                      </div>
+                    </ViewTransition>
+                    <div className="space-y-1">
+                      <ViewTransition name={`quick-text-${menu.id}`} share="text-morph">
+                        <p className="text-sm font-semibold leading-none tracking-tight">{menu.title}</p>
+                      </ViewTransition>
+                      <p className="text-[10px] text-muted-foreground/80 leading-relaxed">{menu.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat) => (
+          <Card key={stat.title} className="border-none shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">{stat.title}</p>
+                  <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
+                  <p className={`text-[11px] font-medium flex items-center gap-1 ${stat.trend === "up" ? "text-emerald-600" : stat.trend === "down" ? "text-red-500" : "text-slate-500"}`}>
+                    {stat.trend === "up" && <ArrowUpRight className="size-3" />}
+                    {stat.trend === "down" && <ArrowDownRight className="size-3" />}
+                    {stat.change}
+                  </p>
+                </div>
+                <ViewTransition name={`stat-icon-${stat.id}`} share="morph">
+                  <div className={`${stat.bg} ${stat.color} p-2.5 rounded-xl shadow-sm border border-current/5`}>
+                    <stat.icon className="size-5" />
+                  </div>
+                </ViewTransition>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Chart + Top Tunggakan */}
+      <div className="grid lg:grid-cols-5 gap-6">
+        <Card className="lg:col-span-3 border-none shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Arus Kas Bulanan</CardTitle>
+                <CardDescription>6 bulan terakhir</CardDescription>
+              </div>
+              <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="size-2.5 bg-emerald-500 rounded-full inline-block" /> Masuk</span>
+                <span className="flex items-center gap-1.5"><span className="size-2.5 bg-rose-400 rounded-full inline-block" /> Keluar</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <BarChart data={stats.arusKas6Bulan} />
+            {surplusVal !== 0 && (
+              <div className="mt-6 p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-center justify-between dark:bg-emerald-950/20 dark:border-emerald-900/30">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/80 dark:text-emerald-400/80">Surplus Bulan Ini</p>
+                  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{fmt(surplusVal)}</p>
+                </div>
+                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-400 rounded-lg font-bold">
+                  {surplusBulanIni?.bulan}
+                </Badge>
+              </div>
+            )}
+            {surplusVal === 0 && (
+              <div className="mt-6 p-4 bg-muted/40 rounded-xl text-xs text-muted-foreground text-center border border-dashed border-slate-200 dark:border-slate-800">
+                Belum ada data kas bulan ini. Mulai input transaksi di menu Arus Kas.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2 border-none shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Top 5 Tunggakan Kelompok</CardTitle>
+            <CardDescription>Outstanding tertinggi</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {stats.topTunggakan.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">🎉 Tidak ada tunggakan saat ini.</p>
+            ) : (
+              <div className="overflow-hidden rounded-b-xl border-t border-slate-100 dark:border-slate-800">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 dark:bg-slate-900/50 dark:hover:bg-slate-900/50 border-b-slate-100 dark:border-b-slate-800">
+                      <TableHead className="w-12 text-center text-[10px] font-bold uppercase tracking-widest">No</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-widest">Kelompok</TableHead>
+                      <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.topTunggakan.map((item, i) => (
+                      <TableRow key={item.nama} className="border-b-slate-50 dark:border-b-slate-900/50 hover:bg-slate-50/30 transition-colors">
+                        <TableCell className="text-center">
+                          <div className={`size-6 mx-auto rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? "bg-red-100 text-red-700" : i === 1 ? "bg-orange-100 text-orange-700" : "bg-muted text-muted-foreground"}`}>
+                            {i + 1}
+                          </div>
+                        </TableCell>
+
+exec
+/bin/bash -lc "sed -n '1,280p' '/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/src/app/(dashboard)/nasabah/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+import Link from "next/link"
+import { Plus, Search, Download, Eye, Pencil } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getKelompokList, getNasabahList } from "@/actions/nasabah"
+import { Input } from "@/components/ui/input"
+import { DeleteNasabahButton } from "./delete-nasabah-button"
+
+const statusBadge: Record<string, { label: string; cls: string }> = {
+  AKTIF: { label: "Aktif", cls: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
+  KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+}
+
+const rankBadge: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  B: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  D: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+export default async function NasabahPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string; page?: string; kelompokId?: string; status?: string }>
+}) {
+  const sp = await searchParams
+  const search = sp?.search ?? ""
+  const page = Number(sp?.page ?? 1)
+  const kelompokId = sp?.kelompokId ?? ""
+  const status = sp?.status ?? ""
+
+  const kelompokList = await getKelompokList()
+  const { data: nasabahList, total, totalPages } = await getNasabahList({
+    page,
+    search,
+    limit: 20,
+    kelompokId: kelompokId || undefined,
+    status: status || undefined,
+  })
+
+  return (
+    <div className="p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Master Nasabah</h1>
+          <p className="text-muted-foreground text-sm">
+            {total.toLocaleString("id-ID")} total nasabah terdaftar dalam sistem.
+          </p>
+        </div>
+        <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95">
+          <Link href="/nasabah/baru">
+            <Plus className="size-4" /> Tambah Nasabah
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <CardTitle className="text-base font-semibold">Daftar Nasabah</CardTitle>
+              <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="gap-2 border-slate-200/80 dark:border-slate-800/80">
+              <Download className="size-3.5" /> 
+              <span className="hidden sm:inline">Export Data</span>
+            </Button>
+          </div>
+          <form method="GET" className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input name="search" defaultValue={search} placeholder="Cari nama, NIK, atau nomor anggota..." className="pl-9 transition-all" />
+            </div>
+            <select
+              name="kelompokId"
+              defaultValue={kelompokId}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter kelompok"
+            >
+              <option value="">Semua kelompok</option>
+              {kelompokList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama}
+                </option>
+              ))}
+            </select>
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter status"
+            >
+              <option value="">Semua status</option>
+              <option value="AKTIF">Aktif</option>
+              <option value="NON_AKTIF">Non Aktif</option>
+              <option value="KELUAR">Keluar</option>
+            </select>
+            <Button type="submit" variant="secondary" className="px-6">Cari</Button>
+          </form>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[110px]">No. Anggota</TableHead>
+                <TableHead>Nama Lengkap</TableHead>
+                <TableHead className="hidden md:table-cell">NIK</TableHead>
+                <TableHead className="hidden lg:table-cell">Kelompok</TableHead>
+                <TableHead className="hidden lg:table-cell">Kolektor</TableHead>
+                <TableHead className="hidden xl:table-cell">Indikator</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Tgl. Gabung</TableHead>
+                <TableHead className="w-[50px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {nasabahList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-24 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Search className="size-8 opacity-20" />
+                      <p>{search ? `Tidak ada nasabah dengan kata kunci "${search}"` : "Belum ada data nasabah. Tambah nasabah pertama."}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                nasabahList.map((row) => {
+                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs font-semibold text-slate-500">{row.nomorAnggota}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold tracking-tight">{row.namaLengkap}</span>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge
+                              className={`${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} hover:${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} border-0 text-[10px] font-black h-5 uppercase tracking-wider`}
+                              title="Ranking risiko"
+                            >
+                              Rank {row.indikator.ranking}
+                            </Badge>
+                            {row.indikator.overdueCount > 0 && row.indikator.overdueOldestDueAt ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-black h-5 uppercase tracking-wider"
+                                title="Angsuran jatuh tempo belum lunas"
+                              >
+                                Telat {row.indikator.overdueCount} (
+                                {new Date(row.indikator.overdueOldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                ) {row.indikator.overdueOldestDaysLate} hari
+                              </Badge>
+                            ) : null}
+                            {row.indikator.tunggakanNominal > 0 ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tunggakan angsuran"
+                              >
+                                Tunggakan {fmt(Number(row.indikator.tunggakanNominal))}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tidak ada tunggakan angsuran"
+                              >
+                                Lancar
+                              </Badge>
+                            )}
+                            {row.indikator.aktifPinjaman > 0 ? (
+                              <Badge
+                                className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Jumlah pinjaman aktif"
+                              >
+                                Aktif {row.indikator.aktifPinjaman}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground md:hidden">{row.nik}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell font-mono text-[11px] text-slate-500 tracking-tight">{row.nik}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kelompok?.nama ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kolektor?.name ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Outstanding</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-200">
+                              {fmt(Number(row.indikator.outstanding))}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Telat</span>
+                            <span className={row.indikator.telat > 0 ? "font-bold text-rose-600" : "font-semibold"}>
+                              {row.indikator.telat}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Next Due</span>
+                            <span className="font-medium">
+                              {row.indikator.nextDueAt
+                                ? new Date(row.indikator.nextDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                                : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${badge.cls} hover:${badge.cls} border-0 text-[10px] font-bold px-2 py-0 h-5 uppercase tracking-wide`}>{badge.label}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-[11px] font-medium text-slate-500">
+                        {new Date(row.tanggalGabung).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Detail"
+                          >
+                            <Link href={`/nasabah/${row.id}`}>
+                              <Eye className="size-4" />
+                              <span className="sr-only">Detail</span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Edit"
+                          >
+                            <Link href={`/nasabah/${row.id}/edit`}>
+                              <Pencil className="size-4" />
+                              <span className="sr-only">Edit</span>
+                            </Link>
+                          </Button>
+                          <DeleteNasabahButton id={row.id} nama={row.namaLengkap} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+          <div className="px-6 py-4 flex items-center justify-between border-t border-slate-50 bg-slate-50/30 dark:border-slate-800/50 dark:bg-slate-900/10 text-xs font-medium text-slate-500 tracking-tight">
+            <span>
+              {nasabahList.length > 0
+                ? `Menampilkan ${nasabahList.length} dari ${total} nasabah · Halaman ${page} / ${totalPages}`
+                : "0 nasabah ditemukan"}
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="xs" asChild disabled={page <= 1} className="h-8 px-3 rounded-lg border-slate-200 dark:border-slate-800">
+                <Link href={`?search=${search}&page=${page - 1}`}>Sebelumnya</Link>
+              </Button>
+              <Button variant="outline" size="xs" asChild disabled={page >= totalPages} className="h-8 px-3 rounded-lg border-slate-200 dark:border-slate-800">
+                <Link href={`?search=${search}&page=${page + 1}`}>Berikutnya</Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && git rev-parse --show-toplevel && git status --short' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+
+codex
+I have enough context. I’ll add three tagged smoke tests (`@smoke`) covering login, dashboard load, and nasabah list navigation, create a Playwright config with sensible defaults (`tests/e2e`, base URL, optional local `webServer`), then add `test:e2e` and `test:smoke` scripts in `dashboard/package.json`. After that I’ll run a lightweight Playwright validation and commit only these scoped changes.
+codex
+I’m now creating `playwright.config.ts` and `tests/e2e/smoke.spec.ts`, then I’ll patch `dashboard/package.json` scripts in place to preserve everything else unchanged.
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && mkdir -p tests/e2e && cat > playwright.config.ts <<'EOF'
+import { defineConfig, devices } from \"@playwright/test\"
+
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? \"http://127.0.0.1:3000\"
+
+export default defineConfig({
+  testDir: \"./tests/e2e\",
+  fullyParallel: false,
+  forbidOnly: "'!!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
+  use: {
+    baseURL,
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+  webServer: {
+    command: "npm run dev",
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+})
+EOF
+
+cat > tests/e2e/smoke.spec.ts <<'"'EOF'
+import { expect, test } from \"@playwright/test\"
+
+const E2E_EMAIL = process.env.E2E_EMAIL ?? \"admin@koperasi.id\"
+const E2E_PASSWORD = process.env.E2E_PASSWORD ?? \"admin123\"
+
+async function login(page: import(\"@playwright/test\").Page) {
+  await page.goto(\"/login\")
+  await expect(page).toHaveURL(/\\/login"'$/)
+
+  await page.getByLabel("Email").fill(E2E_EMAIL)
+  await page.getByLabel("Password").fill(E2E_PASSWORD)
+  await page.getByRole("button", { name: "Masuk" }).click()
+
+  await expect(page).toHaveURL(/'"\\/dashboard\\/?"'$/)
+}
+
+test("@smoke login redirects to dashboard", async ({ page }) => {
+  await login(page)
+  await expect(page.getByText("Dashboard Overview")).toBeVisible()
+})
+
+test("@smoke dashboard renders quick menu", async ({ page }) => {
+  await login(page)
+  await expect(page.getByText("Quick Menu")).toBeVisible()
+  await expect(page.getByText("Total Nasabah Aktif")).toBeVisible()
+})
+
+test("@smoke nasabah list flow", async ({ page }) => {
+  await login(page)
+  await page.goto("/nasabah")
+
+  await expect(page).toHaveURL(/'"\\/nasabah(?:\\?.*)?"'$/)
+  await expect(page.getByRole("heading", { name: "Master Nasabah" })).toBeVisible()
+  await expect(page.getByText("Daftar Nasabah")).toBeVisible()
+})
+EOF' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && node -e 'const fs=require(\"fs\");const p=\"package.json\";const j=JSON.parse(fs.readFileSync(p,\"utf8\"));j.scripts=j.scripts||{};if("'!j.scripts["test:e2e"]) j.scripts["test:e2e"]="playwright test";if(!j.scripts["test:smoke"]) j.scripts["test:smoke"]="playwright test --grep @smoke";fs.writeFileSync(p,JSON.stringify(j,null,2)+"'"\\n\");'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+codex
+I’ve applied the scoped file edits. Next I’m running a quick Playwright command to confirm the smoke tests are discovered and scripts/config are wired correctly before committing.
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && npm run test:smoke -- --list' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 127 in 0ms:
+
+> dashboard@0.1.0 test:smoke
+> playwright test --grep @smoke --list
+
+sh: 1: playwright: not found
+
+codex
+Playwright is not installed in this workspace yet (`playwright: not found`), so runtime validation couldn’t execute; I’m now verifying diffs and committing only the requested files.
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && git status --short' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+ M package.json
+?? playwright.config.ts
+?? tests/
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard && git diff -- package.json playwright.config.ts tests/e2e/smoke.spec.ts' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+diff --git a/dashboard/package.json b/dashboard/package.json
+index 09ebab6..4e88eaa 100644
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -12,7 +12,9 @@
+     "db:migrate": "prisma migrate dev",
+     "db:push": "prisma db push",
+     "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+-    "db:studio": "prisma studio"
++    "db:studio": "prisma studio",
++    "test:e2e": "playwright test",
++    "test:smoke": "playwright test --grep @smoke"
+   },
+   "prisma": {
+     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+
+exec
+/bin/bash -lc "sed -n '1,220p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/tests/e2e/smoke.spec.ts" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+import { expect, test } from "@playwright/test"
+
+const E2E_EMAIL = process.env.E2E_EMAIL ?? "admin@koperasi.id"
+const E2E_PASSWORD = process.env.E2E_PASSWORD ?? "admin123"
+
+async function login(page: import("@playwright/test").Page) {
+  await page.goto("/login")
+  await expect(page).toHaveURL(/\/login$/)
+
+  await page.getByLabel("Email").fill(E2E_EMAIL)
+  await page.getByLabel("Password").fill(E2E_PASSWORD)
+  await page.getByRole("button", { name: "Masuk" }).click()
+
+  await expect(page).toHaveURL(/\/dashboard\/?$/)
+}
+
+test("@smoke login redirects to dashboard", async ({ page }) => {
+  await login(page)
+  await expect(page.getByText("Dashboard Overview")).toBeVisible()
+})
+
+test("@smoke dashboard renders quick menu", async ({ page }) => {
+  await login(page)
+  await expect(page.getByText("Quick Menu")).toBeVisible()
+  await expect(page.getByText("Total Nasabah Aktif")).toBeVisible()
+})
+
+test("@smoke nasabah list flow", async ({ page }) => {
+  await login(page)
+  await page.goto("/nasabah")
+
+  await expect(page).toHaveURL(/\/nasabah(?:\?.*)?$/)
+  await expect(page.getByRole("heading", { name: "Master Nasabah" })).toBeVisible()
+  await expect(page.getByText("Daftar Nasabah")).toBeVisible()
+})
+
+exec
+/bin/bash -lc "sed -n '1,220p' /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/playwright.config.ts" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+import { defineConfig, devices } from "@playwright/test"
+
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000"
+
+export default defineConfig({
+  testDir: "./tests/e2e",
+  fullyParallel: false,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
+  use: {
+    baseURL,
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+  webServer: {
+    command: "npm run dev",
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+})
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton && git add dashboard/package.json dashboard/playwright.config.ts dashboard/tests/e2e/smoke.spec.ts && git commit -m "test: add Playwright smoke skeleton"' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+[codex/20260423_125858/p1b-test-smoke-skeleton 016cdfa] test: add Playwright smoke skeleton
+ 3 files changed, 68 insertions(+), 1 deletion(-)
+ create mode 100644 dashboard/playwright.config.ts
+ create mode 100644 dashboard/tests/e2e/smoke.spec.ts
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton && git show --name-only --oneline --no-patch HEAD && git status --short' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ exited 128 in 0ms:
+fatal: options '--name-only', '--name-status', '--check', and '-s' cannot be used together
+
+exec
+/bin/bash -lc 'cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton && git status --short' in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cd /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton && git show --name-only --oneline HEAD | sed -n '1,40p'" in /tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton
+ succeeded in 0ms:
+016cdfa test: add Playwright smoke skeleton
+dashboard/package.json
+dashboard/playwright.config.ts
+dashboard/tests/e2e/smoke.spec.ts
+
+codex
+Committed on branch `codex/20260423_125858/p1b-test-smoke-skeleton`:
+
+- Commit: `016cdfa`
+- Message: `test: add Playwright smoke skeleton`
+
+Changes made (within your scope):
+- Added Playwright config: [playwright.config.ts](/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/playwright.config.ts)
+- Added smoke E2E skeleton with `@smoke` tags for login, dashboard, nasabah flow: [smoke.spec.ts](/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/tests/e2e/smoke.spec.ts)
+- Added npm scripts without removing existing ones: [package.json](/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package.json)
+  - `test:e2e`: `playwright test`
+  - `test:smoke`: `playwright test --grep @smoke`
+
+Validation note:
+- `npm run test:smoke -- --list` currently fails in this workspace with `playwright: not found` (Playwright binary not installed in `node_modules` yet).
+tokens used
+42,466
+Committed on branch `codex/20260423_125858/p1b-test-smoke-skeleton`:
+
+- Commit: `016cdfa`
+- Message: `test: add Playwright smoke skeleton`
+
+Changes made (within your scope):
+- Added Playwright config: [playwright.config.ts](/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/playwright.config.ts)
+- Added smoke E2E skeleton with `@smoke` tags for login, dashboard, nasabah flow: [smoke.spec.ts](/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/tests/e2e/smoke.spec.ts)
+- Added npm scripts without removing existing ones: [package.json](/tmp/codex-fanout/20260423_125858/p1b-test-smoke-skeleton/dashboard/package.json)
+  - `test:e2e`: `playwright test`
+  - `test:smoke`: `playwright test --grep @smoke`
+
+Validation note:
+- `npm run test:smoke -- --list` currently fails in this workspace with `playwright: not found` (Playwright binary not installed in `node_modules` yet).

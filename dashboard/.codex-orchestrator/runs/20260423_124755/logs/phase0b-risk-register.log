@@ -1,0 +1,1652 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba61-fb10-7780-b003-3fa7164cd5b0
+--------
+user
+You are worker A. Complete Phase 0 documentation readiness: create docs/internal/phase0-risk-register.md and docs/internal/phase0-scope-boundaries.md aligned to MASTER-PLAN-KOPERASI-UMUM.md. Update checkboxes in master plan only for items that are truly completed in this repo. Add changelog entry with testing status. Run lint/build if you changed runtime code. Commit your branch.
+2026-04-23T12:47:57.357131Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’m going to align the requested Phase 0 docs to the existing master plan first, then I’ll update only genuinely completed checkboxes and add a changelog/testing note before committing. I’ll quickly read the relevant skill instructions and repository docs now.
+exec
+/bin/bash -lc 'cat /home/kotacom/.codex/skills/using-superpowers/SKILL.md' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+exec
+/bin/bash -lc 'rg -n "MASTER-PLAN-KOPERASI-UMUM|phase0|Phase 0|risk register|scope boundaries|changelog" -S .' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+./dashboard/SUPER-ADMIN-PLAN.md:130:### Phase 0 (1-2 hari)
+
+exec
+/bin/bash -lc 'rg --files' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+dashboard/skills-lock.json
+dashboard/fix-inputs.js
+dashboard/README.md
+dashboard/postcss.config.mjs
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/docs/superpowers/using-superpowers.md
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+dashboard/docs/superpowers/plans/plan.md
+dashboard/docs/superpowers/plans/accounting-scoring-plan.md
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+dashboard/docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+dashboard/package-lock.json
+dashboard/AGENTS.md
+dashboard/USING-SUPERPOWERS.md
+dashboard/eslint.config.mjs
+dashboard/PANDUAN-PENGGUNA.md
+dashboard/middleware.ts
+dashboard/307
+dashboard/package.json
+dashboard/next.config.ts
+dashboard/CLAUDE.md
+dashboard/src/actions/company-users.ts
+dashboard/src/actions/kelompok.ts
+dashboard/src/actions/nasabah.ts
+dashboard/src/actions/akuntansi.ts
+dashboard/src/actions/maintenance.ts
+dashboard/src/actions/auth-registration.ts
+dashboard/src/actions/pengajuan.ts
+dashboard/src/actions/settings.ts
+dashboard/src/actions/kas.ts
+dashboard/src/actions/platform-admin.ts
+dashboard/src/actions/dashboard.ts
+dashboard/src/actions/pembayaran.ts
+dashboard/src/actions/kolektor.ts
+dashboard/src/components/page-view-transition.tsx
+dashboard/src/components/nav-main.tsx
+dashboard/src/components/theme-provider.tsx
+dashboard/src/components/nav-user.tsx
+dashboard/src/components/print/company-document-header.tsx
+dashboard/src/components/ui/breadcrumb.tsx
+dashboard/src/components/ui/sheet.tsx
+dashboard/src/components/ui/card.tsx
+dashboard/src/components/ui/tabs.tsx
+dashboard/src/components/ui/field.tsx
+dashboard/src/components/ui/avatar.tsx
+dashboard/src/components/ui/dropdown-menu.tsx
+dashboard/src/components/ui/separator.tsx
+dashboard/src/components/ui/skeleton.tsx
+dashboard/src/components/ui/alert.tsx
+dashboard/src/components/ui/table.tsx
+dashboard/src/components/ui/input.tsx
+dashboard/src/components/ui/label.tsx
+dashboard/src/components/ui/textarea.tsx
+dashboard/src/components/ui/dialog.tsx
+dashboard/src/components/ui/collapsible.tsx
+dashboard/src/components/ui/sidebar.tsx
+dashboard/src/components/ui/select.tsx
+dashboard/src/components/ui/badge.tsx
+dashboard/src/components/ui/tooltip.tsx
+dashboard/src/components/ui/button.tsx
+dashboard/src/components/ui/sonner.tsx
+dashboard/src/components/app-link.tsx
+dashboard/src/components/navigation-indicator.tsx
+dashboard/src/components/print-button.tsx
+dashboard/src/components/markdown.tsx
+dashboard/src/components/app-sidebar.tsx
+dashboard/src/components/nav-secondary.tsx
+dashboard/src/hooks/use-mobile.ts
+dashboard/src/app/favicon.ico
+dashboard/src/app/layout.tsx
+dashboard/src/app/(auth)/login/page.tsx
+dashboard/src/app/(auth)/layout.tsx
+dashboard/src/app/(auth)/loading.tsx
+dashboard/src/app/(auth)/register/page.tsx
+dashboard/src/app/(marketing)/penawaran/_lib/screenshots.ts
+dashboard/src/app/(marketing)/penawaran/page.tsx
+dashboard/src/app/(marketing)/contact/page.tsx
+dashboard/src/app/(marketing)/blog/page.tsx
+dashboard/src/app/(marketing)/product/page.tsx
+dashboard/src/app/(marketing)/about/page.tsx
+dashboard/src/app/(marketing)/_components/marketing-shell.tsx
+dashboard/src/app/(marketing)/_components/marketing-data.ts
+dashboard/src/app/(marketing)/page.tsx
+dashboard/src/app/(marketing)/home/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/baru/page.tsx
+dashboard/src/app/(dashboard)/roadmap/page.tsx
+dashboard/src/app/(dashboard)/roadmap/roadmap-client.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+dashboard/src/app/(dashboard)/nasabah/page.tsx
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx
+dashboard/src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+dashboard/src/app/(dashboard)/docs/using-superpowers/page.tsx
+dashboard/src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/edit-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/bayar-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/manual-input.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+dashboard/src/app/(dashboard)/layout.tsx
+dashboard/src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+dashboard/src/app/(dashboard)/kelompok/page.tsx
+dashboard/src/app/(dashboard)/kelompok/baru/page.tsx
+dashboard/src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+dashboard/src/app/(dashboard)/monitoring/tunggakan/page.tsx
+dashboard/src/app/(dashboard)/laporan/neraca/page.tsx
+dashboard/src/app/(dashboard)/laporan/buku-besar/page.tsx
+dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx
+dashboard/src/app/(dashboard)/laporan/laba-rugi/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+dashboard/src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+dashboard/src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+dashboard/src/app/(dashboard)/laporan/arus-kas/page.tsx
+dashboard/src/app/(dashboard)/monitoring/kolektor/page.tsx
+dashboard/src/app/(dashboard)/loading.tsx
+dashboard/src/app/(dashboard)/settings/accounting-mode-card.tsx
+dashboard/src/app/(dashboard)/settings/ranking-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/user-management-card.tsx
+dashboard/src/app/(dashboard)/kas/page.tsx
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx
+dashboard/src/app/(dashboard)/settings/company/page.tsx
+dashboard/src/app/(dashboard)/settings/db-maintenance-card.tsx
+dashboard/src/app/(dashboard)/kas/kas-client.tsx
+dashboard/src/app/(dashboard)/settings/page.tsx
+dashboard/src/app/(dashboard)/settings/accounting/page.tsx
+dashboard/src/app/(dashboard)/settings/ranking/page.tsx
+dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/maintenance/page.tsx
+dashboard/src/app/(dashboard)/settings/users/page.tsx
+dashboard/src/app/(dashboard)/_components/top-bar.tsx
+dashboard/src/app/(dashboard)/settings/settings-profile-card.tsx
+dashboard/src/app/(dashboard)/_components/dashboard-header.tsx
+dashboard/src/app/(dashboard)/settings/profile/page.tsx
+dashboard/src/app/(dashboard)/dashboard/page.tsx
+dashboard/src/app/(dashboard)/pencairan/pencairan-form.tsx
+dashboard/src/app/(dashboard)/pencairan/page.tsx
+dashboard/src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+dashboard/src/app/(dashboard)/kolektor/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+dashboard/src/app/(dashboard)/kolektor/kolektor-management.tsx
+dashboard/src/app/globals.css
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+dashboard/src/lib/ranking.ts
+dashboard/src/lib/pembayaran.ts
+dashboard/src/lib/utils.ts
+dashboard/src/lib/roles.ts
+dashboard/src/app/api/upload/pengajuan/route.ts
+dashboard/src/lib/datetime.ts
+dashboard/src/lib/audit.ts
+dashboard/src/lib/accounting-mode.ts
+dashboard/src/lib/auth.ts
+dashboard/src/lib/tenant.ts
+dashboard/src/lib/pembayaran-notes.ts
+dashboard/src/lib/validations/kelompok.ts
+dashboard/src/lib/validations/nasabah.ts
+dashboard/src/lib/validations/pengajuan.ts
+dashboard/src/lib/validations/pembayaran.ts
+dashboard/src/app/api/upload/pembayaran/route.ts
+dashboard/src/app/api/upload/kas/route.ts
+dashboard/src/app/api/auth/[...nextauth]/route.ts
+dashboard/src/app/api/upload/logo/route.ts
+dashboard/public/vercel.svg
+dashboard/public/file.svg
+dashboard/public/window.svg
+dashboard/public/next.svg
+dashboard/public/docs/screenshots/debug-login-page.png
+dashboard/public/docs/screenshots/error-login.png
+dashboard/public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+dashboard/public/uploads/pembayaran/1776700680512-a635469f-803c-4b6c-b940-9e710a4fa1bb.jpeg
+dashboard/src/lib/prisma.ts
+dashboard/public/uploads/nasabah/1776851508256-de1ba137-c597-44e0-8d9c-5a24a8578751.pdf
+dashboard/src/lib/report-period.ts
+dashboard/src/lib/accounting.ts
+dashboard/src/lib/blob-upload.ts
+dashboard/public/globe.svg
+dashboard/src/app/api/upload/nasabah/route.ts
+dashboard/public/static/sw.js
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/screen.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png
+dashboard/public/snitch/project/login_cooperative_management_dashboard/screen.png
+dashboard/src/app/(dashboard)/platform/page.tsx
+dashboard/src/app/(dashboard)/platform/users/page.tsx
+dashboard/src/app/(dashboard)/platform/users/user-admin-table.tsx
+dashboard/src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/laporan.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/screen.png
+dashboard/src/app/(dashboard)/platform/companies/page.tsx
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/screen.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/page.tsx
+dashboard/public/snitch/project/cooperative_manager_dashboard/screen.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/dashboard.png
+dashboard/public/snitch/project/vault_cooperative_management_landing_page/screen.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/screen.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/nasabah.png
+dashboard/public/snitch/project/settings_user_role_management/settings.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/screen.png
+dashboard/public/snitch/project/settings_user_role_management/screen.png
+dashboard/prisma.config.ts
+dashboard/tsconfig.json
+dashboard/components.json
+dashboard/SUPER-ADMIN-PLAN.md
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png
+dashboard/proposal_premium.html
+dashboard/prisma/seed.ts
+dashboard/prisma/seed.cjs
+dashboard/prisma/schema.prisma
+dashboard/capture-screenshots.mjs
+dashboard/prisma/migrations/20260422103000_company_user_scope/migration.sql
+dashboard/prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+dashboard/prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+dashboard/prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+dashboard/prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+dashboard/prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+dashboard/public/uploads/nasabah/1776618214801-f5c7641f-ee89-4e0d-ade6-672c31aef520.jpeg
+dashboard/public/uploads/nasabah/1776613912086-44c59630-5991-4c7d-b064-c8e9a6096319.jpeg
+dashboard/prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+dashboard/prisma/migrations/20260421110000_journal_entries/migration.sql
+dashboard/prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+dashboard/prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+dashboard/prisma/migrations/migration_lock.toml
+dashboard/prisma/migrations/20260422120000_company_status_fields/migration.sql
+dashboard/prisma/migrations/20260418204642_init/migration.sql
+
+codex
+I’m using the `using-superpowers` skill for workflow compliance, and next I’ll inspect the master plan file to mirror its Phase 0 wording exactly in the two internal docs.
+exec
+/bin/bash -lc 'ls -la dashboard/docs/internal' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+total 20
+drwxr-xr-x 2 kotacom kotacom 4096 Apr 23 12:47 .
+drwxr-xr-x 4 kotacom kotacom 4096 Apr 23 12:47 ..
+-rw-r--r-- 1 kotacom kotacom 4514 Apr 23 12:47 accounting-extension-plan.md
+-rw-r--r-- 1 kotacom kotacom  153 Apr 23 12:47 panduan-pengguna.md
+
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/SUPER-ADMIN-PLAN.md" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+# Perencanaan Fitur `SUPER_ADMIN` (Platform Admin)
+
+Dokumen ini mendefinisikan scope, hak akses, dan guardrail untuk user ber-role `SUPER_ADMIN` di KoperasiApp.
+
+## 1) Prinsip Dasar
+
+- `SUPER_ADMIN` adalah role platform (lintas company) dengan akses operasional terbatas namun memiliki akses pemeliharaan yang kuat.
+- Aksi super admin bersifat "high impact" sehingga wajib:
+  - audit log lengkap,
+  - reason wajib,
+  - konfirmasi eksplisit,
+  - opsi dry-run/preview bila masuk akal.
+- `SUPER_ADMIN` tidak otomatis terhubung ke `companyId`.
+  - Untuk mengelola user/konten sebuah company, super admin harus memilih company konteks (switch context) atau melakukan aksi melalui menu platform yang menarget `companyId` secara eksplisit.
+
+## 2) Matriks Hak Akses (Versi 1)
+
+Tujuan versi 1: minimal berguna, aman, dan cepat diimplementasikan tanpa memaksa migrasi multi-tenant penuh.
+
+### A. User & Login
+
+- Reset password user (set password baru atau temporary password)
+  - target: user by email/id
+  - output: temporary password (sekali tampil) atau link reset (jika ada email provider)
+  - audit: actorId, targetUserId, method, reason
+- Force logout user (invalidate session/token)
+  - catatan: NextAuth JWT perlu strategi blacklist token atau rotate secret; versi 1 bisa pakai `isActive=false` sebagai kill-switch.
+- Suspend/disable user (`isActive=false`)
+  - gunakan untuk respon cepat saat akun disalahgunakan.
+
+### B. Company Control
+
+- Hold/Suspend company
+  - efek: semua user di company tidak bisa akses halaman dashboard (middleware menolak)
+  - reason wajib, bisa ada `suspendedUntil` opsional
+- Re-activate company
+- Delete company (disarankan soft delete)
+  - versi 1: soft delete (`status=DELETED` / `deletedAt`) dan memutus akses login
+  - hard delete hanya untuk environment dev atau dengan prosedur khusus (lihat "Guardrail")
+
+### C. Data Maintenance (Platform)
+
+- Cleanup data company tertentu (scope terbatas)
+  - misal: `USERS`, `AKUNTANSI`, `TRANSAKSI` tapi hanya untuk satu company (butuh multi-tenant data model agar benar-benar aman).
+- Import demo data untuk company tertentu
+- Backfill jurnal untuk company tertentu
+
+## 3) Guardrail Keamanan
+
+### A. Wajib Audit Log
+
+Setiap aksi `SUPER_ADMIN` minimal mencatat:
+- `actorId`
+- `action`: RESET_PASSWORD / SUSPEND_USER / SUSPEND_COMPANY / DELETE_COMPANY / REACTIVATE_COMPANY / etc.
+- `target`: userId/companyId
+- `reason` (string wajib)
+- `metadata`: payload ringkas, misal `ip`, `userAgent`, `expiresAt`
+
+Rekomendasi: tambah `entityType="PLATFORM_ADMIN"` pada audit agar mudah difilter.
+
+### B. Konfirmasi & Friksi yang Disengaja
+
+Untuk aksi high impact:
+- `DELETE_COMPANY`: wajib ketik slug + kata konfirmasi (contoh: `HAPUS <slug>`)
+- `RESET_PASSWORD`: wajib reason + pilihan "force temporary" vs "set explicit"
+- `SUSPEND_COMPANY`: wajib reason + opsi durasi
+
+### C. Least Privilege
+
+- `SUPER_ADMIN` tidak boleh membuat role `SUPER_ADMIN` lain tanpa prosedur khusus (misal env var allowlist).
+- `SUPER_ADMIN` tidak auto menjadi `OWNER`/`ADMIN` company; ia mengelola via menu platform.
+
+## 4) Desain Data (Disarankan)
+
+Saat ini model `Company` memiliki `isActive`. Untuk kontrol yang lebih jelas:
+
+### A. Tambah status company
+
+Tambahkan field pada `Company`:
+- `status`: `ACTIVE | SUSPENDED | DELETED`
+- `suspendedAt`, `suspendedReason`, `suspendedUntil` (opsional)
+- `deletedAt`, `deletedReason` (opsional)
+
+Aturan akses:
+- `SUSPENDED` dan `DELETED` menolak akses dashboard (middleware).
+- `DELETED` harus menolak login untuk user company tersebut, atau set semua user `isActive=false`.
+
+### B. Platform action log (opsional)
+
+Jika `AuditLog` sudah ada, cukup gunakan. Jika tidak cukup, buat `PlatformAdminLog`.
+
+## 5) Desain UI (Route)
+
+### A. Menu Platform Admin
+
+Tambahkan modul khusus super admin, contoh:
+- `/platform/companies`
+- `/platform/users`
+- `/platform/audit`
+
+Halaman minimal:
+- List company (search by name/slug/email)
+- Detail company
+  - tombol suspend/activate/delete (soft)
+  - list user di company (read-only versi 1)
+- List user (search by email)
+  - reset password
+  - disable user
+
+### B. Company Context Switch (opsional, versi 2)
+
+Untuk membantu debug:
+- switch context (pilih company) dan menyimpan di session token sebagai `actingCompanyId`.
+- semua query tenant-aware membaca `actingCompanyId` bila ada.
+
+## 6) Catatan Penting: Multi-Tenant Data Belum Penuh
+
+Saat ini baru `User` yang punya `companyId`. Banyak entitas lain (nasabah/pinjaman/kas/jurnal) belum menyimpan `companyId`.
+
+Implikasinya:
+- Aksi "delete company" versi 1 hanya realistis untuk memutus akses user (auth) dan identitas company; tidak aman untuk menghapus data operasional selektif per company.
+- Untuk platform admin yang benar-benar multi-tenant, perlu Phase 2:
+  - tambah `companyId` ke semua model data operasional,
+  - index + FK,
+  - semua query/filter selalu menyertakan `companyId`,
+  - migrasi data existing.
+
+## 7) Rencana Implementasi (Roadmap)
+
+### Phase 0 (1-2 hari)
+- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+
+### Phase 1 (2-4 hari)
+- Platform pages minimal `/platform/users` dan `/platform/companies`.
+- Actions server:
+  - `resetUserPassword(userId, reason)`
+  - `setUserActive(userId, isActive, reason)`
+  - `setCompanyStatus(companyId, status, reason, until?)`
+- Audit log lengkap untuk semua action.
+
+### Phase 2 (lebih besar)
+- Multi-tenant penuh pada semua tabel bisnis (companyId everywhere).
+- Cleanup/import/backfill per company (aman).
+- Context switch / impersonation dengan guardrail.
+
+## 8) SOP Operasional (Template)
+
+- Reset password:
+  1. Verifikasi permintaan (ticket)
+  2. Jalankan action reset dengan reason + ticket id
+  3. Berikan temporary password via channel aman
+  4. Minta user ganti password setelah login
+- Suspend company:
+  1. Dokumentasikan reason + siapa yang menyetujui
+  2. Suspend dengan durasi bila perlu
+  3. Komunikasi ke owner/admin company
+  4. Reactivate setelah masalah selesai
+
+
+exec
+/bin/bash -lc "rg --files -g '*MASTER-PLAN-KOPERASI-UMUM.md' -g '*master-plan*' -g '*PLAN*KOPERASI*' dashboard" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ exited 1 in 0ms:
+codex
+I found `SUPER-ADMIN-PLAN.md` in `dashboard/` but not `MASTER-PLAN-KOPERASI-UMUM.md` yet, so I’m checking the workspace root to locate the exact master plan filename before drafting docs.
+exec
+/bin/bash -lc "pwd; ls -la; rg --files -g '*MASTER-PLAN-KOPERASI-UMUM.md' -g '*MASTER*PLAN*' -g '*KOPERASI*UMUM*' ." in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ exited 1 in 0ms:
+/tmp/codex-fanout/20260423_124755/phase0b-risk-register
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 12:47 .
+drwxr-xr-x  5 kotacom kotacom 4096 Apr 23 12:47 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 12:47 .codex
+-rw-r--r--  1 kotacom kotacom   84 Apr 23 12:47 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 12:47 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 12:47 dashboard
+
+codex
+The repository only contains `dashboard/SUPER-ADMIN-PLAN.md`; `MASTER-PLAN-KOPERASI-UMUM.md` is not present. I’ll treat this file as the in-repo master plan baseline and align the new Phase 0 docs to its Phase 0 scope.
+exec
+/bin/bash -lc "rg -n \"\\[ \\]|\\[x\\]|Phase 0|phase 0|risk|scope|boundary|changelog|Status|Checklist\" dashboard/SUPER-ADMIN-PLAN.md dashboard/docs/internal -S" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+dashboard/SUPER-ADMIN-PLAN.md:3:Dokumen ini mendefinisikan scope, hak akses, dan guardrail untuk user ber-role `SUPER_ADMIN` di KoperasiApp.
+dashboard/SUPER-ADMIN-PLAN.md:43:- Cleanup data company tertentu (scope terbatas)
+dashboard/SUPER-ADMIN-PLAN.md:130:### Phase 0 (1-2 hari)
+dashboard/SUPER-ADMIN-PLAN.md:139:  - `setCompanyStatus(companyId, status, reason, until?)`
+
+exec
+/bin/bash -lc "find dashboard -maxdepth 3 -type f \\( -iname '*changelog*' -o -iname 'CHANGELOG.md' -o -iname '*changes*.md' -o -iname '*release*notes*' \\) | sort" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+exec
+/bin/bash -lc 'git -C dashboard status --short --branch' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+## codex/20260423_124755/phase0b-risk-register
+
+codex
+I confirmed there are no existing checklist boxes or changelog files, so I’m checking project guidance files for any required changelog format before editing.
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/AGENTS.md" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+# Agent Handoff: Koperasi Pinjam Dashboard
+
+Dokumen ini adalah konteks kerja cepat untuk agent berikutnya agar langsung paham arsitektur, batasan data, dan flow kritis.
+
+## 1. Stack & Struktur Utama
+
+- Framework: Next.js `16.2.4` (App Router, Turbopack)
+- Runtime UI: React `19.2.4`
+- ORM: Prisma `7.7.0` + PostgreSQL (`@prisma/adapter-pg`)
+- Auth: NextAuth v5 beta (Credentials provider)
+- UI: shadcn + Tailwind
+
+Folder penting:
+- `src/app`: routes App Router (auth, dashboard, platform)
+- `src/actions`: server actions domain bisnis
+- `src/lib`: auth, tenant, accounting, prisma client, utils
+- `prisma/schema.prisma`: source of truth model database
+- `prisma/seed.ts`: seed default accounts/demo users
+
+## 2. Rule Wajib Sebelum Ngoding
+
+1. Baca panduan Next.js lokal di `node_modules/next/dist/docs/` untuk API yang mau disentuh.
+2. Jangan asumsi API lama Next.js masih sama.
+3. Untuk perubahan signifikan, validasi minimal dengan:
+   - `npm run build`
+   - bila schema berubah: `npm run db:generate`
+
+## 3. Multi-Tenant & Auth (Sangat Penting)
+
+### Registrasi
+- Route: `/register`
+- Action: `src/actions/auth-registration.ts`
+- Efek:
+  - create user baru
+  - create company baru (`slug` unik)
+  - assign role `OWNER` + `ADMIN`
+  - set `user.companyId = company.id`
+
+### Login
+- Auth di `src/lib/auth.ts`.
+- User ditolak login jika:
+  - `user.isActive = false`
+  - company non-active (`isActive=false` atau `status != ACTIVE`)
+
+### Isolasi tenant
+- Gunakan `requireCompanyId` (`src/lib/tenant.ts`) di action tenant.
+- Semua query bisnis wajib filter `companyId`.
+- `SUPER_ADMIN` bisa tanpa `companyId`, tapi diarahkan untuk operasi lintas tenant lewat `/platform`.
+
+### Middleware akses
+- `middleware.ts` mengatur route-level role guard.
+- `/platform` hanya untuk `SUPER_ADMIN`.
+
+## 4. Prisma/DB: Ringkasan Model Kritis
+
+Sumber resmi: `prisma/schema.prisma`.
+
+### Entitas inti bisnis
+- `Company`, `User`, `UserRole`
+- `Nasabah`, `Kelompok`, `Pengajuan`, `Pinjaman`, `JadwalAngsuran`, `Pembayaran`
+- `KasKategori`, `KasTransaksi`
+- `Account`, `JournalEntry`, `JournalLine`, `RekonsiliasiKas`
+- `CompanySetting`, `AppSetting`
+
+### Constraint penting
+- `Nasabah`: unique `[companyId, nik]`, `[companyId, nomorAnggota]`
+- `Kelompok`: unique `[companyId, kode]`
+- `Account`: unique `[companyId, code]`
+- `KasKategori`: unique `[companyId, key]`
+- `JournalEntry`: unique `[sourceType, sourceId]` (idempotensi posting jurnal)
+- `CompanySetting`: unique `[companyId, key]`
+
+### Catatan tenant safety
+- Mayoritas tabel operasional sudah punya `companyId`.
+- `AuditLog` dan `ApprovalLog` tidak punya `companyId`; gunakan metadata/entity untuk pelacakan konteks.
+
+## 5. Akuntansi: Cara Kerja Saat Ini
+
+File utama: `src/lib/accounting.ts`
+
+- Daftar akun default dibuat via `ensureAccountingAccounts(companyId)`.
+- Mode akuntansi: `SIMPLE` / `PROPER` (`src/lib/accounting-mode.ts`, setting per company di `CompanySetting` key `ACCOUNTING_MODE`).
+- Saldo kas dihitung dari `JournalLine` akun kas (`CASH_TUNAI`/`CASH_BANK`) dengan `JournalEntry.status = POSTED`.
+- Posting jurnal idempotent berdasarkan `(sourceType, sourceId)`.
+
+Flow jurnal utama:
+- Pencairan pinjaman -> `postPencairanJournal`
+- Pembayaran angsuran -> `postPembayaranJournal`
+- Kas umum approved -> `postKasTransactionJournal`
+
+## 6. Flow Pencairan (Bagian Paling Sensitif)
+
+File: `src/actions/pengajuan.ts` (`cairkanPinjaman`)
+
+Validasi saldo:
+- Cek saldo berdasarkan `kasJenis` (`TUNAI`/`BANK`).
+- Gunakan tanggal akhir hari pencairan (`23:59:59.999`) untuk menghindari false negative jika kas masuk terjadi di hari yang sama.
+
+Penyebab umum error `Saldo kas tidak cukup`:
+1. Transaksi modal/simpanan masih `isApproved=false`.
+2. Kas masuk di `BANK`, tapi pencairan memilih `TUNAI` (atau sebaliknya).
+3. Jurnal kas tidak terbentuk (mis. transaksi belum approved).
+
+UI pencairan:
+- `src/app/(dashboard)/pencairan/pencairan-form.tsx`
+- Sudah ada submit lock untuk mencegah double submit/toast bentrok.
+
+## 7. Kas & Approval
+
+File: `src/actions/kas.ts`
+
+- User role non-privileged input kas -> default pending (`isApproved=false`) + `ApprovalLog`.
+- Role privileged (`ADMIN/MANAGER/PIMPINAN`) -> auto approved + langsung post jurnal.
+- Pengeluaran (`KELUAR`) divalidasi saldo kas dulu sebelum simpan/approve.
+
+## 8. Super Admin (Platform)
+
+File utama:
+- `src/actions/platform-admin.ts`
+- pages: `/platform/users`, `/platform/companies`, `/platform/companies/[id]`
+
+Kemampuan inti:
+- Suspend/activate/delete company (soft delete via status)
+- Disable/enable user
+- Reset password user (temporary password)
+- Semua aksi high-impact masuk audit log
+
+Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
+
+## 9. Runbook DB Prisma
+
+### Lokal development
+1. Set `.env` (minimal `DATABASE_URL`, `NEXTAUTH_SECRET`)
+2. Install deps:
+   - `npm install`
+3. Generate prisma client:
+   - `npm run db:generate`
+4. Sinkron schema ke DB (non-migration):
+   - `npm run db:push`
+5. (Opsional) seed:
+   - `npm run db:seed`
+
+### Tarik struktur dari DB existing (mis. prod snapshot)
+- `npx prisma db pull`
+- review perubahan `prisma/schema.prisma`
+- `npm run db:generate`
+
+### Catatan migration
+- `prisma.config.ts` memakai `DIRECT_URL` untuk migration jika tersedia.
+- Untuk perubahan production, hindari asumsi; cek skema aktual dulu (`db pull`) sebelum buat migration.
+
+## 10. Known Pitfalls Cepat
+
+- Error `Can't resolve 'tailwindcss'` biasanya karena menjalankan command dari folder salah (harus di `dashboard/` yang punya `package.json` dan `node_modules`).
+- Hydration mismatch sering dari text non-deterministic antara server/client (hindari data berubah saat render awal).
+- Untuk unique `nik` nasabah: error sudah expected, tampilkan pesan user-friendly; cek scoping `companyId`.
+
+## 11. Checklist Wajib Sebelum Selesai Task
+
+1. Pastikan query/action tenant-aware (`companyId` tidak hilang).
+2. Jalankan `npm run build`.
+3. Jika menyentuh akuntansi:
+   - cek jurnal balance
+   - cek dampak ke `Neraca`, `Laba Rugi`, `Buku Besar`
+4. Jika menyentuh auth/role:
+   - cek login user biasa
+   - cek login `SUPER_ADMIN`
+   - cek guard middleware untuk route sensitif
+
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/README.md" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Dokumentasi Internal
+
+- Panduan penggunaan aplikasi (internal): `PANDUAN-PENGGUNA.md`
+- Panduan `$using-superpowers`: `USING-SUPERPOWERS.md`
+- Perencanaan hak akses super admin: `SUPER-ADMIN-PLAN.md`
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+exec
+/bin/bash -lc 'rg -n "changelog|change log|testing status|Phase 0|risk register|scope boundaries|MASTER-PLAN-KOPERASI-UMUM|SUPER-ADMIN-PLAN" dashboard/docs dashboard -S' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+dashboard/README.md:36:- Perencanaan hak akses super admin: `SUPER-ADMIN-PLAN.md`
+dashboard/AGENTS.md:134:Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
+dashboard/SUPER-ADMIN-PLAN.md:130:### Phase 0 (1-2 hari)
+
+codex
+I’m verifying which Phase 0 items are genuinely done (especially middleware status guards) so any checkbox updates are accurate and not overstated.
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/middleware.ts" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+import { NextRequest, NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
+
+// Route protection map: path prefix → allowed roles
+const routePermissions: Record<string, string[]> = {
+  "/laporan": ["SUPER_ADMIN", "OWNER", "MANAGER", "PIMPINAN", "AKUNTANSI", "ADMIN"],
+  "/settings": ["SUPER_ADMIN", "OWNER", "ADMIN", "PIMPINAN"],
+  "/kas": ["SUPER_ADMIN", "OWNER", "TELLER", "ADMIN", "MANAGER", "PIMPINAN"],
+  "/pencairan": ["SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "PIMPINAN", "TELLER"],
+  "/platform": ["SUPER_ADMIN"],
+}
+
+// Helper: cek apakah user minimal punya 1 role yang diizinkan
+function hasAccess(userRoles: string[], requiredRoles: string[]): boolean {
+  return userRoles.some((r) => requiredRoles.includes(r))
+}
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  const publicPaths = new Set(["/", "/home", "/about", "/product", "/blog", "/contact", "/penawaran", "/login", "/register"])
+  const isPublicPath = pathname.startsWith("/api") || publicPaths.has(pathname)
+  if (isPublicPath) {
+    return NextResponse.next()
+  }
+
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+  const token =
+    (await getToken({ req, secret })) ??
+    (await getToken({ req, secret, cookieName: "__Secure-authjs.session-token" })) ??
+    (await getToken({ req, secret, cookieName: "authjs.session-token" }))
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url))
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userRoles: string[] = Array.isArray((token as any)?.roles) ? (token as any).roles : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tokenCompanyId: string | null | undefined = (token as any)?.companyId as string | null | undefined
+
+  // SUPER_ADMIN can exist without a company context. In that case, keep them inside /platform.
+  if (userRoles.includes("SUPER_ADMIN") && !tokenCompanyId) {
+    const allowed =
+      pathname.startsWith("/platform") ||
+      pathname === "/settings" ||
+      pathname.startsWith("/settings/profile") ||
+      pathname.startsWith("/docs")
+    if (!allowed) {
+      return NextResponse.redirect(new URL("/platform", req.url))
+    }
+  }
+
+  // Cek permission per route
+  for (const [routePrefix, allowedRoles] of Object.entries(routePermissions)) {
+    if (pathname.startsWith(routePrefix)) {
+      if (!hasAccess(userRoles, allowedRoles)) {
+        return NextResponse.redirect(new URL("/dashboard?unauthorized=true", req.url))
+      }
+    }
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/src/lib/auth.ts" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
+  logger: {
+    error(error) {
+      // Invalid credentials are expected during login attempts; avoid noisy server error logs.
+      const raw = String(error)
+      if (raw.includes("CredentialsSignin")) return
+      console.error("[auth][error]", error)
+    },
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(6),
+        }).safeParse({
+          email: typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "",
+          password: typeof credentials?.password === "string" ? credentials.password : "",
+        })
+
+        if (!parsed.success) return null
+
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+          },
+        })
+
+        if (!user || !user.isActive) return null
+        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password)
+        if (!passwordMatch) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles.map((r: { role: string }) => r.role),
+          companyId: user.companyId,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      const t = token as typeof token & {
+        id?: string
+        roles?: string[]
+        companyId?: string | null
+        companyName?: string | null
+        companySlug?: string | null
+      }
+
+      if (user) {
+        // @ts-expect-error custom field
+        t.roles = user.roles
+        t.id = user.id
+        // @ts-expect-error custom field
+        t.companyId = user.companyId
+        // @ts-expect-error custom field
+        t.companyName = user.companyName
+        // @ts-expect-error custom field
+        t.companySlug = user.companySlug
+      }
+
+      if (!t.id && token.sub) {
+        t.id = token.sub
+      }
+
+      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+        const next = session as { actingCompanyId?: unknown; clearActingCompany?: unknown } | undefined
+        const clearActing = next?.clearActingCompany === true || next?.actingCompanyId === null || next?.actingCompanyId === ""
+        if (clearActing) {
+          t.companyId = null
+          t.companyName = null
+          t.companySlug = null
+        } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
+          const company = await prisma.company.findUnique({
+            where: { id: next.actingCompanyId },
+            select: { id: true, name: true, slug: true },
+          })
+          if (company) {
+            t.companyId = company.id
+            t.companyName = company.name
+            t.companySlug = company.slug
+          }
+        }
+      }
+
+      const needsHydration =
+        !Array.isArray(t.roles) ||
+        typeof t.id !== "string" ||
+        t.id.length === 0 ||
+        t.companyId === undefined
+
+      if (needsHydration && typeof token.email === "string" && token.email.length > 0) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email.toLowerCase() },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true } },
+          },
+        })
+
+        if (dbUser) {
+          t.id = dbUser.id
+          t.roles = dbUser.roles.map((r) => r.role)
+          t.companyId = dbUser.companyId
+          t.companyName = dbUser.company?.name ?? null
+          t.companySlug = dbUser.company?.slug ?? null
+        }
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        const t = token as typeof token & {
+          id?: string
+          roles?: string[]
+          companyId?: string | null
+          companyName?: string | null
+          companySlug?: string | null
+        }
+        // @ts-expect-error custom field
+        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+        session.user.id = (t.id ?? token.sub ?? "") as string
+        // @ts-expect-error custom field
+        session.user.companyId = (t.companyId ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyName = (t.companyName ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companySlug = (t.companySlug ?? null) as string | null
+      }
+      return session
+    },
+  },
+})
+
+exec
+/bin/bash -lc 'rg -n "status|SUSPENDED|DELETED|isActive|company" dashboard/src/lib/auth.ts dashboard/prisma/schema.prisma dashboard/src/actions/platform-admin.ts -S' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+dashboard/prisma/schema.prisma:26:  isActive        Boolean           @default(true)
+dashboard/prisma/schema.prisma:30:  status          CompanyStatus     @default(ACTIVE)
+dashboard/prisma/schema.prisma:64:  isActive               Boolean           @default(true)
+dashboard/prisma/schema.prisma:67:  companyId              String?
+dashboard/prisma/schema.prisma:82:  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+dashboard/prisma/schema.prisma:84:  @@index([companyId])
+dashboard/prisma/schema.prisma:102:  status        StatusNasabah @default(AKTIF)
+dashboard/prisma/schema.prisma:110:  companyId     String
+dashboard/prisma/schema.prisma:111:  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:118:  @@unique([companyId, nomorAnggota])
+dashboard/prisma/schema.prisma:119:  @@unique([companyId, nik])
+dashboard/prisma/schema.prisma:120:  @@index([companyId])
+dashboard/prisma/schema.prisma:132:  companyId   String
+dashboard/prisma/schema.prisma:133:  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:136:  @@index([companyId])
+dashboard/prisma/schema.prisma:149:  companyId       String
+dashboard/prisma/schema.prisma:150:  company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:154:  @@unique([companyId, kode])
+dashboard/prisma/schema.prisma:155:  @@index([companyId])
+dashboard/prisma/schema.prisma:173:  status               StatusPengajuan @default(DRAFT)
+dashboard/prisma/schema.prisma:184:  companyId            String
+dashboard/prisma/schema.prisma:186:  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:192:  @@index([companyId])
+dashboard/prisma/schema.prisma:212:  status            StatusPinjaman   @default(AKTIF)
+dashboard/prisma/schema.prisma:216:  companyId         String
+dashboard/prisma/schema.prisma:219:  company           Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:222:  @@index([companyId])
+dashboard/prisma/schema.prisma:237:  companyId         String
+dashboard/prisma/schema.prisma:238:  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:241:  @@index([companyId])
+dashboard/prisma/schema.prisma:261:  companyId      String
+dashboard/prisma/schema.prisma:262:  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:266:  @@index([companyId])
+dashboard/prisma/schema.prisma:276:  companyId String
+dashboard/prisma/schema.prisma:277:  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:280:  @@index([companyId])
+dashboard/prisma/schema.prisma:289:  isActive     Boolean           @default(true)
+dashboard/prisma/schema.prisma:292:  companyId    String
+dashboard/prisma/schema.prisma:293:  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:298:  @@unique([companyId, code])
+dashboard/prisma/schema.prisma:299:  @@index([type, isActive])
+dashboard/prisma/schema.prisma:300:  @@index([companyId])
+dashboard/prisma/schema.prisma:311:  status      JournalStatus     @default(POSTED)
+dashboard/prisma/schema.prisma:315:  companyId   String
+dashboard/prisma/schema.prisma:316:  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:323:  @@index([companyId])
+dashboard/prisma/schema.prisma:353:  status         RekonsiliasiStatus @default(DRAFT)
+dashboard/prisma/schema.prisma:357:  companyId      String
+dashboard/prisma/schema.prisma:359:  company        Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:363:  @@index([companyId])
+dashboard/prisma/schema.prisma:373:  isActive     Boolean        @default(true)
+dashboard/prisma/schema.prisma:377:  companyId    String
+dashboard/prisma/schema.prisma:379:  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:382:  @@unique([companyId, key])
+dashboard/prisma/schema.prisma:383:  @@index([companyId])
+dashboard/prisma/schema.prisma:400:  companyId   String
+dashboard/prisma/schema.prisma:402:  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:406:  @@index([companyId])
+dashboard/prisma/schema.prisma:433:  status        ApprovalStatus     @default(PENDING)
+dashboard/prisma/schema.prisma:458:  companyId          String
+dashboard/prisma/schema.prisma:459:  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:464:  @@index([companyId])
+dashboard/prisma/schema.prisma:478:  companyId String
+dashboard/prisma/schema.prisma:479:  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:483:  @@index([companyId])
+dashboard/prisma/schema.prisma:497:  companyId String
+dashboard/prisma/schema.prisma:501:  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+dashboard/prisma/schema.prisma:503:  @@unique([companyId, key])
+dashboard/prisma/schema.prisma:505:  @@map("company_settings")
+dashboard/prisma/schema.prisma:522:  SUSPENDED
+dashboard/prisma/schema.prisma:523:  DELETED
+dashboard/src/lib/auth.ts:41:            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+dashboard/src/lib/auth.ts:45:        if (!user || !user.isActive) return null
+dashboard/src/lib/auth.ts:46:        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+dashboard/src/lib/auth.ts:56:          companyId: user.companyId,
+dashboard/src/lib/auth.ts:57:          companyName: user.company?.name ?? null,
+dashboard/src/lib/auth.ts:58:          companySlug: user.company?.slug ?? null,
+dashboard/src/lib/auth.ts:68:        companyId?: string | null
+dashboard/src/lib/auth.ts:69:        companyName?: string | null
+dashboard/src/lib/auth.ts:70:        companySlug?: string | null
+dashboard/src/lib/auth.ts:78:        t.companyId = user.companyId
+dashboard/src/lib/auth.ts:80:        t.companyName = user.companyName
+dashboard/src/lib/auth.ts:82:        t.companySlug = user.companySlug
+dashboard/src/lib/auth.ts:93:          t.companyId = null
+dashboard/src/lib/auth.ts:94:          t.companyName = null
+dashboard/src/lib/auth.ts:95:          t.companySlug = null
+dashboard/src/lib/auth.ts:97:          const company = await prisma.company.findUnique({
+dashboard/src/lib/auth.ts:101:          if (company) {
+dashboard/src/lib/auth.ts:102:            t.companyId = company.id
+dashboard/src/lib/auth.ts:103:            t.companyName = company.name
+dashboard/src/lib/auth.ts:104:            t.companySlug = company.slug
+dashboard/src/lib/auth.ts:113:        t.companyId === undefined
+dashboard/src/lib/auth.ts:120:            company: { select: { id: true, name: true, slug: true } },
+dashboard/src/lib/auth.ts:127:          t.companyId = dbUser.companyId
+dashboard/src/lib/auth.ts:128:          t.companyName = dbUser.company?.name ?? null
+dashboard/src/lib/auth.ts:129:          t.companySlug = dbUser.company?.slug ?? null
+dashboard/src/lib/auth.ts:139:          companyId?: string | null
+dashboard/src/lib/auth.ts:140:          companyName?: string | null
+dashboard/src/lib/auth.ts:141:          companySlug?: string | null
+dashboard/src/lib/auth.ts:147:        session.user.companyId = (t.companyId ?? null) as string | null
+dashboard/src/lib/auth.ts:149:        session.user.companyName = (t.companyName ?? null) as string | null
+dashboard/src/lib/auth.ts:151:        session.user.companySlug = (t.companySlug ?? null) as string | null
+dashboard/src/actions/platform-admin.ts:14:  user?: { id?: string; roles?: string[]; companyId?: string | null }
+dashboard/src/actions/platform-admin.ts:22:  status: CompanyStatus
+dashboard/src/actions/platform-admin.ts:31:  isActive: boolean
+dashboard/src/actions/platform-admin.ts:33:  company: { id: string; name: string; slug: string; status: CompanyStatus } | null
+dashboard/src/actions/platform-admin.ts:38:  company: {
+dashboard/src/actions/platform-admin.ts:42:    status: CompanyStatus
+dashboard/src/actions/platform-admin.ts:52:  recentUsers: Array<{ id: string; name: string; email: string; isActive: boolean; roles: string[]; createdAt: string }>
+dashboard/src/actions/platform-admin.ts:54:  recentPengajuan: Array<{ id: string; nomorPengajuan: string; status: string; createdAt: string; nasabahName: string | null }>
+dashboard/src/actions/platform-admin.ts:61:  companyId: string | null
+dashboard/src/actions/platform-admin.ts:62:  companyName: string | null
+dashboard/src/actions/platform-admin.ts:63:  companySlug: string | null
+dashboard/src/actions/platform-admin.ts:73:  return session?.user?.companyId ?? null
+dashboard/src/actions/platform-admin.ts:85:export async function prepareEnterCompanyContext(companyId: string) {
+dashboard/src/actions/platform-admin.ts:89:  if (!companyId) return { error: "Company tidak valid." as const }
+dashboard/src/actions/platform-admin.ts:91:  const company = await prisma.company.findUnique({
+dashboard/src/actions/platform-admin.ts:92:    where: { id: companyId },
+dashboard/src/actions/platform-admin.ts:93:    select: { id: true, name: true, slug: true, status: true },
+dashboard/src/actions/platform-admin.ts:95:  if (!company) return { error: "Company tidak ditemukan." as const }
+dashboard/src/actions/platform-admin.ts:96:  if (company.status !== "ACTIVE") {
+dashboard/src/actions/platform-admin.ts:97:    return { error: `Company berstatus ${company.status}. Context operasional hanya untuk company ACTIVE.` as const }
+dashboard/src/actions/platform-admin.ts:103:    entityId: company.id,
+dashboard/src/actions/platform-admin.ts:107:      companyId: company.id,
+dashboard/src/actions/platform-admin.ts:108:      companyName: company.name,
+dashboard/src/actions/platform-admin.ts:109:      companySlug: company.slug,
+dashboard/src/actions/platform-admin.ts:115:    data: { companyId: company.id, companyName: company.name, companySlug: company.slug },
+dashboard/src/actions/platform-admin.ts:148:        companyId?: string
+dashboard/src/actions/platform-admin.ts:149:        companyName?: string
+dashboard/src/actions/platform-admin.ts:150:        companySlug?: string
+dashboard/src/actions/platform-admin.ts:157:        companyId: meta.companyId ?? null,
+dashboard/src/actions/platform-admin.ts:158:        companyName: meta.companyName ?? null,
+dashboard/src/actions/platform-admin.ts:159:        companySlug: meta.companySlug ?? null,
+dashboard/src/actions/platform-admin.ts:177:  const rows = await prisma.company.findMany({
+dashboard/src/actions/platform-admin.ts:194:      status: true,
+dashboard/src/actions/platform-admin.ts:205:    status: row.status,
+dashboard/src/actions/platform-admin.ts:211:export async function getCompanyById(companyId: string) {
+dashboard/src/actions/platform-admin.ts:215:  return prisma.company.findUnique({
+dashboard/src/actions/platform-admin.ts:216:    where: { id: companyId },
+dashboard/src/actions/platform-admin.ts:222:      status: true,
+dashboard/src/actions/platform-admin.ts:228:      isActive: true,
+dashboard/src/actions/platform-admin.ts:237:export async function getCompanyWorkspace(companyId: string): Promise<PlatformCompanyWorkspace | null> {
+dashboard/src/actions/platform-admin.ts:241:  const company = await prisma.company.findUnique({
+dashboard/src/actions/platform-admin.ts:242:    where: { id: companyId },
+dashboard/src/actions/platform-admin.ts:247:      status: true,
+dashboard/src/actions/platform-admin.ts:251:  if (!company) return null
+dashboard/src/actions/platform-admin.ts:254:    prisma.user.count({ where: { companyId } }),
+dashboard/src/actions/platform-admin.ts:255:    prisma.nasabah.count({ where: { companyId, status: "AKTIF" } }),
+dashboard/src/actions/platform-admin.ts:256:    prisma.pengajuan.count({ where: { companyId, status: { in: ["DIAJUKAN", "DISURVEY", "DISETUJUI"] } } }),
+dashboard/src/actions/platform-admin.ts:257:    prisma.pinjaman.count({ where: { companyId, status: { in: ["AKTIF", "MENUNGGAK", "MACET"] } } }),
+dashboard/src/actions/platform-admin.ts:258:    prisma.kasTransaksi.count({ where: { companyId, isApproved: false } }),
+dashboard/src/actions/platform-admin.ts:260:      where: { companyId },
+dashboard/src/actions/platform-admin.ts:267:        isActive: true,
+dashboard/src/actions/platform-admin.ts:273:      where: { companyId },
+dashboard/src/actions/platform-admin.ts:279:      where: { companyId },
+dashboard/src/actions/platform-admin.ts:285:        status: true,
+dashboard/src/actions/platform-admin.ts:293:    company,
+dashboard/src/actions/platform-admin.ts:299:      isActive: row.isActive,
+dashboard/src/actions/platform-admin.ts:312:      status: row.status,
+dashboard/src/actions/platform-admin.ts:320:  companyId: z.string().min(1),
+dashboard/src/actions/platform-admin.ts:321:  status: z.nativeEnum(CompanyStatus),
+dashboard/src/actions/platform-admin.ts:336:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status company." }
+dashboard/src/actions/platform-admin.ts:340:      companyId: formData.get("companyId"),
+dashboard/src/actions/platform-admin.ts:341:      status: formData.get("status"),
+dashboard/src/actions/platform-admin.ts:350:    const before = await prisma.company.findUnique({
+dashboard/src/actions/platform-admin.ts:351:      where: { id: parsed.data.companyId },
+dashboard/src/actions/platform-admin.ts:352:      select: { id: true, status: true, suspendedAt: true, suspendedUntil: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:356:    const nextStatus = parsed.data.status
+dashboard/src/actions/platform-admin.ts:359:    const after = await prisma.company.update({
+dashboard/src/actions/platform-admin.ts:360:      where: { id: parsed.data.companyId },
+dashboard/src/actions/platform-admin.ts:362:        status: nextStatus,
+dashboard/src/actions/platform-admin.ts:363:        suspendedAt: nextStatus === "SUSPENDED" ? new Date() : null,
+dashboard/src/actions/platform-admin.ts:364:        suspendedReason: nextStatus === "SUSPENDED" ? parsed.data.reason : null,
+dashboard/src/actions/platform-admin.ts:365:        suspendedUntil: nextStatus === "SUSPENDED" ? suspendedUntil : null,
+dashboard/src/actions/platform-admin.ts:366:        deletedAt: nextStatus === "DELETED" ? new Date() : null,
+dashboard/src/actions/platform-admin.ts:367:        deletedReason: nextStatus === "DELETED" ? parsed.data.reason : null,
+dashboard/src/actions/platform-admin.ts:368:        isActive: nextStatus === "ACTIVE",
+dashboard/src/actions/platform-admin.ts:370:      select: { id: true, status: true, suspendedAt: true, suspendedUntil: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:373:    // For immediate enforcement, disable all users when company is not ACTIVE.
+dashboard/src/actions/platform-admin.ts:376:        where: { companyId: parsed.data.companyId },
+dashboard/src/actions/platform-admin.ts:377:        data: { isActive: false },
+dashboard/src/actions/platform-admin.ts:384:      entityId: parsed.data.companyId,
+dashboard/src/actions/platform-admin.ts:388:      metadata: { reason: parsed.data.reason, status: nextStatus, suspendedUntil: suspendedUntil?.toISOString() ?? null },
+dashboard/src/actions/platform-admin.ts:392:    revalidatePath(`/platform/companies/${parsed.data.companyId}`)
+dashboard/src/actions/platform-admin.ts:393:    return { success: true, message: `Status company diubah menjadi ${nextStatus}.` }
+dashboard/src/actions/platform-admin.ts:395:    console.error("[platform] set company status failed", error)
+dashboard/src/actions/platform-admin.ts:401:  companyId: z.string().min(1),
+dashboard/src/actions/platform-admin.ts:412:      return { success: false, error: "Keluar dulu dari mode company context sebelum soft delete company." }
+dashboard/src/actions/platform-admin.ts:416:      companyId: formData.get("companyId"),
+dashboard/src/actions/platform-admin.ts:424:    const company = await prisma.company.findUnique({
+dashboard/src/actions/platform-admin.ts:425:      where: { id: parsed.data.companyId },
+dashboard/src/actions/platform-admin.ts:426:      select: { id: true, slug: true, status: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:428:    if (!company) return { success: false, error: "Company tidak ditemukan." }
+dashboard/src/actions/platform-admin.ts:430:    const expected = `HAPUS ${company.slug}`
+dashboard/src/actions/platform-admin.ts:435:    const before = company
+dashboard/src/actions/platform-admin.ts:436:    const after = await prisma.company.update({
+dashboard/src/actions/platform-admin.ts:437:      where: { id: parsed.data.companyId },
+dashboard/src/actions/platform-admin.ts:439:        status: "DELETED",
+dashboard/src/actions/platform-admin.ts:442:        isActive: false,
+dashboard/src/actions/platform-admin.ts:444:      select: { id: true, status: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:448:      where: { companyId: parsed.data.companyId },
+dashboard/src/actions/platform-admin.ts:449:      data: { isActive: false },
+dashboard/src/actions/platform-admin.ts:455:      entityId: parsed.data.companyId,
+dashboard/src/actions/platform-admin.ts:463:    revalidatePath(`/platform/companies/${parsed.data.companyId}`)
+dashboard/src/actions/platform-admin.ts:464:    return { success: true, message: "Company berhasil di-soft delete (status DELETED)." }
+dashboard/src/actions/platform-admin.ts:466:    console.error("[platform] delete company failed", error)
+dashboard/src/actions/platform-admin.ts:496:      isActive: true,
+dashboard/src/actions/platform-admin.ts:499:      company: { select: { id: true, name: true, slug: true, status: true } },
+dashboard/src/actions/platform-admin.ts:507:    isActive: row.isActive,
+dashboard/src/actions/platform-admin.ts:509:    company: row.company ? { ...row.company } : null,
+dashboard/src/actions/platform-admin.ts:516:  isActive: z.enum(["true", "false"]),
+dashboard/src/actions/platform-admin.ts:530:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status user." }
+dashboard/src/actions/platform-admin.ts:535:      isActive: formData.get("isActive"),
+dashboard/src/actions/platform-admin.ts:544:      select: { id: true, email: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:548:    const nextActive = parsed.data.isActive === "true"
+dashboard/src/actions/platform-admin.ts:551:      data: { isActive: nextActive },
+dashboard/src/actions/platform-admin.ts:552:      select: { id: true, email: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:562:      metadata: { reason: parsed.data.reason, isActive: nextActive },
+dashboard/src/actions/platform-admin.ts:584:      return { success: false, error: "Keluar dulu dari mode company context sebelum reset password user." }
+dashboard/src/actions/platform-admin.ts:606:      data: { password: hashedPassword, isActive: true },
+
+codex
+I’ve confirmed one Phase 0 item is complete (docs policy/SOP exists) while the middleware status guard is not implemented in `middleware.ts`, so I’ll mark checkboxes accordingly and add two new internal docs plus a changelog entry with explicit testing status.
+exec
+/bin/bash -lc "cat > dashboard/docs/internal/phase0-risk-register.md <<'EOF'
+# Phase 0 Risk Register
+
+Dokumen ini mencatat risiko untuk kesiapan dokumentasi dan guardrail awal sesuai "'`SUPER-ADMIN-PLAN.md` (bagian **Phase 0 (1-2 hari)**).
+
+## Ruang Lingkup Phase 0 (Acuan)
+
+- Buat halaman docs: kebijakan dan SOP super admin.
+- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+
+## Status Implementasi Saat Ini (Repo)
+
+- Item docs kebijakan/SOP: **sudah ada** di `SUPER-ADMIN-PLAN.md`.
+- Item guard middleware status company: **belum ada** pengecekan status company di `middleware.ts` (guard status aktif saat login ada di `src/lib/auth.ts`).
+
+## Risk Register
+
+| ID | Risiko | Dampak | Kemungkinan | Mitigasi | Owner | Status |
+|---|---|---|---|---|---|---|
+| R-001 | Guard status company tidak dieksekusi di middleware | User dengan sesi lama berpotensi tetap mengakses route tertentu walau company sudah `SUSPENDED/DELETED` sampai token/sesi diperbarui | Sedang | Tambahkan validasi status company pada middleware untuk route dashboard non-public | Engineering | Open |
+| R-002 | Salah tafsir antara guard login vs guard middleware | Celah kontrol akses karena menganggap proteksi sudah penuh padahal masih parsial | Sedang | Dokumentasikan boundary kontrol (auth vs middleware) dan checklist verifikasi per release | Engineering | Open |
+| R-003 | Operasi high-impact super admin tanpa SOP operasional ringkas terpisah | Inkonstistensi eksekusi incident operation (reset/suspend/delete) | Rendah | Pertahankan SOP di master plan dan referensikan pada docs internal tambahan | Product + Engineering | Mitigated |
+| R-004 | Drift antara master plan dan dokumen internal phase 0 | Implementasi tidak selaras dengan baseline scope resmi | Sedang | Gunakan checklist phase 0 di master plan sebagai single source of truth status | Engineering | Mitigated |
+
+## Exit Criteria Phase 0 (Dokumentasi)
+
+- Risk register tersedia dan menaut ke scope Phase 0.
+- Batas scope dan non-scope terdokumentasi eksplisit.
+- Checklist di master plan mencerminkan kondisi implementasi aktual repo.
+EOF' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cat > dashboard/docs/internal/phase0-scope-boundaries.md <<'EOF'
+# Phase 0 Scope Boundaries
+
+Dokumen ini mendefinisikan batas implementasi Phase 0 agar konsisten dengan "'`SUPER-ADMIN-PLAN.md`.
+
+## In Scope (Phase 0)
+
+- Dokumentasi kebijakan dan SOP super admin sebagai baseline operasional.
+- Penegasan kebutuhan guard middleware untuk status company `SUSPENDED/DELETED` bila model status sudah ada.
+- Dokumentasi risiko dan boundary agar fase lanjutan tidak melenceng.
+
+## Out of Scope (Phase 0)
+
+- Implementasi penuh platform pages lintas tenant (`/platform/users`, `/platform/companies`) sebagai deliverable utama (ini berada di phase lanjutan).
+- Server actions lengkap untuk reset password/suspend user/set company status.
+- Migrasi multi-tenant penuh di seluruh tabel bisnis.
+- Context switch/impersonation lanjutan.
+
+## Boundary Teknis
+
+- **Auth guard (sudah ada):** validasi `user.isActive` dan `company.status === ACTIVE` saat login (`src/lib/auth.ts`).
+- **Middleware status guard (target):** belum melakukan lookup status company; middleware saat ini fokus pada role-route dan pembatasan `SUPER_ADMIN` tanpa context company (`middleware.ts`).
+- **Implikasi boundary:** kontrol status company saat ini kuat di titik login, namun belum menjadi enforcement middleware berbasis status pada setiap request route.
+
+## Definition of Done Phase 0 (Dokumentasi Readiness)
+
+- Tersedia dokumen risk register phase 0.
+- Tersedia dokumen scope boundaries phase 0.
+- Checklist phase 0 di master plan diperbarui sesuai kondisi implementasi nyata.
+- Changelog mencatat perubahan dokumentasi dan status pengujian.
+EOF' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+codex
+I’m now patching the master plan: converting Phase 0 items into accurate checkboxes and appending a dated changelog entry that includes testing status.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/SUPER-ADMIN-PLAN.md
+diff --git a/dashboard/SUPER-ADMIN-PLAN.md b/dashboard/SUPER-ADMIN-PLAN.md
+index 15028788b5ff0e5e2f67f8b85c5976cfbb60f7fe..10045ef7e1e285318c764117610ccfacf67ba91d
+--- a/dashboard/SUPER-ADMIN-PLAN.md
++++ b/dashboard/SUPER-ADMIN-PLAN.md
+@@ -128,8 +128,8 @@
+ ## 7) Rencana Implementasi (Roadmap)
+ 
+ ### Phase 0 (1-2 hari)
+-- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+-- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
++- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
++- [ ] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+ 
+ ### Phase 1 (2-4 hari)
+ - Platform pages minimal `/platform/users` dan `/platform/companies`.
+@@ -157,3 +157,10 @@
+   3. Komunikasi ke owner/admin company
+   4. Reactivate setelah masalah selesai
+ 
++## 9) Changelog
++
++- 2026-04-23 (Worker A)
++  - Menambahkan `docs/internal/phase0-risk-register.md`.
++  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
++  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
++  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+
+diff --git a/dashboard/SUPER-ADMIN-PLAN.md b/dashboard/SUPER-ADMIN-PLAN.md
+index 15028788b5ff0e5e2f67f8b85c5976cfbb60f7fe..10045ef7e1e285318c764117610ccfacf67ba91d
+--- a/dashboard/SUPER-ADMIN-PLAN.md
++++ b/dashboard/SUPER-ADMIN-PLAN.md
+@@ -128,8 +128,8 @@
+ ## 7) Rencana Implementasi (Roadmap)
+ 
+ ### Phase 0 (1-2 hari)
+-- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+-- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
++- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
++- [ ] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+ 
+ ### Phase 1 (2-4 hari)
+ - Platform pages minimal `/platform/users` dan `/platform/companies`.
+@@ -157,3 +157,10 @@
+   3. Komunikasi ke owner/admin company
+   4. Reactivate setelah masalah selesai
+ 
++## 9) Changelog
++
++- 2026-04-23 (Worker A)
++  - Menambahkan `docs/internal/phase0-risk-register.md`.
++  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
++  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
++  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+
+exec
+/bin/bash -lc "sed -n '120,240p' dashboard/SUPER-ADMIN-PLAN.md" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+Implikasinya:
+- Aksi "delete company" versi 1 hanya realistis untuk memutus akses user (auth) dan identitas company; tidak aman untuk menghapus data operasional selektif per company.
+- Untuk platform admin yang benar-benar multi-tenant, perlu Phase 2:
+  - tambah `companyId` ke semua model data operasional,
+  - index + FK,
+  - semua query/filter selalu menyertakan `companyId`,
+  - migrasi data existing.
+
+## 7) Rencana Implementasi (Roadmap)
+
+### Phase 0 (1-2 hari)
+- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+- [ ] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+
+### Phase 1 (2-4 hari)
+- Platform pages minimal `/platform/users` dan `/platform/companies`.
+- Actions server:
+  - `resetUserPassword(userId, reason)`
+  - `setUserActive(userId, isActive, reason)`
+  - `setCompanyStatus(companyId, status, reason, until?)`
+- Audit log lengkap untuk semua action.
+
+### Phase 2 (lebih besar)
+- Multi-tenant penuh pada semua tabel bisnis (companyId everywhere).
+- Cleanup/import/backfill per company (aman).
+- Context switch / impersonation dengan guardrail.
+
+## 8) SOP Operasional (Template)
+
+- Reset password:
+  1. Verifikasi permintaan (ticket)
+  2. Jalankan action reset dengan reason + ticket id
+  3. Berikan temporary password via channel aman
+  4. Minta user ganti password setelah login
+- Suspend company:
+  1. Dokumentasikan reason + siapa yang menyetujui
+  2. Suspend dengan durasi bila perlu
+  3. Komunikasi ke owner/admin company
+  4. Reactivate setelah masalah selesai
+
+## 9) Changelog
+
+- 2026-04-23 (Worker A)
+  - Menambahkan `docs/internal/phase0-risk-register.md`.
+  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
+  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
+  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+
+exec
+/bin/bash -lc 'git -C dashboard status --short' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+ M SUPER-ADMIN-PLAN.md
+?? docs/internal/phase0-risk-register.md
+?? docs/internal/phase0-scope-boundaries.md
+
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/docs/internal/phase0-risk-register.md && printf '\\n---\\n' && sed -n '1,260p' dashboard/docs/internal/phase0-scope-boundaries.md" in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+# Phase 0 Risk Register
+
+Dokumen ini mencatat risiko untuk kesiapan dokumentasi dan guardrail awal sesuai `SUPER-ADMIN-PLAN.md` (bagian **Phase 0 (1-2 hari)**).
+
+## Ruang Lingkup Phase 0 (Acuan)
+
+- Buat halaman docs: kebijakan dan SOP super admin.
+- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+
+## Status Implementasi Saat Ini (Repo)
+
+- Item docs kebijakan/SOP: **sudah ada** di `SUPER-ADMIN-PLAN.md`.
+- Item guard middleware status company: **belum ada** pengecekan status company di `middleware.ts` (guard status aktif saat login ada di `src/lib/auth.ts`).
+
+## Risk Register
+
+| ID | Risiko | Dampak | Kemungkinan | Mitigasi | Owner | Status |
+|---|---|---|---|---|---|---|
+| R-001 | Guard status company tidak dieksekusi di middleware | User dengan sesi lama berpotensi tetap mengakses route tertentu walau company sudah `SUSPENDED/DELETED` sampai token/sesi diperbarui | Sedang | Tambahkan validasi status company pada middleware untuk route dashboard non-public | Engineering | Open |
+| R-002 | Salah tafsir antara guard login vs guard middleware | Celah kontrol akses karena menganggap proteksi sudah penuh padahal masih parsial | Sedang | Dokumentasikan boundary kontrol (auth vs middleware) dan checklist verifikasi per release | Engineering | Open |
+| R-003 | Operasi high-impact super admin tanpa SOP operasional ringkas terpisah | Inkonstistensi eksekusi incident operation (reset/suspend/delete) | Rendah | Pertahankan SOP di master plan dan referensikan pada docs internal tambahan | Product + Engineering | Mitigated |
+| R-004 | Drift antara master plan dan dokumen internal phase 0 | Implementasi tidak selaras dengan baseline scope resmi | Sedang | Gunakan checklist phase 0 di master plan sebagai single source of truth status | Engineering | Mitigated |
+
+## Exit Criteria Phase 0 (Dokumentasi)
+
+- Risk register tersedia dan menaut ke scope Phase 0.
+- Batas scope dan non-scope terdokumentasi eksplisit.
+- Checklist di master plan mencerminkan kondisi implementasi aktual repo.
+
+---
+# Phase 0 Scope Boundaries
+
+Dokumen ini mendefinisikan batas implementasi Phase 0 agar konsisten dengan `SUPER-ADMIN-PLAN.md`.
+
+## In Scope (Phase 0)
+
+- Dokumentasi kebijakan dan SOP super admin sebagai baseline operasional.
+- Penegasan kebutuhan guard middleware untuk status company `SUSPENDED/DELETED` bila model status sudah ada.
+- Dokumentasi risiko dan boundary agar fase lanjutan tidak melenceng.
+
+## Out of Scope (Phase 0)
+
+- Implementasi penuh platform pages lintas tenant (`/platform/users`, `/platform/companies`) sebagai deliverable utama (ini berada di phase lanjutan).
+- Server actions lengkap untuk reset password/suspend user/set company status.
+- Migrasi multi-tenant penuh di seluruh tabel bisnis.
+- Context switch/impersonation lanjutan.
+
+## Boundary Teknis
+
+- **Auth guard (sudah ada):** validasi `user.isActive` dan `company.status === ACTIVE` saat login (`src/lib/auth.ts`).
+- **Middleware status guard (target):** belum melakukan lookup status company; middleware saat ini fokus pada role-route dan pembatasan `SUPER_ADMIN` tanpa context company (`middleware.ts`).
+- **Implikasi boundary:** kontrol status company saat ini kuat di titik login, namun belum menjadi enforcement middleware berbasis status pada setiap request route.
+
+## Definition of Done Phase 0 (Dokumentasi Readiness)
+
+- Tersedia dokumen risk register phase 0.
+- Tersedia dokumen scope boundaries phase 0.
+- Checklist phase 0 di master plan diperbarui sesuai kondisi implementasi nyata.
+- Changelog mencatat perubahan dokumentasi dan status pengujian.
+
+diff --git a/dashboard/SUPER-ADMIN-PLAN.md b/dashboard/SUPER-ADMIN-PLAN.md
+index 15028788b5ff0e5e2f67f8b85c5976cfbb60f7fe..10045ef7e1e285318c764117610ccfacf67ba91d
+--- a/dashboard/SUPER-ADMIN-PLAN.md
++++ b/dashboard/SUPER-ADMIN-PLAN.md
+@@ -128,8 +128,8 @@
+ ## 7) Rencana Implementasi (Roadmap)
+ 
+ ### Phase 0 (1-2 hari)
+-- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+-- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
++- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
++- [ ] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+ 
+ ### Phase 1 (2-4 hari)
+ - Platform pages minimal `/platform/users` dan `/platform/companies`.
+@@ -157,3 +157,10 @@
+   3. Komunikasi ke owner/admin company
+   4. Reactivate setelah masalah selesai
+ 
++## 9) Changelog
++
++- 2026-04-23 (Worker A)
++  - Menambahkan `docs/internal/phase0-risk-register.md`.
++  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
++  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
++  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+
+codex
+All requested docs and plan updates are in place; next I’ll commit these changes on the current branch with a clear message that includes Phase 0 documentation readiness.
+exec
+/bin/bash -lc 'git -C dashboard add SUPER-ADMIN-PLAN.md docs/internal/phase0-risk-register.md docs/internal/phase0-scope-boundaries.md && git -C dashboard commit -m "docs: complete phase 0 documentation readiness"' in /tmp/codex-fanout/20260423_124755/phase0b-risk-register
+ succeeded in 0ms:
+[codex/20260423_124755/phase0b-risk-register bc05f76] docs: complete phase 0 documentation readiness
+ 3 files changed, 66 insertions(+), 2 deletions(-)
+ create mode 100644 dashboard/docs/internal/phase0-risk-register.md
+ create mode 100644 dashboard/docs/internal/phase0-scope-boundaries.md
+
+diff --git a/dashboard/SUPER-ADMIN-PLAN.md b/dashboard/SUPER-ADMIN-PLAN.md
+index 15028788b5ff0e5e2f67f8b85c5976cfbb60f7fe..10045ef7e1e285318c764117610ccfacf67ba91d
+--- a/dashboard/SUPER-ADMIN-PLAN.md
++++ b/dashboard/SUPER-ADMIN-PLAN.md
+@@ -128,8 +128,8 @@
+ ## 7) Rencana Implementasi (Roadmap)
+ 
+ ### Phase 0 (1-2 hari)
+-- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+-- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
++- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
++- [ ] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+ 
+ ### Phase 1 (2-4 hari)
+ - Platform pages minimal `/platform/users` dan `/platform/companies`.
+@@ -157,3 +157,10 @@
+   3. Komunikasi ke owner/admin company
+   4. Reactivate setelah masalah selesai
+ 
++## 9) Changelog
++
++- 2026-04-23 (Worker A)
++  - Menambahkan `docs/internal/phase0-risk-register.md`.
++  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
++  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
++  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+
+codex
+Implemented and committed on branch `codex/20260423_124755/phase0b-risk-register` with commit `bc05f76`.
+
+Changes made:
+- Created [phase0-risk-register.md](/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/docs/internal/phase0-risk-register.md)
+- Created [phase0-scope-boundaries.md](/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/docs/internal/phase0-scope-boundaries.md)
+- Updated Phase 0 checklist + changelog/testing status in [SUPER-ADMIN-PLAN.md](/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/SUPER-ADMIN-PLAN.md)
+
+Notes:
+- `MASTER-PLAN-KOPERASI-UMUM.md` is not present in this repo; alignment and checkbox updates were applied to the in-repo master plan file `SUPER-ADMIN-PLAN.md`.
+- Checkbox status reflects actual repo state:
+  - Docs policy/SOP: completed
+  - Middleware guard for `SUSPENDED/DELETED`: not yet completed
+- Lint/build not run, because no runtime code was changed (docs-only update).
+diff --git a/dashboard/SUPER-ADMIN-PLAN.md b/dashboard/SUPER-ADMIN-PLAN.md
+index 15028788b5ff0e5e2f67f8b85c5976cfbb60f7fe..10045ef7e1e285318c764117610ccfacf67ba91d
+--- a/dashboard/SUPER-ADMIN-PLAN.md
++++ b/dashboard/SUPER-ADMIN-PLAN.md
+@@ -128,8 +128,8 @@
+ ## 7) Rencana Implementasi (Roadmap)
+ 
+ ### Phase 0 (1-2 hari)
+-- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+-- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
++- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
++- [ ] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+ 
+ ### Phase 1 (2-4 hari)
+ - Platform pages minimal `/platform/users` dan `/platform/companies`.
+@@ -157,3 +157,10 @@
+   3. Komunikasi ke owner/admin company
+   4. Reactivate setelah masalah selesai
+ 
++## 9) Changelog
++
++- 2026-04-23 (Worker A)
++  - Menambahkan `docs/internal/phase0-risk-register.md`.
++  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
++  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
++  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+
+tokens used
+37,612
+Implemented and committed on branch `codex/20260423_124755/phase0b-risk-register` with commit `bc05f76`.
+
+Changes made:
+- Created [phase0-risk-register.md](/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/docs/internal/phase0-risk-register.md)
+- Created [phase0-scope-boundaries.md](/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/docs/internal/phase0-scope-boundaries.md)
+- Updated Phase 0 checklist + changelog/testing status in [SUPER-ADMIN-PLAN.md](/tmp/codex-fanout/20260423_124755/phase0b-risk-register/dashboard/SUPER-ADMIN-PLAN.md)
+
+Notes:
+- `MASTER-PLAN-KOPERASI-UMUM.md` is not present in this repo; alignment and checkbox updates were applied to the in-repo master plan file `SUPER-ADMIN-PLAN.md`.
+- Checkbox status reflects actual repo state:
+  - Docs policy/SOP: completed
+  - Middleware guard for `SUSPENDED/DELETED`: not yet completed
+- Lint/build not run, because no runtime code was changed (docs-only update).

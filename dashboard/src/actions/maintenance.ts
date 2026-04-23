@@ -1,12 +1,10 @@
 "use server"
 
-import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { Prisma, RoleType } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { writeAuditLog } from "@/lib/audit"
 import {
-  DEFAULT_ACCOUNTING_ACCOUNTS,
   ensureAccountingAccounts,
   postJournalEntry,
   postKasTransactionJournal,
@@ -14,7 +12,6 @@ import {
   postPencairanJournal,
 } from "@/lib/accounting"
 import { prisma } from "@/lib/prisma"
-import { requireRoles } from "@/lib/roles"
 import { requireCompanyRoles } from "@/lib/tenant"
 
 type CleanupScope = "NOTIFIKASI" | "TRANSAKSI" | "MASTER" | "AKUNTANSI"
@@ -25,8 +22,6 @@ const ALL_SCOPES: CleanupScope[] = [
   "MASTER",
   "AKUNTANSI",
 ]
-
-const DEFAULT_ACCOUNTS = DEFAULT_ACCOUNTING_ACCOUNTS
 
 const DEFAULT_CATEGORIES = [
   { jenis: "MASUK" as const, nama: "ANGSURAN", key: "ANGSURAN", accountCode: "PENDAPATAN_BUNGA" },
@@ -170,40 +165,6 @@ function revalidateOperationalPaths() {
   ]) {
     revalidatePath(path)
   }
-}
-
-async function upsertDemoUser(params: {
-  email: string
-  name: string
-  password: string
-  roles: RoleType[]
-  companyId?: string
-}) {
-  const hashedPassword = await bcrypt.hash(params.password, 12)
-  const user = await prisma.user.upsert({
-    where: { email: params.email },
-    update: {
-      name: params.name,
-      password: hashedPassword,
-      companyId: params.companyId,
-      isActive: true,
-    },
-    create: {
-      email: params.email,
-      name: params.name,
-      password: hashedPassword,
-      companyId: params.companyId,
-      isActive: true,
-    },
-  })
-
-  await prisma.userRole.deleteMany({ where: { userId: user.id } })
-  await prisma.userRole.createMany({
-    data: params.roles.map((role) => ({ userId: user.id, role })),
-    skipDuplicates: true,
-  })
-
-  return user
 }
 
 function normalizeKey(raw: string) {

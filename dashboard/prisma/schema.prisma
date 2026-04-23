@@ -41,6 +41,7 @@ model Company {
   kasKategori     KasKategori[]
   kasTransaksi    KasTransaksi[]
   kelompok        Kelompok[]
+  memberCounter   MemberCounter?
   kolektorTargets KolektorTarget[]
   nasabah         Nasabah[]
   notifikasi      Notifikasi[]
@@ -50,6 +51,7 @@ model Company {
   pinjaman        Pinjaman[]
   rekonsiliasi    RekonsiliasiKas[]
   simpanan        Simpanan[]
+  surveyNotes     NasabahSurveyNote[]
   users           User[]            @relation("UserCompany")
 
   @@index([ownerId])
@@ -72,17 +74,31 @@ model User {
   journalPosted          JournalEntry[]    @relation("JournalPostedBy")
   kasDiinput             KasTransaksi[]
   kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  kelompokBinaan         Kelompok[]        @relation("KelompokKolektor")
   nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
   notifikasi             Notifikasi[]      @relation("UserNotifikasi")
   pembayaranDiinput      Pembayaran[]
   pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
   pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
   rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  nasabahSurveyNotes     NasabahSurveyNote[]
   roles                  UserRole[]
   company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
 
   @@index([companyId])
   @@map("users")
+}
+
+model MemberCounter {
+  id         String   @id @default(cuid())
+  companyId  String   @unique
+  nextNumber Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("member_counters")
 }
 
 model Nasabah {
@@ -99,7 +115,7 @@ model Nasabah {
   noHp          String
   pekerjaan     String?
   namaUsaha     String?
-  status        StatusNasabah @default(AKTIF)
+  status        StatusNasabah @default(CALON)
   tanggalGabung DateTime      @default(now())
   fotoUrl       String?
   dokumenUrls   String[]
@@ -113,12 +129,31 @@ model Nasabah {
   kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
   pengajuan     Pengajuan[]
   penjamin      Penjamin[]
+  surveyNotes   NasabahSurveyNote[]
   simpanan      Simpanan[]
 
   @@unique([companyId, nomorAnggota])
   @@unique([companyId, nik])
   @@index([companyId])
+  @@index([companyId, status])
   @@map("nasabah")
+}
+
+model NasabahSurveyNote {
+  id        String   @id @default(cuid())
+  nasabahId String
+  companyId String
+  actorId   String?
+  note      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah   Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, nasabahId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("nasabah_survey_notes")
 }
 
 model Penjamin {
@@ -144,15 +179,18 @@ model Kelompok {
   ketua           String?
   wilayah         String?
   jadwalPertemuan String?
+  kolektorId      String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   companyId       String
   company         Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kolektor        User?       @relation("KelompokKolektor", fields: [kolektorId], references: [id], onDelete: SetNull)
   nasabah         Nasabah[]
   pengajuan       Pengajuan[]
 
   @@unique([companyId, kode])
   @@index([companyId])
+  @@index([kolektorId])
   @@map("kelompok")
 }
 
@@ -524,6 +562,7 @@ enum CompanyStatus {
 }
 
 enum StatusNasabah {
+  CALON
   AKTIF
   NON_AKTIF
   KELUAR

@@ -1,5 +1,7 @@
 import { getDashboardStats } from "@/actions/dashboard"
 import Link from "next/link"
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card"
@@ -48,6 +50,14 @@ function BarChart({ data }: { data: { bulan: string; masuk: number; keluar: numb
 }
 
 export default async function DashboardPage() {
+  const session = await auth()
+  const userRoles = (session?.user as { roles?: string[] } | undefined)?.roles ?? []
+  const companyId = (session?.user as { companyId?: string | null } | undefined)?.companyId
+
+  if (userRoles.includes("SUPER_ADMIN") && !companyId) {
+    redirect("/platform")
+  }
+
   const stats = await getDashboardStats()
   const company = await getCompanyInfo()
   const timeZone = normalizeTimeZone(company.timeZone)

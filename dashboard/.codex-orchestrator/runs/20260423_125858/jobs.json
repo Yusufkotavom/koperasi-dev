@@ -1,0 +1,42 @@
+[
+  {
+    "id": "p1b-schema-calon-anggota",
+    "mode": "danger",
+    "prompt": "Worker 1 ownership: prisma/* only. Extend membership lifecycle to include CALON in StatusNasabah enum and any required schema/index/default adjustments, plus migration SQL and seed compatibility notes. Update docs/internal/phase1-membership-schema-design.md if needed. Run npm run db:generate and npm run build. Commit."
+  },
+  {
+    "id": "p1b-validation-membership",
+    "mode": "danger",
+    "prompt": "Worker 2 ownership: src/lib/validations/nasabah.ts and related types only. Add strict validation rules for lifecycle transitions (CALON->AKTIF->NON_AKTIF/KELUAR), ensure safe parsing and user-friendly errors. Add minimal docs note in docs/internal/testing-baseline.md for validation tests. Run lint/build. Commit."
+  },
+  {
+    "id": "p1b-action-status-transition",
+    "mode": "danger",
+    "prompt": "Worker 3 ownership: src/actions/nasabah.ts and optional new src/actions/nasabah-status.ts only. Implement explicit server action for status transition with authorization, tenant safety, and audit log write. Keep backward compatibility. Run lint/build and add command evidence to README_WORKER.md. Commit."
+  },
+  {
+    "id": "p1b-ui-list-status-filter",
+    "mode": "danger",
+    "prompt": "Worker 4 ownership: src/app/(dashboard)/nasabah/page.tsx and directly-related nasabah list UI components only. Add CALON status visibility/filter and clear badge labels. No unrelated refactor. Run lint/build. Commit."
+  },
+  {
+    "id": "p1b-ui-detail-edit-lifecycle",
+    "mode": "danger",
+    "prompt": "Worker 5 ownership: src/app/(dashboard)/nasabah/[id]/edit/* and src/app/(dashboard)/nasabah/[id]/page.tsx only. Add lifecycle controls/display for status transition UX (non-destructive), wired to action endpoint if available. Run lint/build. Commit."
+  },
+  {
+    "id": "p1b-test-smoke-skeleton",
+    "mode": "danger",
+    "prompt": "Worker 6 ownership: tests/e2e/* and playwright config files only. Create initial Playwright smoke skeleton for login, dashboard, nasabah list flow with @smoke tags. Add npm scripts test:e2e and test:smoke in package.json. Do not break existing scripts. Commit."
+  },
+  {
+    "id": "p1b-ci-quality-gate",
+    "mode": "danger",
+    "prompt": "Worker 7 ownership: .github/workflows/* and docs/internal/testing-baseline.md only. Add CI workflow quality gate running lint + build (+ smoke placeholder non-blocking if no env). Document required env and fallback behavior. Commit."
+  },
+  {
+    "id": "p1b-progress-changelog-sync",
+    "mode": "danger",
+    "prompt": "Worker 8 ownership: CHANGELOG.md, docs/internal/progress/*, docs/internal/MASTER-PLAN-KOPERASI-UMUM.md only. Update Phase 1 progress checklists and add orchestrator run log template with testing evidence fields. Do not mark items complete without evidence. Commit."
+  }
+]

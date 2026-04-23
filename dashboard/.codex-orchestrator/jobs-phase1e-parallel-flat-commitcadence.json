@@ -1,0 +1,50 @@
+[
+  {
+    "id": "p1d-survey-schema",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-survey-schema. Ownership: prisma/schema.prisma and new prisma/migrations/*nasabah_survey*. Task: add minimal additive schema for nasabah survey notes timeline with relations to Nasabah, Company, optional User actor; include tenant-aware indexes and safe defaults. Generate migration SQL. Do not edit app code. Run prisma generate if needed and commit. You are not alone in codebase; do not revert others' edits.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-survey-schema"
+  },
+  {
+    "id": "p1d-survey-actions-api",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-survey-actions-api. Ownership: src/actions/nasabah-survey.ts (new), src/app/api/nasabah/[id]/survey/route.ts (new). Task: implement list/create survey note API scoped by companyId and role guard; validation non-empty note and sensible max length; stable JSON responses. If schema model names differ, adapt cleanly. Add concise error handling. Run lint/build targeted checks and commit. You are not alone in codebase; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-survey-actions-api"
+  },
+  {
+    "id": "p1d-survey-ui",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-survey-ui. Ownership: src/app/(dashboard)/nasabah/[id]/page.tsx, src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx, plus optional new components under src/app/(dashboard)/nasabah/[id]/edit/. Task: add survey timeline UI on detail page and quick add survey note form on edit page integrated with /api/nasabah/[id]/survey. Keep hydration-safe for Next.js 16, avoid non-deterministic render, include loading/error states. Run build checks and commit. You are not alone in codebase; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-survey-ui"
+  },
+  {
+    "id": "p1d-nasabah-hardening",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-nasabah-hardening. Ownership: src/actions/nasabah.ts. Task: harden nomorAnggota generation against race conditions in createNasabah (transaction-safe strategy) and ensure audit logs for create/update/delete/status lifecycle paths are consistent. Keep existing signatures behavior-compatible. Run lint/build checks and commit. You are not alone; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-nasabah-hardening"
+  },
+  {
+    "id": "p1d-test-infra",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-test-infra. Ownership: package.json, vitest.config.ts (or equivalent), tests/setup.ts, docs/internal/testing-baseline.md. Task: establish unit/integration test baseline with scripts test, test:watch, test:coverage for this Next.js repo, minimal and stable. Do not break existing e2e scripts. Add one tiny sanity test to verify runner works. Run tests and commit. You are not alone; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-test-infra"
+  },
+  {
+    "id": "p1d-upload-tests",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-upload-tests. Ownership: src/app/api/upload/nasabah/route.ts and src/app/api/upload/nasabah/__tests__/route.test.ts (new if needed). Task: ensure route enforces file count/mime/size and tenant-aware path, with focused tests for unauthorized/no-files/invalid-type/too-many/too-large/success. Keep backward-compatible response shape as much as practical. Run tests and commit. You are not alone; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-upload-tests"
+  },
+  {
+    "id": "p1d-e2e-smoke",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-e2e-smoke. Ownership: tests/e2e/smoke.spec.ts and playwright.config.ts if necessary only. Task: strengthen smoke tests for login page render consistency, dashboard auth redirect/access, nasabah list load, dokumen routes basic availability. Keep tests low-flake and fast. Run smoke tests if feasible and commit. You are not alone; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-e2e-smoke"
+  },
+  {
+    "id": "p1d-ci-docs",
+    "mode": "danger",
+    "prompt": "You are Worker p1d-ci-docs. Ownership: .github/workflows/quality-gate.yml, docs/internal/progress/PHASE-1-PROGRESS.md, CHANGELOG.md. Task: ensure CI quality gate runs lint/build/test (when available) and update phase1 progress evidence placeholders + factual changelog entry for this wave without claiming done unless evidence exists. Commit docs/CI changes. You are not alone; do not revert unrelated files.\n\nMANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.",
+    "branch": "codex_20260423_133120_p1d-ci-docs"
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "phase0b-risk-register",
+    "mode": "danger",
+    "prompt": "You are worker A. Complete Phase 0 documentation readiness: create docs/internal/phase0-risk-register.md and docs/internal/phase0-scope-boundaries.md aligned to MASTER-PLAN-KOPERASI-UMUM.md. Update checkboxes in master plan only for items that are truly completed in this repo. Add changelog entry with testing status. Run lint/build if you changed runtime code. Commit your branch."
+  },
+  {
+    "id": "phase0b-lint-warning-cleanup",
+    "mode": "danger",
+    "prompt": "You are worker B. Resolve remaining eslint warnings in src/actions/maintenance.ts without breaking behavior. Then run npm run lint and npm run build in dashboard. Document evidence in .codex-orchestrator/workerB-report.md. Update changelog with verification summary. Commit your branch."
+  },
+  {
+    "id": "phase0b-plan-progress-sync",
+    "mode": "danger",
+    "prompt": "You are worker C. Create a concrete progress report for Phase 0 using format from MASTER-PLAN-KOPERASI-UMUM.md section 7 and place it at docs/internal/progress/2026-04-23-phase0-progress.md. Include completed/pending items and explicit testing evidence. Update AGENTS.md references if needed. Commit your branch."
+  }
+]

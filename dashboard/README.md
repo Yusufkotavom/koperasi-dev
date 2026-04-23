@@ -34,6 +34,8 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - Panduan penggunaan aplikasi (internal): `PANDUAN-PENGGUNA.md`
 - Panduan `$using-superpowers`: `USING-SUPERPOWERS.md`
 - Perencanaan hak akses super admin: `SUPER-ADMIN-PLAN.md`
+- Master plan ekspansi koperasi umum: `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md`
+- Riwayat perubahan: `CHANGELOG.md`
 
 ## Deploy on Vercel
 

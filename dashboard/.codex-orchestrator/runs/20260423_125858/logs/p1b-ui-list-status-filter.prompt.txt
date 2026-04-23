@@ -1,0 +1,1 @@
+Worker 4 ownership: src/app/(dashboard)/nasabah/page.tsx and directly-related nasabah list UI components only. Add CALON status visibility/filter and clear badge labels. No unrelated refactor. Run lint/build. Commit.

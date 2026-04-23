@@ -1,0 +1,1 @@
+Worker 1 ownership: prisma/* only. Extend membership lifecycle to include CALON in StatusNasabah enum and any required schema/index/default adjustments, plus migration SQL and seed compatibility notes. Update docs/internal/phase1-membership-schema-design.md if needed. Run npm run db:generate and npm run build. Commit.

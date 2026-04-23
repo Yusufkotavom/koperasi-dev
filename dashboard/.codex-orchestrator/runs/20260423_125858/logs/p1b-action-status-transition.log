@@ -1,0 +1,4587 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba6c-1a5b-7dc1-8dab-724e3152d56e
+--------
+user
+Worker 3 ownership: src/actions/nasabah.ts and optional new src/actions/nasabah-status.ts only. Implement explicit server action for status transition with authorization, tenant safety, and audit log write. Keep backward compatibility. Run lint/build and add command evidence to README_WORKER.md. Commit.
+2026-04-23T12:59:00.930307Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll implement the status-transition server action within your owned scope (`src/actions/nasabah.ts` and optionally `src/actions/nasabah-status.ts`), preserve backward compatibility, then run lint/build, document command evidence in `README_WORKER.md`, and commit. I’m checking current code and existing patterns first.
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 12:58 .
+drwxr-xr-x 10 kotacom kotacom 4096 Apr 23 12:59 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 12:58 .codex
+-rw-r--r--  1 kotacom kotacom   91 Apr 23 12:58 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 12:58 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 12:58 dashboard
+
+exec
+/bin/bash -lc 'rg --files' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+dashboard/skills-lock.json
+dashboard/fix-inputs.js
+dashboard/README.md
+dashboard/postcss.config.mjs
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/package-lock.json
+dashboard/AGENTS.md
+dashboard/USING-SUPERPOWERS.md
+dashboard/eslint.config.mjs
+dashboard/PANDUAN-PENGGUNA.md
+dashboard/middleware.ts
+dashboard/307
+dashboard/package.json
+dashboard/next.config.ts
+dashboard/CLAUDE.md
+dashboard/src/actions/platform-admin.ts
+dashboard/src/actions/akuntansi.ts
+dashboard/src/actions/maintenance.ts
+dashboard/src/actions/auth-registration.ts
+dashboard/src/actions/pengajuan.ts
+dashboard/src/actions/settings.ts
+dashboard/src/actions/kas.ts
+dashboard/src/actions/dashboard.ts
+dashboard/src/actions/pembayaran.ts
+dashboard/src/actions/company-users.ts
+dashboard/src/actions/kelompok.ts
+dashboard/src/actions/nasabah.ts
+dashboard/src/actions/kolektor.ts
+dashboard/prisma/seed.ts
+dashboard/src/components/markdown.tsx
+dashboard/src/components/app-link.tsx
+dashboard/docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+dashboard/src/components/navigation-indicator.tsx
+dashboard/src/components/print-button.tsx
+dashboard/src/components/app-sidebar.tsx
+dashboard/docs/superpowers/using-superpowers.md
+dashboard/src/components/nav-secondary.tsx
+dashboard/src/components/nav-user.tsx
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+dashboard/src/components/page-view-transition.tsx
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+dashboard/src/components/nav-main.tsx
+dashboard/src/components/theme-provider.tsx
+dashboard/docs/superpowers/plans/accounting-scoring-plan.md
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+dashboard/src/hooks/use-mobile.ts
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+dashboard/docs/superpowers/plans/plan.md
+dashboard/src/components/ui/sidebar.tsx
+dashboard/src/lib/pembayaran.ts
+dashboard/src/app/favicon.ico
+dashboard/src/components/ui/label.tsx
+dashboard/src/lib/audit.ts
+dashboard/src/lib/datetime.ts
+dashboard/src/lib/accounting-mode.ts
+dashboard/src/components/ui/textarea.tsx
+dashboard/src/lib/auth.ts
+dashboard/src/app/layout.tsx
+dashboard/src/components/ui/dialog.tsx
+dashboard/src/components/ui/input.tsx
+dashboard/src/lib/utils.ts
+dashboard/src/components/ui/skeleton.tsx
+dashboard/src/components/ui/dropdown-menu.tsx
+dashboard/src/components/ui/field.tsx
+dashboard/src/components/ui/card.tsx
+dashboard/src/components/ui/tabs.tsx
+dashboard/src/lib/prisma.ts
+dashboard/src/lib/report-period.ts
+dashboard/src/lib/accounting.ts
+dashboard/src/components/ui/breadcrumb.tsx
+dashboard/src/components/ui/sheet.tsx
+dashboard/src/lib/blob-upload.ts
+dashboard/src/lib/pembayaran-notes.ts
+dashboard/src/components/ui/separator.tsx
+dashboard/src/lib/tenant.ts
+dashboard/src/lib/roles.ts
+dashboard/src/components/ui/alert.tsx
+dashboard/src/components/ui/table.tsx
+dashboard/src/components/ui/collapsible.tsx
+dashboard/src/components/ui/avatar.tsx
+dashboard/src/app/(auth)/layout.tsx
+dashboard/src/app/(auth)/loading.tsx
+dashboard/src/app/(auth)/login/page.tsx
+dashboard/src/app/(auth)/register/page.tsx
+dashboard/src/lib/validations/pengajuan.ts
+dashboard/src/lib/validations/pembayaran.ts
+dashboard/src/lib/ranking.ts
+dashboard/src/components/print/company-document-header.tsx
+dashboard/src/components/ui/select.tsx
+dashboard/src/lib/validations/nasabah.ts
+dashboard/src/components/ui/badge.tsx
+dashboard/src/app/globals.css
+dashboard/src/components/ui/tooltip.tsx
+dashboard/src/components/ui/button.tsx
+dashboard/src/lib/validations/kelompok.ts
+dashboard/src/components/ui/sonner.tsx
+dashboard/src/app/(dashboard)/kas/page.tsx
+dashboard/src/app/(dashboard)/layout.tsx
+dashboard/src/app/(dashboard)/kelompok/page.tsx
+dashboard/src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+dashboard/src/app/(dashboard)/pengajuan/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+dashboard/src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+dashboard/src/app/(dashboard)/pengajuan/baru/page.tsx
+dashboard/src/app/(dashboard)/docs/using-superpowers/page.tsx
+dashboard/src/app/(dashboard)/_components/dashboard-header.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+dashboard/src/app/(dashboard)/_components/top-bar.tsx
+dashboard/src/app/(dashboard)/roadmap/page.tsx
+dashboard/src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+dashboard/src/app/(dashboard)/roadmap/roadmap-client.tsx
+dashboard/src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+dashboard/src/app/(dashboard)/kelompok/baru/page.tsx
+dashboard/src/app/(dashboard)/nasabah/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/manual-input.tsx
+dashboard/src/app/(dashboard)/pembayaran/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/edit-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/bayar-button.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+dashboard/src/app/(marketing)/penawaran/page.tsx
+dashboard/src/app/(marketing)/penawaran/_lib/screenshots.ts
+dashboard/src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+dashboard/src/app/(marketing)/contact/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+dashboard/src/app/(dashboard)/platform/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+dashboard/prisma/migrations/20260422103000_company_user_scope/migration.sql
+dashboard/src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+dashboard/src/app/(dashboard)/platform/users/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/page.tsx
+dashboard/src/app/(dashboard)/platform/users/user-admin-table.tsx
+dashboard/prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+dashboard/src/app/(dashboard)/platform/companies/[id]/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+dashboard/src/app/(dashboard)/monitoring/kolektor/page.tsx
+dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx
+dashboard/src/app/(dashboard)/laporan/buku-besar/page.tsx
+dashboard/src/app/(dashboard)/monitoring/tunggakan/page.tsx
+dashboard/src/app/(dashboard)/laporan/laba-rugi/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+dashboard/src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+dashboard/src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx
+dashboard/src/app/(dashboard)/laporan/arus-kas/page.tsx
+dashboard/src/app/(dashboard)/laporan/neraca/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+dashboard/src/app/(dashboard)/kas/kas-client.tsx
+dashboard/src/app/(dashboard)/loading.tsx
+dashboard/src/app/(dashboard)/settings/user-management-card.tsx
+dashboard/prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+dashboard/prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+dashboard/src/app/(dashboard)/settings/accounting-mode-card.tsx
+dashboard/src/app/(dashboard)/settings/ranking-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/db-maintenance-card.tsx
+dashboard/src/app/(dashboard)/settings/page.tsx
+dashboard/src/app/(dashboard)/settings/company/page.tsx
+dashboard/src/app/(dashboard)/settings/ranking/page.tsx
+dashboard/src/app/(dashboard)/settings/accounting/page.tsx
+dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/settings-profile-card.tsx
+dashboard/src/app/(dashboard)/settings/maintenance/page.tsx
+dashboard/src/app/(dashboard)/settings/users/page.tsx
+dashboard/prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+dashboard/prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+dashboard/prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+dashboard/src/app/(dashboard)/settings/profile/page.tsx
+dashboard/src/app/(marketing)/blog/page.tsx
+dashboard/src/app/(marketing)/product/page.tsx
+dashboard/src/app/(dashboard)/pencairan/pencairan-form.tsx
+dashboard/src/app/(marketing)/about/page.tsx
+dashboard/src/app/(dashboard)/pencairan/page.tsx
+dashboard/prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+dashboard/prisma/migrations/20260421110000_journal_entries/migration.sql
+dashboard/src/app/api/auth/[...nextauth]/route.ts
+dashboard/src/app/(marketing)/_components/marketing-shell.tsx
+dashboard/src/app/(marketing)/_components/marketing-data.ts
+dashboard/src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+dashboard/prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+dashboard/src/app/(dashboard)/dashboard/page.tsx
+dashboard/src/app/(marketing)/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+dashboard/prisma/migrations/20260418204642_init/migration.sql
+dashboard/prisma/migrations/migration_lock.toml
+dashboard/prisma/migrations/20260422120000_company_status_fields/migration.sql
+dashboard/src/app/(dashboard)/kolektor/page.tsx
+dashboard/src/app/(dashboard)/kolektor/kolektor-management.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/page.tsx
+dashboard/src/app/(marketing)/home/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+dashboard/src/app/api/upload/pengajuan/route.ts
+dashboard/src/app/api/upload/kas/route.ts
+dashboard/src/app/api/upload/nasabah/route.ts
+dashboard/prisma/seed.cjs
+dashboard/prisma/schema.prisma
+dashboard/prisma.config.ts
+dashboard/tsconfig.json
+dashboard/src/app/api/upload/logo/route.ts
+dashboard/components.json
+dashboard/SUPER-ADMIN-PLAN.md
+dashboard/proposal_premium.html
+dashboard/capture-screenshots.mjs
+dashboard/src/app/api/upload/pembayaran/route.ts
+dashboard/public/window.svg
+dashboard/public/next.svg
+dashboard/public/docs/screenshots/error-login.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/screen.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png
+dashboard/public/snitch/project/login_cooperative_management_dashboard/screen.png
+dashboard/public/docs/screenshots/debug-login-page.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/laporan.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/screen.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/screen.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/dashboard.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/screen.png
+dashboard/public/snitch/project/vault_cooperative_management_landing_page/screen.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/nasabah.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/screen.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/screen.png
+dashboard/public/globe.svg
+dashboard/public/file.svg
+dashboard/public/vercel.svg
+dashboard/public/snitch/project/settings_user_role_management/settings.png
+dashboard/public/snitch/project/settings_user_role_management/screen.png
+dashboard/public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+dashboard/public/uploads/pembayaran/1776700680512-a635469f-803c-4b6c-b940-9e710a4fa1bb.jpeg
+dashboard/public/uploads/nasabah/1776618214801-f5c7641f-ee89-4e0d-ade6-672c31aef520.jpeg
+dashboard/public/uploads/nasabah/1776613912086-44c59630-5991-4c7d-b064-c8e9a6096319.jpeg
+dashboard/public/uploads/nasabah/1776851508256-de1ba137-c597-44e0-8d9c-5a24a8578751.pdf
+dashboard/public/static/sw.js
+
+exec
+/bin/bash -lc 'rg -n "nasabah|status transition|server action|audit|tenant|authorize|authorization|status" src README_WORKER.md' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ exited 2 in 0ms:
+src: No such file or directory (os error 2)
+README_WORKER.md: No such file or directory (os error 2)
+
+codex
+I found the project root under `dashboard/`; next I’m inspecting the target action files there and loading the required workflow instructions before editing.
+exec
+/bin/bash -lc "sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+exec
+/bin/bash -lc 'ls -la dashboard' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 12:58 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 12:58 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 12:58 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 12:58 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 12:58 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 12:58 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 12:58 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 12:58 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 12:58 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 12:58 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 12:58 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 12:58 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 12:58 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 12:58 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 12:58 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 12:58 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 12:58 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 12:58 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 12:58 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 12:58 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 12:58 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 12:58 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 12:58 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 12:58 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 12:58 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 12:58 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 12:58 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 12:58 tsconfig.json
+
+exec
+/bin/bash -lc 'rg -n "status|nasabah|audit|authorize|tenant|transition" dashboard/src/actions dashboard/src/lib dashboard/README_WORKER.md' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ exited 2 in 0ms:
+dashboard/README_WORKER.md: No such file or directory (os error 2)
+dashboard/src/lib/accounting.ts:96:        status: "POSTED",
+dashboard/src/lib/accounting.ts:151:      status: "POSTED",
+dashboard/src/actions/akuntansi.ts:9:import { writeAuditLog } from "@/lib/audit"
+dashboard/src/actions/akuntansi.ts:13:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/akuntansi.ts:27:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:53:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:87:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:112:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:172:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:194:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:230:      status: RekonsiliasiStatus.DRAFT,
+dashboard/src/actions/akuntansi.ts:263:export async function setRekonsiliasiStatus(input: { id: string; status: "DRAFT" | "SELESAI" }) {
+dashboard/src/actions/akuntansi.ts:265:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:273:    data: { status: input.status },
+dashboard/src/actions/akuntansi.ts:282:    afterData: { status: updated.status, accountCode: row.account.code },
+dashboard/src/actions/akuntansi.ts:301:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:339:        journalEntry: { status: "POSTED", entryDate: { lt: period.startDate } },
+dashboard/src/actions/akuntansi.ts:346:        journalEntry: { status: "POSTED", entryDate: { gte: period.startDate, lt: period.endDate } },
+dashboard/src/actions/akuntansi.ts:394:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/akuntansi.ts:404:      journalEntry: { companyId, status: "POSTED", entryDate: { lt: period.endDate } },
+dashboard/src/actions/nasabah.ts:6:import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+dashboard/src/actions/nasabah.ts:12:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/nasabah.ts:16:  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+dashboard/src/actions/nasabah.ts:26:  const count = await prisma.nasabah.count({ where: { companyId } })
+dashboard/src/actions/nasabah.ts:45:  status?: string
+dashboard/src/actions/nasabah.ts:49:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:71:      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+dashboard/src/actions/nasabah.ts:77:    prisma.nasabah.findMany({
+dashboard/src/actions/nasabah.ts:90:                status: true,
+dashboard/src/actions/nasabah.ts:116:    prisma.nasabah.count({ where }),
+dashboard/src/actions/nasabah.ts:119:  const withIndicators = data.map((nasabah) => {
+dashboard/src/actions/nasabah.ts:134:    const pinjamanList = nasabah.pengajuan
+dashboard/src/actions/nasabah.ts:140:      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+dashboard/src/actions/nasabah.ts:203:      ...nasabah,
+dashboard/src/actions/nasabah.ts:228:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:230:  const result = await prisma.nasabah.findFirst({
+dashboard/src/actions/nasabah.ts:261:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:264:  const parsed = nasabahSchema.safeParse(input)
+dashboard/src/actions/nasabah.ts:270:  const existingNik = await prisma.nasabah.findFirst({
+dashboard/src/actions/nasabah.ts:295:      const nasabah = await prisma.nasabah.create({
+dashboard/src/actions/nasabah.ts:308:      revalidatePath("/nasabah")
+dashboard/src/actions/nasabah.ts:309:      return { success: true, data: nasabah }
+dashboard/src/actions/nasabah.ts:329:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:332:  const current = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+dashboard/src/actions/nasabah.ts:341:    const existingNik = await prisma.nasabah.findFirst({
+dashboard/src/actions/nasabah.ts:365:    await prisma.nasabah.update({
+dashboard/src/actions/nasabah.ts:382:  revalidatePath("/nasabah")
+dashboard/src/actions/nasabah.ts:383:  revalidatePath(`/nasabah/${id}`)
+dashboard/src/actions/nasabah.ts:387:export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+dashboard/src/actions/nasabah.ts:389:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:392:  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+dashboard/src/actions/nasabah.ts:394:  await prisma.nasabah.update({ where: { id }, data: { status } })
+dashboard/src/actions/nasabah.ts:395:  revalidatePath("/nasabah")
+dashboard/src/actions/nasabah.ts:401:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:407:    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+dashboard/src/actions/nasabah.ts:410:  const nasabah = await prisma.nasabah.findUnique({
+dashboard/src/actions/nasabah.ts:424:  if (!nasabah) {
+dashboard/src/actions/nasabah.ts:428:  const nasabahCompany = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+dashboard/src/actions/nasabah.ts:429:  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+dashboard/src/actions/nasabah.ts:431:  if (nasabah._count.pengajuan > 0 || nasabah._count.simpanan > 0) {
+dashboard/src/actions/nasabah.ts:434:      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+dashboard/src/actions/nasabah.ts:438:  await prisma.nasabah.delete({ where: { id } })
+dashboard/src/actions/nasabah.ts:440:  revalidatePath("/nasabah")
+dashboard/src/actions/nasabah.ts:448:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/nasabah.ts:455:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:9:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/kelompok.ts:13:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:33:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:39:      nasabah: {
+dashboard/src/actions/kelompok.ts:52:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:55:  return prisma.nasabah.findMany({
+dashboard/src/actions/kelompok.ts:56:    where: { companyId, status: "AKTIF" },
+dashboard/src/actions/kelompok.ts:68:  const ketuaNasabah = await prisma.nasabah.findFirst({
+dashboard/src/actions/kelompok.ts:77:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:108:      await tx.nasabah.updateMany({
+dashboard/src/actions/kelompok.ts:118:  revalidatePath("/nasabah")
+dashboard/src/actions/kelompok.ts:124:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:157:    await tx.nasabah.updateMany({
+dashboard/src/actions/kelompok.ts:163:      await tx.nasabah.updateMany({
+dashboard/src/actions/kelompok.ts:172:  revalidatePath("/nasabah")
+dashboard/src/actions/kelompok.ts:178:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kelompok.ts:193:          nasabah: true,
+dashboard/src/actions/kelompok.ts:212:    if (kelompok._count.nasabah > 0) {
+dashboard/src/actions/kelompok.ts:213:      await tx.nasabah.updateMany({
+dashboard/src/actions/kelompok.ts:222:  revalidatePath("/nasabah")
+dashboard/src/actions/maintenance.ts:7:import { writeAuditLog } from "@/lib/audit"
+dashboard/src/actions/maintenance.ts:18:import { requireCompanyRoles } from "@/lib/tenant"
+dashboard/src/actions/maintenance.ts:132:    await prisma.nasabah.deleteMany({ where: { companyId } })
+dashboard/src/actions/maintenance.ts:153:    "/nasabah",
+dashboard/src/actions/maintenance.ts:281:  nasabahId: string
+dashboard/src/actions/maintenance.ts:307:        nasabahId: params.nasabahId,
+dashboard/src/actions/maintenance.ts:319:        status: "DICAIRKAN",
+dashboard/src/actions/maintenance.ts:343:        status: params.paidInstallments >= params.tenor ? "LUNAS" : params.paidInstallments >= 2 ? "AKTIF" : "MENUNGGAK",
+dashboard/src/actions/maintenance.ts:459:    ["MASUK", "ADMIN", "Demo biaya survei nasabah baru", 450_000, "TUNAI", 18],
+dashboard/src/actions/maintenance.ts:579:    include: { nasabah: { select: { namaLengkap: true } } },
+dashboard/src/actions/maintenance.ts:587:      description: `Backfill simpanan ${simpanan.jenis} ${simpanan.nasabah.namaLengkap}`,
+dashboard/src/actions/maintenance.ts:618:  const nasabahRows = []
+dashboard/src/actions/maintenance.ts:623:    const nasabah = await prisma.nasabah.upsert({
+dashboard/src/actions/maintenance.ts:628:        status: "AKTIF",
+dashboard/src/actions/maintenance.ts:640:        status: "AKTIF",
+dashboard/src/actions/maintenance.ts:643:    nasabahRows.push(nasabah)
+dashboard/src/actions/maintenance.ts:645:    const simpananCount = await prisma.simpanan.count({ where: { companyId, nasabahId: nasabah.id } })
+dashboard/src/actions/maintenance.ts:649:          { companyId, nasabahId: nasabah.id, jenis: "POKOK", jumlah: new Prisma.Decimal(100_000) },
+dashboard/src/actions/maintenance.ts:650:          { companyId, nasabahId: nasabah.id, jenis: "WAJIB", jumlah: new Prisma.Decimal(50_000 + index * 5_000) },
+dashboard/src/actions/maintenance.ts:651:          { companyId, nasabahId: nasabah.id, jenis: "SUKARELA", jumlah: new Prisma.Decimal(index * 25_000) },
+dashboard/src/actions/maintenance.ts:657:  for (const [index, nasabah] of nasabahRows.slice(0, DEMO_LOAN_COUNT).entries()) {
+dashboard/src/actions/maintenance.ts:662:      nasabahId: nasabah.id,
+dashboard/src/actions/maintenance.ts:663:      kelompokId: nasabah.kelompokId ?? undefined,
+dashboard/src/actions/settings.ts:11:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/settings.ts:74:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/settings.ts:106:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/settings.ts:147:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/settings.ts:158:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/settings.ts:182:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/settings.ts:200:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:10:import { writeApprovalLog, writeAuditLog } from "@/lib/audit"
+dashboard/src/actions/pengajuan.ts:14:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/pengajuan.ts:37:  status?: string
+dashboard/src/actions/pengajuan.ts:41:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:50:      params.status ? { status: params.status as "DRAFT" | "DIAJUKAN" | "DISURVEY" | "DISETUJUI" | "DITOLAK" | "DICAIRKAN" | "SELESAI" } : {},
+dashboard/src/actions/pengajuan.ts:52:        nasabah: { namaLengkap: { contains: params.search, mode: "insensitive" as const } }
+dashboard/src/actions/pengajuan.ts:64:        nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+dashboard/src/actions/pengajuan.ts:76:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:81:      nasabah: true,
+dashboard/src/actions/pengajuan.ts:99:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:102:  return prisma.nasabah.findMany({
+dashboard/src/actions/pengajuan.ts:103:    where: { companyId, status: "AKTIF" },
+dashboard/src/actions/pengajuan.ts:118:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:127:  const nasabah = await prisma.nasabah.findUnique({
+dashboard/src/actions/pengajuan.ts:128:    where: { id: parsed.data.nasabahId },
+dashboard/src/actions/pengajuan.ts:131:  if (!nasabah) {
+dashboard/src/actions/pengajuan.ts:132:    return { error: { nasabahId: ["Nasabah tidak ditemukan."] } }
+dashboard/src/actions/pengajuan.ts:139:      kelompokId: rest.kelompokId || nasabah.kelompokId || null,
+dashboard/src/actions/pengajuan.ts:143:      status: "DIAJUKAN",
+dashboard/src/actions/pengajuan.ts:153:    afterData: { status: pengajuan.status, nasabahId: pengajuan.nasabahId },
+dashboard/src/actions/pengajuan.ts:160:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:179:        status: aksi === "SETUJU" ? "DISETUJUI" : "DITOLAK",
+dashboard/src/actions/pengajuan.ts:196:    status: aksi === "SETUJU" ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED,
+dashboard/src/actions/pengajuan.ts:206:    afterData: { status: updated.status, plafonDisetujui: updated.plafonDisetujui?.toString() },
+dashboard/src/actions/pengajuan.ts:217:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:235:    where: { id: pengajuanId, companyId, status: "DISETUJUI" },
+dashboard/src/actions/pengajuan.ts:301:        status: "AKTIF",
+dashboard/src/actions/pengajuan.ts:321:    // Update status pengajuan
+dashboard/src/actions/pengajuan.ts:324:      data: { status: "DICAIRKAN" },
+dashboard/src/actions/pengajuan.ts:377:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:380:    where: { companyId, status: "DISETUJUI" },
+dashboard/src/actions/pengajuan.ts:382:      nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+dashboard/src/actions/pengajuan.ts:398:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pengajuan.ts:428:  if (pengajuan.status !== "DICAIRKAN") {
+dashboard/src/actions/pengajuan.ts:429:    return { error: "Hanya pengajuan berstatus DICAIRKAN yang bisa dibatalkan." }
+dashboard/src/actions/pengajuan.ts:514:          status: "LUNAS",
+dashboard/src/actions/pengajuan.ts:526:          status: "SELESAI",
+dashboard/src/actions/kas.ts:9:import { writeAuditLog } from "@/lib/audit"
+dashboard/src/actions/kas.ts:13:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/kas.ts:50:  if (!session) return { error: "Unauthorized" as const }
+dashboard/src/actions/kas.ts:79:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:129:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:172:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:233:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:277:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:342:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:405:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:460:            status: ApprovalStatus.PENDING,
+dashboard/src/actions/kas.ts:495:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:577:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:621:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:644:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:664:      status: ApprovalStatus.PENDING,
+dashboard/src/actions/kas.ts:670:  const status = input.action === "APPROVE" ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED
+dashboard/src/actions/kas.ts:698:          status,
+dashboard/src/actions/kas.ts:710:          status,
+dashboard/src/actions/kas.ts:737:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:759:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kas.ts:767:      journalEntry: { companyId, status: "POSTED", entryDate: { gte: period.startDate, lt: period.endDate } },
+dashboard/src/actions/kas.ts:820:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:9:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/dashboard.ts:21:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:34:    prisma.nasabah.count({ where: { companyId, status: "AKTIF" } }),
+dashboard/src/actions/dashboard.ts:35:    prisma.pinjaman.count({ where: { companyId, status: "AKTIF" } }),
+dashboard/src/actions/dashboard.ts:37:      where: { companyId, status: { in: ["AKTIF", "MENUNGGAK"] } },
+dashboard/src/actions/dashboard.ts:123:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:160:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:194:                nasabah: {
+dashboard/src/actions/dashboard.ts:207:              nasabah: { select: { namaLengkap: true, nomorAnggota: true, noHp: true, kolektorId: true } },
+dashboard/src/actions/dashboard.ts:247:    where: { companyId, status: { in: ["AKTIF", "MENUNGGAK", "MACET"] } },
+dashboard/src/actions/dashboard.ts:292:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:313:      nasabah: {
+dashboard/src/actions/dashboard.ts:324:              status: true,
+dashboard/src/actions/dashboard.ts:343:    for (const n of k.nasabah) {
+dashboard/src/actions/dashboard.ts:353:    const pinjamanAktif = pinjaman.filter((p) => p.status === "AKTIF" || p.status === "MENUNGGAK").length
+dashboard/src/actions/dashboard.ts:366:      anggota: k.nasabah.length,
+dashboard/src/actions/dashboard.ts:387:  nasabah: number
+dashboard/src/actions/dashboard.ts:405:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:434:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/dashboard.ts:451:            nasabahSebagaiKolektor: {
+dashboard/src/actions/dashboard.ts:481:      nasabahSebagaiKolektor: {
+dashboard/src/actions/dashboard.ts:516:    const kelompokSet = new Set(k.nasabahSebagaiKolektor.map((n) => n.kelompokId).filter(Boolean))
+dashboard/src/actions/dashboard.ts:521:    for (const nasabah of k.nasabahSebagaiKolektor) {
+dashboard/src/actions/dashboard.ts:522:      for (const pengajuan of nasabah.pengajuan) {
+dashboard/src/actions/dashboard.ts:543:      nasabah: k.nasabahSebagaiKolektor.length,
+dashboard/src/actions/platform-admin.ts:11:import { writeAuditLog } from "@/lib/audit"
+dashboard/src/actions/platform-admin.ts:22:  status: CompanyStatus
+dashboard/src/actions/platform-admin.ts:33:  company: { id: string; name: string; slug: string; status: CompanyStatus } | null
+dashboard/src/actions/platform-admin.ts:42:    status: CompanyStatus
+dashboard/src/actions/platform-admin.ts:47:    nasabahAktif: number
+dashboard/src/actions/platform-admin.ts:54:  recentPengajuan: Array<{ id: string; nomorPengajuan: string; status: string; createdAt: string; nasabahName: string | null }>
+dashboard/src/actions/platform-admin.ts:93:    select: { id: true, name: true, slug: true, status: true },
+dashboard/src/actions/platform-admin.ts:96:  if (company.status !== "ACTIVE") {
+dashboard/src/actions/platform-admin.ts:97:    return { error: `Company berstatus ${company.status}. Context operasional hanya untuk company ACTIVE.` as const }
+dashboard/src/actions/platform-admin.ts:137:  const rows = await prisma.auditLog.findMany({
+dashboard/src/actions/platform-admin.ts:194:      status: true,
+dashboard/src/actions/platform-admin.ts:205:    status: row.status,
+dashboard/src/actions/platform-admin.ts:222:      status: true,
+dashboard/src/actions/platform-admin.ts:247:      status: true,
+dashboard/src/actions/platform-admin.ts:253:  const [users, nasabahAktif, pengajuanAktif, pinjamanAktif, kasPending, recentUsers, recentNasabah, recentPengajuan] = await Promise.all([
+dashboard/src/actions/platform-admin.ts:255:    prisma.nasabah.count({ where: { companyId, status: "AKTIF" } }),
+dashboard/src/actions/platform-admin.ts:256:    prisma.pengajuan.count({ where: { companyId, status: { in: ["DIAJUKAN", "DISURVEY", "DISETUJUI"] } } }),
+dashboard/src/actions/platform-admin.ts:257:    prisma.pinjaman.count({ where: { companyId, status: { in: ["AKTIF", "MENUNGGAK", "MACET"] } } }),
+dashboard/src/actions/platform-admin.ts:272:    prisma.nasabah.findMany({
+dashboard/src/actions/platform-admin.ts:285:        status: true,
+dashboard/src/actions/platform-admin.ts:287:        nasabah: { select: { namaLengkap: true } },
+dashboard/src/actions/platform-admin.ts:294:    metrics: { users, nasabahAktif, pengajuanAktif, pinjamanAktif, kasPending },
+dashboard/src/actions/platform-admin.ts:312:      status: row.status,
+dashboard/src/actions/platform-admin.ts:313:      nasabahName: row.nasabah?.namaLengkap ?? null,
+dashboard/src/actions/platform-admin.ts:321:  status: z.nativeEnum(CompanyStatus),
+dashboard/src/actions/platform-admin.ts:336:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status company." }
+dashboard/src/actions/platform-admin.ts:341:      status: formData.get("status"),
+dashboard/src/actions/platform-admin.ts:352:      select: { id: true, status: true, suspendedAt: true, suspendedUntil: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:356:    const nextStatus = parsed.data.status
+dashboard/src/actions/platform-admin.ts:362:        status: nextStatus,
+dashboard/src/actions/platform-admin.ts:370:      select: { id: true, status: true, suspendedAt: true, suspendedUntil: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:388:      metadata: { reason: parsed.data.reason, status: nextStatus, suspendedUntil: suspendedUntil?.toISOString() ?? null },
+dashboard/src/actions/platform-admin.ts:395:    console.error("[platform] set company status failed", error)
+dashboard/src/actions/platform-admin.ts:426:      select: { id: true, slug: true, status: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:439:        status: "DELETED",
+dashboard/src/actions/platform-admin.ts:444:      select: { id: true, status: true, deletedAt: true, isActive: true },
+dashboard/src/actions/platform-admin.ts:464:    return { success: true, message: "Company berhasil di-soft delete (status DELETED)." }
+dashboard/src/actions/platform-admin.ts:499:      company: { select: { id: true, name: true, slug: true, status: true } },
+dashboard/src/actions/platform-admin.ts:530:      return { success: false, error: "Keluar dulu dari mode company context sebelum ubah status user." }
+dashboard/src/actions/kolektor.ts:9:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/kolektor.ts:23:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kolektor.ts:36:          nasabahSebagaiKolektor: true,
+dashboard/src/actions/kolektor.ts:48:    totalNasabah: u._count.nasabahSebagaiKolektor,
+dashboard/src/actions/kolektor.ts:54:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kolektor.ts:57:  const [nasabah, kelompok] = await Promise.all([
+dashboard/src/actions/kolektor.ts:58:    prisma.nasabah.findMany({
+dashboard/src/actions/kolektor.ts:59:      where: { companyId, status: "AKTIF" },
+dashboard/src/actions/kolektor.ts:70:  return { nasabah, kelompok }
+dashboard/src/actions/kolektor.ts:134:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kolektor.ts:155:  nasabahId: string
+dashboard/src/actions/kolektor.ts:161:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kolektor.ts:165:  const nasabah = await prisma.nasabah.findFirst({
+dashboard/src/actions/kolektor.ts:166:    where: { id: input.nasabahId, companyId },
+dashboard/src/actions/kolektor.ts:170:  if (!nasabah) return { error: "Nasabah tidak ditemukan." }
+dashboard/src/actions/kolektor.ts:172:  const safeName = nasabah.namaLengkap.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, "")
+dashboard/src/actions/kolektor.ts:173:  const generatedEmail = input.email?.trim() || `${safeName || "kolektor"}.${nasabah.id.slice(-4)}@koperasi.local`
+dashboard/src/actions/kolektor.ts:177:    name: nasabah.namaLengkap,
+dashboard/src/actions/kolektor.ts:179:    password: input.password?.trim() || defaultPasswordFromPhone(nasabah.noHp),
+dashboard/src/actions/kolektor.ts:183:  await prisma.nasabah.update({
+dashboard/src/actions/kolektor.ts:184:    where: { id: nasabah.id },
+dashboard/src/actions/kolektor.ts:189:  revalidatePath("/nasabah")
+dashboard/src/actions/kolektor.ts:200:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/kolektor.ts:207:      nasabah: {
+dashboard/src/actions/kolektor.ts:215:  const ketuaNasabah = kelompok.nasabah.find((n) => n.namaLengkap === kelompok.ketua) ?? kelompok.nasabah[0]
+dashboard/src/actions/kolektor.ts:229:  await prisma.nasabah.updateMany({
+dashboard/src/actions/kolektor.ts:235:  revalidatePath("/nasabah")
+dashboard/src/actions/kolektor.ts:241:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:9:import { writeAuditLog } from "@/lib/audit"
+dashboard/src/actions/pembayaran.ts:14:import { requireCompanyId } from "@/lib/tenant"
+dashboard/src/actions/pembayaran.ts:84:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:102:              nasabah: { select: { namaLengkap: true, nomorAnggota: true, noHp: true } },
+dashboard/src/actions/pembayaran.ts:116:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:134:    pinjaman: { status: { not: "LUNAS" } },
+dashboard/src/actions/pembayaran.ts:147:            nasabah: {
+dashboard/src/actions/pembayaran.ts:156:            nasabah: {
+dashboard/src/actions/pembayaran.ts:165:            nasabah: {
+dashboard/src/actions/pembayaran.ts:183:              nasabah: {
+dashboard/src/actions/pembayaran.ts:202:  nasabahId: string
+dashboard/src/actions/pembayaran.ts:215:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:224:    status: { not: "LUNAS" },
+dashboard/src/actions/pembayaran.ts:231:                nasabah: {
+dashboard/src/actions/pembayaran.ts:238:                nasabah: {
+dashboard/src/actions/pembayaran.ts:245:                nasabah: {
+dashboard/src/actions/pembayaran.ts:264:          nasabahId: true,
+dashboard/src/actions/pembayaran.ts:265:          nasabah: {
+dashboard/src/actions/pembayaran.ts:281:    const nasabahId = pinj.pengajuan.nasabahId
+dashboard/src/actions/pembayaran.ts:282:    const nasabah = pinj.pengajuan.nasabah
+dashboard/src/actions/pembayaran.ts:283:    const existing = byNasabah.get(nasabahId) ?? {
+dashboard/src/actions/pembayaran.ts:284:      nasabahId,
+dashboard/src/actions/pembayaran.ts:285:      namaLengkap: nasabah.namaLengkap,
+dashboard/src/actions/pembayaran.ts:286:      nomorAnggota: nasabah.nomorAnggota,
+dashboard/src/actions/pembayaran.ts:287:      nik: nasabah.nik,
+dashboard/src/actions/pembayaran.ts:288:      kelompok: nasabah.kelompok?.nama ?? "Individu",
+dashboard/src/actions/pembayaran.ts:302:    byNasabah.set(nasabahId, existing)
+dashboard/src/actions/pembayaran.ts:308:export async function searchJadwalAngsuranManual(params: { search: string; nasabahId?: string; limit?: number }) {
+dashboard/src/actions/pembayaran.ts:310:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:316:  const nasabahId = params.nasabahId?.trim()
+dashboard/src/actions/pembayaran.ts:317:  if (!search && !nasabahId) return []
+dashboard/src/actions/pembayaran.ts:325:      { pinjaman: { status: { not: "LUNAS" } } },
+dashboard/src/actions/pembayaran.ts:326:      nasabahId ? { pinjaman: { pengajuan: { nasabahId } } } : {},
+dashboard/src/actions/pembayaran.ts:331:              { pinjaman: { pengajuan: { nasabah: { namaLengkap: { contains: search, mode: "insensitive" } } } } },
+dashboard/src/actions/pembayaran.ts:332:              { pinjaman: { pengajuan: { nasabah: { nomorAnggota: { contains: search, mode: "insensitive" } } } } },
+dashboard/src/actions/pembayaran.ts:333:              { pinjaman: { pengajuan: { nasabah: { nik: { contains: search, mode: "insensitive" } } } } },
+dashboard/src/actions/pembayaran.ts:355:              nasabah: {
+dashboard/src/actions/pembayaran.ts:382:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:513:        status: sisaBaru <= 0 ? "LUNAS" : "AKTIF",
+dashboard/src/actions/pembayaran.ts:591:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:607:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:625:            nasabah: {
+dashboard/src/actions/pembayaran.ts:647:              nasabah: {
+dashboard/src/actions/pembayaran.ts:698:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:723:  const [nasabahList, total] = await Promise.all([
+dashboard/src/actions/pembayaran.ts:724:    prisma.nasabah.findMany({
+dashboard/src/actions/pembayaran.ts:751:    prisma.nasabah.count({ where })
+dashboard/src/actions/pembayaran.ts:754:  const data = nasabahList.map((nasabah) => {
+dashboard/src/actions/pembayaran.ts:763:    const pinjamanAktif = nasabah.pengajuan
+dashboard/src/actions/pembayaran.ts:768:      lunas = lunas || pinjaman.status === "LUNAS"
+dashboard/src/actions/pembayaran.ts:812:      nasabahId: nasabah.id,
+dashboard/src/actions/pembayaran.ts:813:      nomorAnggota: nasabah.nomorAnggota,
+dashboard/src/actions/pembayaran.ts:814:      namaLengkap: nasabah.namaLengkap,
+dashboard/src/actions/pembayaran.ts:815:      kelompok: nasabah.kelompok?.nama ?? "-",
+dashboard/src/actions/pembayaran.ts:839:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:845:  const [kelompokOptions, nasabahList] = await Promise.all([
+dashboard/src/actions/pembayaran.ts:850:    prisma.nasabah.findMany({
+dashboard/src/actions/pembayaran.ts:892:  const data = nasabahList.map((nasabah) => {
+dashboard/src/actions/pembayaran.ts:909:    const pinjamanAktif = nasabah.pengajuan
+dashboard/src/actions/pembayaran.ts:968:      if (pinjaman.status !== "LUNAS" || progressTotal === 0) {
+dashboard/src/actions/pembayaran.ts:988:      nasabahId: nasabah.id,
+dashboard/src/actions/pembayaran.ts:989:      nomorAnggota: nasabah.nomorAnggota,
+dashboard/src/actions/pembayaran.ts:990:      namaLengkap: nasabah.namaLengkap,
+dashboard/src/actions/pembayaran.ts:991:      kelompok: nasabah.kelompok?.nama ?? "-",
+dashboard/src/actions/pembayaran.ts:1041:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:1053:              nasabah: { select: { namaLengkap: true, nomorAnggota: true } },
+dashboard/src/actions/pembayaran.ts:1068:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:1089:      status: ApprovalStatus.PENDING,
+dashboard/src/actions/pembayaran.ts:1099:      status: ApprovalStatus.PENDING,
+dashboard/src/actions/pembayaran.ts:1122:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:1149:  if (!session) throw new Error("Unauthorized")
+dashboard/src/actions/pembayaran.ts:1172:  if (approval.status !== ApprovalStatus.PENDING) {
+dashboard/src/actions/pembayaran.ts:1180:        status: ApprovalStatus.REJECTED,
+dashboard/src/actions/pembayaran.ts:1237:        status: sisaBaru <= 0 ? "LUNAS" : "AKTIF",
+dashboard/src/actions/pembayaran.ts:1278:        status: ApprovalStatus.APPROVED,
+dashboard/src/actions/pembayaran.ts:1314:  if (!session) throw new Error("Unauthorized")
+dashboard/src/lib/tenant.ts:14:  if (!userId) throw new Error("Unauthorized")
+dashboard/src/lib/roles.ts:20:    throw new Error("Unauthorized")
+dashboard/src/lib/auth.ts:26:      async authorize(credentials) {
+dashboard/src/lib/auth.ts:41:            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+dashboard/src/lib/auth.ts:46:        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+dashboard/src/lib/audit.ts:23:    await prisma.auditLog.create({
+dashboard/src/lib/audit.ts:44:  status?: ApprovalStatus
+dashboard/src/lib/audit.ts:64:        status: input.status ?? ApprovalStatus.PENDING,
+dashboard/src/lib/validations/nasabah.ts:3:export const nasabahSchema = z.object({
+dashboard/src/lib/validations/nasabah.ts:18:  status: z.enum(["AKTIF", "NON_AKTIF", "KELUAR"]).default("AKTIF"),
+dashboard/src/lib/validations/nasabah.ts:21:export type NasabahInput = z.infer<typeof nasabahSchema>
+dashboard/src/lib/validations/pengajuan.ts:4:  nasabahId: z.string().min(1, "Pilih nasabah"),
+
+codex
+I confirmed the target action exists and there’s already a basic `ubahStatusNasabah` function. I’m now reading conventions (`AGENTS.md`) plus locating `README_WORKER.md` so I can follow project-specific commit/evidence requirements exactly.
+exec
+/bin/bash -lc "sed -n '1,240p' dashboard/AGENTS.md" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+# Agent Handoff: Koperasi Pinjam Dashboard
+
+Dokumen ini adalah konteks kerja cepat untuk agent berikutnya agar langsung paham arsitektur, batasan data, dan flow kritis.
+
+## 1. Stack & Struktur Utama
+
+- Framework: Next.js `16.2.4` (App Router, Turbopack)
+- Runtime UI: React `19.2.4`
+- ORM: Prisma `7.7.0` + PostgreSQL (`@prisma/adapter-pg`)
+- Auth: NextAuth v5 beta (Credentials provider)
+- UI: shadcn + Tailwind
+
+Folder penting:
+- `src/app`: routes App Router (auth, dashboard, platform)
+- `src/actions`: server actions domain bisnis
+- `src/lib`: auth, tenant, accounting, prisma client, utils
+- `prisma/schema.prisma`: source of truth model database
+- `prisma/seed.ts`: seed default accounts/demo users
+
+## 2. Rule Wajib Sebelum Ngoding
+
+1. Baca panduan Next.js lokal di `node_modules/next/dist/docs/` untuk API yang mau disentuh.
+2. Jangan asumsi API lama Next.js masih sama.
+3. Untuk perubahan signifikan, validasi minimal dengan:
+   - `npm run build`
+   - bila schema berubah: `npm run db:generate`
+
+## 3. Multi-Tenant & Auth (Sangat Penting)
+
+### Registrasi
+- Route: `/register`
+- Action: `src/actions/auth-registration.ts`
+- Efek:
+  - create user baru
+  - create company baru (`slug` unik)
+  - assign role `OWNER` + `ADMIN`
+  - set `user.companyId = company.id`
+
+### Login
+- Auth di `src/lib/auth.ts`.
+- User ditolak login jika:
+  - `user.isActive = false`
+  - company non-active (`isActive=false` atau `status != ACTIVE`)
+
+### Isolasi tenant
+- Gunakan `requireCompanyId` (`src/lib/tenant.ts`) di action tenant.
+- Semua query bisnis wajib filter `companyId`.
+- `SUPER_ADMIN` bisa tanpa `companyId`, tapi diarahkan untuk operasi lintas tenant lewat `/platform`.
+
+### Middleware akses
+- `middleware.ts` mengatur route-level role guard.
+- `/platform` hanya untuk `SUPER_ADMIN`.
+
+## 4. Prisma/DB: Ringkasan Model Kritis
+
+Sumber resmi: `prisma/schema.prisma`.
+
+### Entitas inti bisnis
+- `Company`, `User`, `UserRole`
+- `Nasabah`, `Kelompok`, `Pengajuan`, `Pinjaman`, `JadwalAngsuran`, `Pembayaran`
+- `KasKategori`, `KasTransaksi`
+- `Account`, `JournalEntry`, `JournalLine`, `RekonsiliasiKas`
+- `CompanySetting`, `AppSetting`
+
+### Constraint penting
+- `Nasabah`: unique `[companyId, nik]`, `[companyId, nomorAnggota]`
+- `Kelompok`: unique `[companyId, kode]`
+- `Account`: unique `[companyId, code]`
+- `KasKategori`: unique `[companyId, key]`
+- `JournalEntry`: unique `[sourceType, sourceId]` (idempotensi posting jurnal)
+- `CompanySetting`: unique `[companyId, key]`
+
+### Catatan tenant safety
+- Mayoritas tabel operasional sudah punya `companyId`.
+- `AuditLog` dan `ApprovalLog` tidak punya `companyId`; gunakan metadata/entity untuk pelacakan konteks.
+
+## 5. Akuntansi: Cara Kerja Saat Ini
+
+File utama: `src/lib/accounting.ts`
+
+- Daftar akun default dibuat via `ensureAccountingAccounts(companyId)`.
+- Mode akuntansi: `SIMPLE` / `PROPER` (`src/lib/accounting-mode.ts`, setting per company di `CompanySetting` key `ACCOUNTING_MODE`).
+- Saldo kas dihitung dari `JournalLine` akun kas (`CASH_TUNAI`/`CASH_BANK`) dengan `JournalEntry.status = POSTED`.
+- Posting jurnal idempotent berdasarkan `(sourceType, sourceId)`.
+
+Flow jurnal utama:
+- Pencairan pinjaman -> `postPencairanJournal`
+- Pembayaran angsuran -> `postPembayaranJournal`
+- Kas umum approved -> `postKasTransactionJournal`
+
+## 6. Flow Pencairan (Bagian Paling Sensitif)
+
+File: `src/actions/pengajuan.ts` (`cairkanPinjaman`)
+
+Validasi saldo:
+- Cek saldo berdasarkan `kasJenis` (`TUNAI`/`BANK`).
+- Gunakan tanggal akhir hari pencairan (`23:59:59.999`) untuk menghindari false negative jika kas masuk terjadi di hari yang sama.
+
+Penyebab umum error `Saldo kas tidak cukup`:
+1. Transaksi modal/simpanan masih `isApproved=false`.
+2. Kas masuk di `BANK`, tapi pencairan memilih `TUNAI` (atau sebaliknya).
+3. Jurnal kas tidak terbentuk (mis. transaksi belum approved).
+
+UI pencairan:
+- `src/app/(dashboard)/pencairan/pencairan-form.tsx`
+- Sudah ada submit lock untuk mencegah double submit/toast bentrok.
+
+## 7. Kas & Approval
+
+File: `src/actions/kas.ts`
+
+- User role non-privileged input kas -> default pending (`isApproved=false`) + `ApprovalLog`.
+- Role privileged (`ADMIN/MANAGER/PIMPINAN`) -> auto approved + langsung post jurnal.
+- Pengeluaran (`KELUAR`) divalidasi saldo kas dulu sebelum simpan/approve.
+
+## 8. Super Admin (Platform)
+
+File utama:
+- `src/actions/platform-admin.ts`
+- pages: `/platform/users`, `/platform/companies`, `/platform/companies/[id]`
+
+Kemampuan inti:
+- Suspend/activate/delete company (soft delete via status)
+- Disable/enable user
+- Reset password user (temporary password)
+- Semua aksi high-impact masuk audit log
+
+Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
+
+## 9. Runbook DB Prisma
+
+### Lokal development
+1. Set `.env` (minimal `DATABASE_URL`, `NEXTAUTH_SECRET`)
+2. Install deps:
+   - `npm install`
+3. Generate prisma client:
+   - `npm run db:generate`
+4. Sinkron schema ke DB (non-migration):
+   - `npm run db:push`
+5. (Opsional) seed:
+   - `npm run db:seed`
+
+### Tarik struktur dari DB existing (mis. prod snapshot)
+- `npx prisma db pull`
+- review perubahan `prisma/schema.prisma`
+- `npm run db:generate`
+
+### Catatan migration
+- `prisma.config.ts` memakai `DIRECT_URL` untuk migration jika tersedia.
+- Untuk perubahan production, hindari asumsi; cek skema aktual dulu (`db pull`) sebelum buat migration.
+
+## 10. Known Pitfalls Cepat
+
+- Error `Can't resolve 'tailwindcss'` biasanya karena menjalankan command dari folder salah (harus di `dashboard/` yang punya `package.json` dan `node_modules`).
+- Hydration mismatch sering dari text non-deterministic antara server/client (hindari data berubah saat render awal).
+- Untuk unique `nik` nasabah: error sudah expected, tampilkan pesan user-friendly; cek scoping `companyId`.
+
+## 11. Checklist Wajib Sebelum Selesai Task
+
+1. Pastikan query/action tenant-aware (`companyId` tidak hilang).
+2. Jalankan `npm run build`.
+3. Jika menyentuh akuntansi:
+   - cek jurnal balance
+   - cek dampak ke `Neraca`, `Laba Rugi`, `Buku Besar`
+4. Jika menyentuh auth/role:
+   - cek login user biasa
+   - cek login `SUPER_ADMIN`
+   - cek guard middleware untuk route sensitif
+
+exec
+/bin/bash -lc "sed -n '1,260p' dashboard/src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let lastPaymentAt: Date | null = null
+    let nextDueAt: Date | null = null
+    let overdueCount = 0
+    let overdueOldestDueAt: Date | null = null
+    let overdueOldestDaysLate = 0
+    let overdueMaxDaysLate = 0
+    let aktifPinjaman = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+
+      const pembayaranTagMap = new Map<string, number>()
+      for (const p of pinjaman.pembayaran) {
+        if (p.tanggalBayar) {
+          if (!lastPaymentAt || p.tanggalBayar > lastPaymentAt) lastPaymentAt = p.tanggalBayar
+        }
+        const tags = parseJadwalTags(p.catatan)
+        if (tags.length === 0) continue
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (!nextDueAt || jadwal.tanggalJatuhTempo < nextDueAt) nextDueAt = jadwal.tanggalJatuhTempo
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+          overdueCount += 1
+          if (!overdueOldestDueAt || jadwal.tanggalJatuhTempo < overdueOldestDueAt) {
+            overdueOldestDueAt = jadwal.tanggalJatuhTempo
+          }
+          const daysLate = Math.max(
+            0,
+            Math.floor((now.getTime() - jadwal.tanggalJatuhTempo.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          if (daysLate > overdueMaxDaysLate) overdueMaxDaysLate = daysLate
+        }
+      }
+    }
+
+    if (overdueOldestDueAt) {
+      overdueOldestDaysLate = Math.max(
+        0,
+        Math.floor((now.getTime() - overdueOldestDueAt.getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      ...nasabah,
+      indikator: {
+        ranking,
+        telat,
+        belumBayar,
+        belumJatuhTempo,
+        kurangAngsuran: tunggakanNominal, // Mapping for UI compatibility if needed, but semantic is tunggakan
+        tunggakanNominal,
+        outstanding,
+        lastPaymentAt,
+        nextDueAt,
+        overdueCount,
+        overdueOldestDueAt,
+        overdueOldestDaysLate,
+        overdueMaxDaysLate,
+        aktifPinjaman,
+      },
+    }
+  })
+
+  return serializeData({ data: withIndicators, total, page, totalPages: Math.ceil(total / limit) })
+}
+
+export async function getNasabahById(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  const result = await prisma.nasabah.findFirst({
+    where: { id, companyId },
+    include: {
+      kelompok: true,
+      kolektor: { select: { id: true, name: true, email: true } },
+      pengajuan: {
+        orderBy: { tanggalPengajuan: "desc" },
+        include: {
+          pinjaman: {
+            include: {
+              jadwalAngsuran: {
+                orderBy: { tanggalJatuhTempo: "asc" },
+              },
+              pembayaran: {
+                where: { isBatalkan: false },
+                orderBy: { tanggalBayar: "desc" },
+                include: { inputOleh: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      },
+      penjamin: true,
+    },
+  })
+
+  return serializeData(result)
+}
+
+export async function createNasabah(input: NasabahInput): Promise<CreateNasabahResult> {
+  const session = await auth()
+
+exec
+/bin/bash -lc "rg --files dashboard | rg 'README_WORKER\\.md|WORKER|worker'" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ exited 1 in 0ms:
+exec
+/bin/bash -lc "sed -n '260,520p' dashboard/src/actions/nasabah.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = nasabahSchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors }
+  }
+
+  const { tanggalLahir, kelompokId, kolektorId, dokumenUrls, ...rest } = parsed.data
+  const existingNik = await prisma.nasabah.findFirst({
+    where: { companyId, nik: parsed.data.nik },
+    select: { namaLengkap: true },
+  })
+
+  if (existingNik) {
+    return {
+      error: {
+        nik: [`NIK sudah terdaftar atas nama ${existingNik.namaLengkap}.`],
+      },
+    }
+  }
+
+  if (kelompokId) {
+    const kelompok = await prisma.kelompok.findFirst({ where: { id: kelompokId, companyId }, select: { id: true } })
+    if (!kelompok) {
+      return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+    }
+  }
+
+  // Nomor anggota dibuat otomatis. Karena generator berbasis count dapat bentrok pada concurrency,
+  // kita retry beberapa kali ketika unique constraint terjadi.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const nomorAnggota = await generateNomorAnggota(companyId)
+    try {
+      const nasabah = await prisma.nasabah.create({
+        data: {
+          companyId,
+          ...rest,
+          nomorAnggota,
+          tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : undefined,
+          kelompokId: kelompokId || null,
+          kolektorId: kolektorId || null,
+          dokumenUrls: dokumenUrls ?? [],
+          tanggalGabung: new Date(),
+        },
+      })
+
+      revalidatePath("/nasabah")
+      return { success: true, data: nasabah }
+    } catch (error) {
+      const fields = getUniqueConstraintFields(error)
+      if (fields.includes("nik")) {
+        return { error: { nik: ["NIK sudah terdaftar."] } }
+      }
+      if (fields.includes("nomorAnggota")) {
+        if (attempt < 2) continue
+        return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+      }
+
+      throw error
+    }
+  }
+
+  return { error: { nomorAnggota: ["Nomor anggota bentrok. Silakan coba simpan lagi."] } }
+}
+
+export async function updateNasabah(id: string, input: Partial<NasabahInput>): Promise<UpdateNasabahResult> {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const current = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!current) return { error: { nik: ["Nasabah tidak ditemukan."] } }
+
+  const { tanggalLahir, dokumenUrls, ...rest } = input
+  const normalized = { ...rest } as Record<string, unknown>
+  if ("kelompokId" in normalized && !normalized.kelompokId) normalized.kelompokId = null
+  if ("kolektorId" in normalized && !normalized.kolektorId) normalized.kolektorId = null
+
+  if (typeof normalized.nik === "string") {
+    const existingNik = await prisma.nasabah.findFirst({
+      where: {
+        companyId,
+        nik: normalized.nik,
+        NOT: { id },
+      },
+      select: { namaLengkap: true },
+    })
+
+    if (existingNik) {
+      return {
+        error: {
+          nik: [`NIK sudah terdaftar atas nama ${existingNik.namaLengkap}.`],
+        },
+      }
+    }
+  }
+
+  if (typeof normalized.kelompokId === "string" && normalized.kelompokId) {
+    const kelompok = await prisma.kelompok.findFirst({ where: { id: normalized.kelompokId, companyId }, select: { id: true } })
+    if (!kelompok) return { error: { kelompokId: ["Kelompok tidak valid untuk company ini."] } }
+  }
+
+  try {
+    await prisma.nasabah.update({
+      where: { id },
+      data: {
+        ...normalized,
+        tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : undefined,
+        ...(dokumenUrls ? { dokumenUrls } : {}),
+      },
+    })
+  } catch (error) {
+    const fields = getUniqueConstraintFields(error)
+    if (fields.includes("nik")) {
+      return { error: { nik: ["NIK sudah terdaftar."] } }
+    }
+
+    throw error
+  }
+
+  revalidatePath("/nasabah")
+  revalidatePath(`/nasabah/${id}`)
+  return { success: true }
+}
+
+export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+  await prisma.nasabah.update({ where: { id }, data: { status } })
+  revalidatePath("/nasabah")
+  return { success: true }
+}
+
+export async function deleteNasabah(id: string) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  try {
+    requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN])
+  } catch {
+    return { success: false, error: "Tidak memiliki hak akses untuk menghapus nasabah." }
+  }
+
+  const nasabah = await prisma.nasabah.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      namaLengkap: true,
+      _count: {
+        select: {
+          pengajuan: true,
+          simpanan: true,
+        },
+      },
+    },
+  })
+
+  if (!nasabah) {
+    return { success: false, error: "Nasabah tidak ditemukan." }
+  }
+  // Guard: prevent cross-company delete even if id leaks
+  const nasabahCompany = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+  if (!nasabahCompany) return { success: false, error: "Forbidden" }
+
+  if (nasabah._count.pengajuan > 0 || nasabah._count.simpanan > 0) {
+    return {
+      success: false,
+      error: "Nasabah sudah memiliki histori pengajuan/simpanan. Gunakan status Non Aktif agar histori tetap aman.",
+    }
+  }
+
+  await prisma.nasabah.delete({ where: { id } })
+
+  revalidatePath("/nasabah")
+  revalidatePath("/dashboard")
+  revalidatePath("/kelompok")
+  return { success: true }
+}
+
+export async function getKelompokList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  return prisma.kelompok.findMany({ where: { companyId }, orderBy: { nama: "asc" } })
+}
+
+export async function getKolektorList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  return prisma.user.findMany({
+    where: { companyId, roles: { some: { role: "KOLEKTOR" } }, isActive: true },
+    select: { id: true, name: true },
+  })
+}
+
+codex
+I located the current `ubahStatusNasabah` implementation; it has tenant scoping but no explicit role guard or audit entry. I’m reviewing audit and role patterns now so the new transition action is consistent with existing server-action conventions.
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/src/lib/audit.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+import { AuditAction, ApprovalEntityType, ApprovalStatus, Prisma } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
+
+type JsonPayload = Prisma.InputJsonValue | undefined
+
+export async function writeAuditLog(input: {
+  actorId?: string
+  entityType: string
+  entityId?: string
+  action: AuditAction
+  beforeData?: JsonPayload
+  afterData?: JsonPayload
+  metadata?: JsonPayload
+  ipAddress?: string
+}) {
+  try {
+    let finalActorId = input.actorId
+    if (finalActorId) {
+      const user = await prisma.user.findUnique({ where: { id: finalActorId }, select: { id: true } })
+      if (!user) finalActorId = undefined
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: finalActorId,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        action: input.action,
+        beforeData: input.beforeData,
+        afterData: input.afterData,
+        metadata: input.metadata,
+        ipAddress: input.ipAddress,
+      },
+    })
+  } catch (error) {
+    // Non-blocking while migration rollout is in progress.
+    console.warn("Audit log write skipped:", error)
+  }
+}
+
+export async function writeApprovalLog(input: {
+  entityType: ApprovalEntityType
+  entityId: string
+  status?: ApprovalStatus
+  catatan?: string
+  requestedById: string
+  approvedById?: string
+}) {
+  try {
+    // Basic existence checks to avoid foreign key violations
+    const requester = await prisma.user.findUnique({ where: { id: input.requestedById }, select: { id: true } })
+    if (!requester) return // Cannot log without valid requester
+
+    let finalApprovedById = input.approvedById
+    if (finalApprovedById) {
+      const approver = await prisma.user.findUnique({ where: { id: finalApprovedById }, select: { id: true } })
+      if (!approver) finalApprovedById = undefined
+    }
+
+    await prisma.approvalLog.create({
+      data: {
+        entityType: input.entityType,
+        entityId: input.entityId,
+        status: input.status ?? ApprovalStatus.PENDING,
+        catatan: input.catatan,
+        requestedById: input.requestedById,
+        approvedById: finalApprovedById,
+      },
+    })
+  } catch (error) {
+    console.warn("Approval log write skipped:", error)
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/src/lib/roles.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+  }
+} | null
+
+export function extractRoles(session: SessionLike): RoleType[] {
+  const roles = session?.user?.roles ?? []
+  return roles.filter((role): role is RoleType =>
+    Object.values(RoleType).includes(role as RoleType)
+  )
+}
+
+export function requireRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const userId = session?.user?.id
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const roles = extractRoles(session)
+  const allowed = roles.some((role) => allowedRoles.includes(role))
+
+  if (!allowed) {
+    throw new Error("Forbidden")
+  }
+
+  return { userId, roles }
+}
+
+export function hasAnyRole(session: SessionLike, allowedRoles: RoleType[]) {
+  const roles = extractRoles(session)
+  return roles.some((role) => allowedRoles.includes(role))
+}
+
+exec
+/bin/bash -lc "sed -n '1,240p' dashboard/src/actions/akuntansi.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+"use server"
+
+import { z } from "zod"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { requireRoles } from "@/lib/roles"
+import { Prisma, RoleType, RekonsiliasiStatus } from "@prisma/client"
+import { revalidatePath } from "next/cache"
+import { writeAuditLog } from "@/lib/audit"
+import { ensureAccountingAccounts } from "@/lib/accounting"
+import { resolveReportPeriod, type ReportPeriodInput } from "@/lib/report-period"
+import { serializeData } from "@/lib/utils"
+import { requireCompanyId } from "@/lib/tenant"
+
+async function ensureDefaultAccounts(companyId: string) {
+  await ensureAccountingAccounts(companyId)
+}
+
+type SessionLike = { user?: { id?: string; roles?: string[] } } | null
+
+function requireFinanceRoles(session: SessionLike) {
+  return requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+}
+
+export async function getAccountList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  requireFinanceRoles(session as unknown as SessionLike)
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  await ensureDefaultAccounts(companyId)
+
+  const result = await prisma.account.findMany({
+    where: { companyId, isActive: true },
+    orderBy: [{ type: "asc" }, { code: "asc" }],
+  })
+
+  return serializeData(result)
+}
+
+const accountCreateSchema = z.object({
+  code: z
+    .string()
+    .min(3)
+    .max(60)
+    .transform((v) => v.trim().toUpperCase().replace(/\s+/g, "_")),
+  name: z.string().min(3).max(120).transform((v) => v.trim()),
+  type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
+})
+
+export async function createAccount(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = accountCreateSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const existing = await prisma.account.findUnique({ where: { companyId_code: { companyId, code: parsed.data.code } } })
+  if (existing) return { error: `Kode akun "${existing.code}" sudah ada.` }
+
+  const row = await prisma.account.create({
+    data: {
+      companyId,
+      code: parsed.data.code,
+      name: parsed.data.name,
+      type: parsed.data.type,
+      isActive: true,
+    },
+  })
+
+  revalidatePath("/akuntansi/akun")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "ACCOUNT",
+    entityId: row.id,
+    action: "CREATE",
+    afterData: { code: row.code, name: row.name, type: row.type },
+  })
+
+  return { success: true, data: row }
+}
+
+export async function getKasKategoriMappingList() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  requireFinanceRoles(session as unknown as SessionLike)
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  await ensureDefaultAccounts(companyId)
+
+  const [accounts, kategori] = await Promise.all([
+    prisma.account.findMany({ where: { companyId, isActive: true }, orderBy: [{ type: "asc" }, { code: "asc" }] }),
+    prisma.kasKategori.findMany({
+      where: { companyId, isActive: true },
+      include: { account: true },
+      orderBy: [{ jenis: "asc" }, { nama: "asc" }],
+    }),
+  ])
+
+  return { accounts, kategori }
+}
+
+const mappingSchema = z.object({
+  kategoriId: z.string().min(3),
+  accountId: z.string().min(3).nullable(),
+})
+
+export async function updateKasKategoriMapping(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = mappingSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const existing = await prisma.kasKategori.findFirst({ where: { id: parsed.data.kategoriId, companyId } })
+  if (!existing) return { error: "Kategori kas tidak ditemukan." }
+
+  if (parsed.data.accountId) {
+    const acc = await prisma.account.findFirst({ where: { id: parsed.data.accountId, companyId } })
+    if (!acc) return { error: "Akun tidak ditemukan." }
+  }
+
+  const updated = await prisma.kasKategori.update({
+    where: { id: parsed.data.kategoriId },
+    data: {
+      accountId: parsed.data.accountId,
+    },
+    include: { account: true },
+  })
+
+  revalidatePath("/akuntansi/mapping-kategori")
+  revalidatePath("/laporan/laba-rugi")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "KAS_KATEGORI",
+    entityId: updated.id,
+    action: "UPDATE",
+    afterData: { key: updated.key, accountId: updated.accountId },
+  })
+
+  return { success: true, data: updated }
+}
+
+async function getCashSaldoBookByJenis(companyId: string, kasJenis: "TUNAI" | "BANK", endExclusive: Date) {
+  const result = await prisma.kasTransaksi.groupBy({
+    by: ["jenis"],
+    where: { companyId, tanggal: { lt: endExclusive }, kasJenis, isApproved: true },
+    _sum: { jumlah: true },
+  })
+
+  const masuk = result.find((r) => r.jenis === "MASUK")?._sum.jumlah || 0
+  const keluar = result.find((r) => r.jenis === "KELUAR")?._sum.jumlah || 0
+
+  return Number(masuk) - Number(keluar)
+}
+
+const rekonsiliasiCreateSchema = z.object({
+  accountId: z.string().min(3),
+  month: z.coerce.number().int().min(1).max(12),
+  year: z.coerce.number().int().min(2000).max(2100),
+  saldoStatement: z.coerce.number(),
+  catatan: z.string().optional(),
+  buktiUrl: z.string().min(3).optional(),
+})
+
+export async function getRekonsiliasiKasList(params?: { year?: string }) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  requireFinanceRoles(session as unknown as SessionLike)
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const year = params?.year ? Number(params.year) : undefined
+
+  const rows = await prisma.rekonsiliasiKas.findMany({
+    where: year ? { companyId, periodYear: year } : { companyId },
+    include: { account: true, createdBy: { select: { id: true, name: true } } },
+    orderBy: [{ periodYear: "desc" }, { periodMonth: "desc" }, { createdAt: "desc" }],
+  })
+
+  const cashAccounts = await prisma.account.findMany({
+    where: { companyId, code: { in: ["CASH_TUNAI", "CASH_BANK"] }, isActive: true },
+    orderBy: { code: "asc" },
+  })
+
+  return serializeData({ rows, cashAccounts })
+}
+
+export async function createRekonsiliasiKas(input: unknown) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { userId } = requireFinanceRoles(session as unknown as SessionLike)
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const parsed = rekonsiliasiCreateSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const account = await prisma.account.findFirst({ where: { id: parsed.data.accountId, companyId } })
+  if (!account) return { error: "Akun tidak ditemukan." }
+  if (account.code !== "CASH_TUNAI" && account.code !== "CASH_BANK") {
+    return { error: "Rekonsiliasi saat ini hanya untuk akun kas tunai dan kas bank." }
+  }
+
+  const endExclusive = new Date(parsed.data.year, parsed.data.month, 1)
+  const kasJenis = account.code === "CASH_BANK" ? "BANK" : "TUNAI"
+  const saldoBook = await getCashSaldoBookByJenis(companyId, kasJenis, endExclusive)
+  const selisih = parsed.data.saldoStatement - saldoBook
+
+  const row = await prisma.rekonsiliasiKas.upsert({
+    where: {
+      accountId_periodMonth_periodYear: {
+        accountId: account.id,
+        periodMonth: parsed.data.month,
+        periodYear: parsed.data.year,
+      },
+    },
+    create: {
+      companyId,
+      accountId: account.id,
+      periodMonth: parsed.data.month,
+      periodYear: parsed.data.year,
+      saldoStatement: new Prisma.Decimal(parsed.data.saldoStatement),
+      saldoBook: new Prisma.Decimal(saldoBook),
+      selisih: new Prisma.Decimal(selisih),
+      catatan: parsed.data.catatan?.trim() || null,
+      buktiUrl: parsed.data.buktiUrl?.trim() || null,
+      status: RekonsiliasiStatus.DRAFT,
+      createdById: userId,
+    },
+    update: {
+      saldoStatement: new Prisma.Decimal(parsed.data.saldoStatement),
+      saldoBook: new Prisma.Decimal(saldoBook),
+      selisih: new Prisma.Decimal(selisih),
+      catatan: parsed.data.catatan?.trim() || null,
+      buktiUrl: parsed.data.buktiUrl?.trim() || null,
+      updatedAt: new Date(),
+    },
+
+exec
+/bin/bash -lc "sed -n '1,220p' dashboard/src/lib/tenant.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+import { RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+export function requireCompanyId(session: SessionLike) {
+  const userId = session?.user?.id
+  if (!userId) throw new Error("Unauthorized")
+
+  const companyId = session.user?.companyId
+  if (!companyId) {
+    // SUPER_ADMIN is allowed to exist without a company context.
+    const roles = session.user?.roles ?? []
+    if (roles.includes(RoleType.SUPER_ADMIN)) {
+      throw new Error("Company context required")
+    }
+    throw new Error("Akun belum terhubung ke company.")
+  }
+
+  return { userId, companyId }
+}
+
+export function requireCompanyRoles(session: SessionLike, allowedRoles: RoleType[]) {
+  const { userId } = requireRoles(session, allowedRoles)
+  const companyId = session?.user?.companyId
+  if (!companyId) throw new Error("Akun belum terhubung ke company.")
+  return { userId, companyId }
+}
+
+
+exec
+/bin/bash -lc "rg -n \"setRekonsiliasiStatus|writeAuditLog|action: \\\"UPDATE\\\"|requireRoles\\(\" dashboard/src/actions/akuntansi.ts && sed -n '240,340p' dashboard/src/actions/akuntansi.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+9:import { writeAuditLog } from "@/lib/audit"
+22:  return requireRoles(session, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+54:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+74:  await writeAuditLog({
+113:  const { userId } = requireRoles(session as unknown as SessionLike, [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN, RoleType.AKUNTANSI])
+137:  await writeAuditLog({
+141:    action: "UPDATE",
+245:  await writeAuditLog({
+263:export async function setRekonsiliasiStatus(input: { id: string; status: "DRAFT" | "SELESAI" }) {
+277:  await writeAuditLog({
+281:    action: "UPDATE",
+    },
+    include: { account: true },
+  })
+
+  revalidatePath("/laporan/rekonsiliasi")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "REKONSILIASI_KAS",
+    entityId: row.id,
+    action: "CREATE",
+    afterData: {
+      accountCode: row.account.code,
+      periodMonth: row.periodMonth,
+      periodYear: row.periodYear,
+      saldoStatement: row.saldoStatement.toString(),
+      saldoBook: row.saldoBook.toString(),
+      selisih: row.selisih.toString(),
+    },
+  })
+
+  return serializeData({ success: true, data: row })
+}
+
+export async function setRekonsiliasiStatus(input: { id: string; status: "DRAFT" | "SELESAI" }) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { userId } = requireFinanceRoles(session as unknown as SessionLike)
+
+  const row = await prisma.rekonsiliasiKas.findUnique({ where: { id: input.id }, include: { account: true } })
+  if (!row) return { error: "Data rekonsiliasi tidak ditemukan." }
+
+  const updated = await prisma.rekonsiliasiKas.update({
+    where: { id: row.id },
+    data: { status: input.status },
+  })
+
+  revalidatePath("/laporan/rekonsiliasi")
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "REKONSILIASI_KAS",
+    entityId: row.id,
+    action: "UPDATE",
+    afterData: { status: updated.status, accountCode: row.account.code },
+  })
+  return { success: true }
+}
+
+function signedBalance(type: string, debit: number, credit: number) {
+  return type === "ASSET" || type === "EXPENSE" ? debit - credit : credit - debit
+}
+
+function accountGroupLabel(type: string) {
+  if (type === "ASSET") return "aset"
+  if (type === "LIABILITY") return "kewajiban"
+  if (type === "EQUITY") return "ekuitas"
+  if (type === "REVENUE") return "pendapatan"
+  return "beban"
+}
+
+export async function getLedgerKasReport(params?: { kasJenis?: string; accountId?: string; accountCode?: string } & ReportPeriodInput) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  requireFinanceRoles(session as unknown as SessionLike)
+
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+  await ensureDefaultAccounts(companyId)
+
+  const fallbackAccountCode = params?.kasJenis === "BANK" ? "CASH_BANK" : "CASH_TUNAI"
+  const requestedAccountCode = params?.accountCode?.trim() || fallbackAccountCode
+  const period = resolveReportPeriod(params)
+
+  const accounts = await prisma.account.findMany({
+    where: { isActive: true },
+    orderBy: [{ type: "asc" }, { code: "asc" }],
+  })
+  const selectedAccount =
+    (params?.accountId ? accounts.find((account) => account.id === params.accountId) : null) ??
+    accounts.find((account) => account.code === requestedAccountCode) ??
+    accounts.find((account) => account.code === "CASH_TUNAI") ??
+    accounts[0]
+
+  if (!selectedAccount) {
+    return serializeData({
+      account: null,
+      accounts,
+      kasJenis: params?.kasJenis === "BANK" ? "BANK" : "TUNAI",
+      period,
+      month: period.month,
+      year: period.year,
+      openingBalance: 0,
+      data: [],
+      closingBalance: 0,
+    })
+  }
+
+  const [openingLines, rows] = await Promise.all([
+    prisma.journalLine.findMany({
+      where: {
+        accountId: selectedAccount.id,
+        journalEntry: { status: "POSTED", entryDate: { lt: period.startDate } },
+      },
+
+codex
+I’ve confirmed existing authorization/audit patterns. Next I’m checking where `ubahStatusNasabah` is consumed so I can keep it backward compatible while introducing the explicit transition action.
+exec
+/bin/bash -lc 'rg -n "ubahStatusNasabah|set.*Nasabah.*Status|status nasabah|NON_AKTIF|KELUAR" dashboard/src' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+dashboard/src/actions/nasabah.ts:71:      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+dashboard/src/actions/nasabah.ts:387:export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+dashboard/src/actions/akuntansi.ts:156:  const keluar = result.find((r) => r.jenis === "KELUAR")?._sum.jumlah || 0
+dashboard/src/actions/maintenance.ts:38:  { jenis: "KELUAR" as const, nama: "PENCAIRAN", key: "PENCAIRAN", accountCode: "PIUTANG_PINJAMAN" },
+dashboard/src/actions/maintenance.ts:39:  { jenis: "KELUAR" as const, nama: "GAJI", key: "GAJI", accountCode: "BEBAN_GAJI" },
+dashboard/src/actions/maintenance.ts:40:  { jenis: "KELUAR" as const, nama: "OPERASIONAL", key: "OPERASIONAL", accountCode: "BEBAN_OPERASIONAL" },
+dashboard/src/actions/maintenance.ts:425:        jenis: "KELUAR",
+dashboard/src/actions/maintenance.ts:456:    ["KELUAR", "OPERASIONAL", "Demo biaya listrik dan internet kantor", 475_000, "TUNAI", 22],
+dashboard/src/actions/maintenance.ts:457:    ["KELUAR", "GAJI", "Demo honor kolektor", 1_250_000, "BANK", 21],
+dashboard/src/actions/maintenance.ts:458:    ["KELUAR", "OPERASIONAL", "Demo pembelian ATK kantor", 285_000, "TUNAI", 19],
+dashboard/src/actions/maintenance.ts:460:    ["KELUAR", "OPERASIONAL", "Demo transport survei lapangan", 360_000, "TUNAI", 17],
+dashboard/src/actions/maintenance.ts:462:    ["KELUAR", "OPERASIONAL", "Demo konsumsi rapat anggota", 520_000, "TUNAI", 14],
+dashboard/src/actions/maintenance.ts:464:    ["KELUAR", "GAJI", "Demo insentif teller", 750_000, "BANK", 12],
+dashboard/src/actions/maintenance.ts:466:    ["KELUAR", "OPERASIONAL", "Demo perawatan printer kuitansi", 410_000, "TUNAI", 9],
+dashboard/src/actions/maintenance.ts:468:    ["KELUAR", "OPERASIONAL", "Demo biaya pulsa penagihan", 225_000, "TUNAI", 6],
+dashboard/src/actions/maintenance.ts:470:    ["KELUAR", "OPERASIONAL", "Demo biaya arsip dokumen", 190_000, "TUNAI", 3],
+dashboard/src/actions/pengajuan.ts:278:  const ensured = await ensureKasKategori({ jenis: "KELUAR", kategori: "PENCAIRAN" })
+dashboard/src/actions/pengajuan.ts:331:        jenis: "KELUAR",
+dashboard/src/actions/pengajuan.ts:459:          jenis: "KELUAR",
+dashboard/src/actions/kas.ts:20:  jenis: z.enum(["MASUK", "KELUAR"]),
+dashboard/src/actions/kas.ts:25:  jenis: z.enum(["MASUK", "KELUAR"]),
+dashboard/src/actions/kas.ts:48:export async function ensureKasKategori(params: { jenis: "MASUK" | "KELUAR"; kategori: string }) {
+dashboard/src/actions/kas.ts:82:  const defaults: Array<{ jenis: "MASUK" | "KELUAR"; nama: string }> = [
+dashboard/src/actions/kas.ts:91:    { jenis: "KELUAR", nama: "PENCAIRAN" },
+dashboard/src/actions/kas.ts:92:    { jenis: "KELUAR", nama: "PEMBATALAN_ANGSURAN" },
+dashboard/src/actions/kas.ts:93:    { jenis: "KELUAR", nama: "GAJI" },
+dashboard/src/actions/kas.ts:94:    { jenis: "KELUAR", nama: "OPERASIONAL" },
+dashboard/src/actions/kas.ts:95:    { jenis: "KELUAR", nama: "LAINNYA_KELUAR" },
+dashboard/src/actions/kas.ts:300:  const totalKeluar = transaksi.filter((t) => t.jenis === "KELUAR").reduce((a, b) => a + Number(b.jumlah ?? 0), 0)
+dashboard/src/actions/kas.ts:427:  if (rest.jenis === "KELUAR") {
+dashboard/src/actions/kas.ts:438:  let kas: { id: string; isApproved: boolean; jenis: "MASUK" | "KELUAR"; kategoriKey: string; jumlah: Prisma.Decimal }
+dashboard/src/actions/kas.ts:523:  if (rest.jenis === "KELUAR") {
+dashboard/src/actions/kas.ts:527:      existing.isApproved && existing.jenis === "KELUAR" && existing.kasJenis === rest.kasJenis
+dashboard/src/actions/kas.ts:673:  if (input.action === "APPROVE" && row.jenis === "KELUAR") {
+dashboard/src/actions/kas.ts:871:    if (row.jenis === "KELUAR") item.keluar += Number(row._sum.jumlah ?? 0)
+dashboard/src/actions/pembayaran.ts:1208:  const ensured = await ensureKasKategori({ jenis: "KELUAR", kategori: "PEMBATALAN_ANGSURAN" })
+dashboard/src/actions/pembayaran.ts:1244:        jenis: "KELUAR",
+dashboard/src/actions/dashboard.ts:80:    const keluar = res.data.find((b) => b.jenis === "KELUAR")?._sum?.jumlah
+dashboard/src/app/(dashboard)/nasabah/page.tsx:13:  NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
+dashboard/src/app/(dashboard)/nasabah/page.tsx:14:  KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+dashboard/src/app/(dashboard)/nasabah/page.tsx:102:              <option value="NON_AKTIF">Non Aktif</option>
+dashboard/src/app/(dashboard)/nasabah/page.tsx:103:              <option value="KELUAR">Keluar</option>
+dashboard/src/app/(dashboard)/nasabah/page.tsx:135:                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:38:  status: "AKTIF" | "NON_AKTIF" | "KELUAR"
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:207:                  <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx:208:                  <SelectItem value="KELUAR">Keluar</SelectItem>
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx:278:                    <SelectItem value="NON_AKTIF">Non Aktif</SelectItem>
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx:279:                    <SelectItem value="KELUAR">Keluar</SelectItem>
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx:19:  jenis: "MASUK" | "KELUAR"
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx:30:  jenis: "MASUK" | "KELUAR"
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx:143:                  <Select onValueChange={(v) => setJenis(v as "MASUK" | "KELUAR")} value={jenis}>
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx:147:                      <SelectItem value="KELUAR">Kas Keluar</SelectItem>
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:23:    jenis: "MASUK" | "KELUAR"
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:42:  jenis: "MASUK" | "KELUAR"
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:60:  const [jenis, setJenis] = useState<"MASUK" | "KELUAR">("MASUK")
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:69:  const [kategoriJenis, setKategoriJenis] = useState<"MASUK" | "KELUAR">("MASUK")
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:503:                    setJenis(v as "MASUK" | "KELUAR")
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:511:                      <SelectItem value="KELUAR" className="rounded-lg">Kas Keluar</SelectItem>
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:643:                      if (v === "MASUK" || v === "KELUAR") setKategoriJenis(v)
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:650:                      <SelectItem value="KELUAR" className="rounded-lg">Kas Keluar</SelectItem>
+dashboard/src/app/(dashboard)/kas/kas-client.tsx:675:                {(["MASUK", "KELUAR"] as const).map((j) => (
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx:21:  jenis: "MASUK" | "KELUAR"
+dashboard/src/lib/accounting.ts:55:function fallbackAccountForKas(jenis: "MASUK" | "KELUAR", kategori: string) {
+dashboard/src/lib/validations/nasabah.ts:18:  status: z.enum(["AKTIF", "NON_AKTIF", "KELUAR"]).default("AKTIF"),
+
+exec
+/bin/bash -lc "sed -n '1,240p' dashboard/src/app/(dashboard)/nasabah/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,240p' dashboard/src/app/(dashboard)/nasabah/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,240p' dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `sed -n '1,240p' dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx'
+
+exec
+/bin/bash -lc "sed -n '1,220p' 'dashboard/src/app/(dashboard)/nasabah/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+import Link from "next/link"
+import { Plus, Search, Download, Eye, Pencil } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getKelompokList, getNasabahList } from "@/actions/nasabah"
+import { Input } from "@/components/ui/input"
+import { DeleteNasabahButton } from "./delete-nasabah-button"
+
+const statusBadge: Record<string, { label: string; cls: string }> = {
+  AKTIF: { label: "Aktif", cls: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
+  KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+}
+
+const rankBadge: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  B: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  D: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+export default async function NasabahPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string; page?: string; kelompokId?: string; status?: string }>
+}) {
+  const sp = await searchParams
+  const search = sp?.search ?? ""
+  const page = Number(sp?.page ?? 1)
+  const kelompokId = sp?.kelompokId ?? ""
+  const status = sp?.status ?? ""
+
+  const kelompokList = await getKelompokList()
+  const { data: nasabahList, total, totalPages } = await getNasabahList({
+    page,
+    search,
+    limit: 20,
+    kelompokId: kelompokId || undefined,
+    status: status || undefined,
+  })
+
+  return (
+    <div className="p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Master Nasabah</h1>
+          <p className="text-muted-foreground text-sm">
+            {total.toLocaleString("id-ID")} total nasabah terdaftar dalam sistem.
+          </p>
+        </div>
+        <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95">
+          <Link href="/nasabah/baru">
+            <Plus className="size-4" /> Tambah Nasabah
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <CardTitle className="text-base font-semibold">Daftar Nasabah</CardTitle>
+              <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="gap-2 border-slate-200/80 dark:border-slate-800/80">
+              <Download className="size-3.5" /> 
+              <span className="hidden sm:inline">Export Data</span>
+            </Button>
+          </div>
+          <form method="GET" className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input name="search" defaultValue={search} placeholder="Cari nama, NIK, atau nomor anggota..." className="pl-9 transition-all" />
+            </div>
+            <select
+              name="kelompokId"
+              defaultValue={kelompokId}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter kelompok"
+            >
+              <option value="">Semua kelompok</option>
+              {kelompokList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama}
+                </option>
+              ))}
+            </select>
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter status"
+            >
+              <option value="">Semua status</option>
+              <option value="AKTIF">Aktif</option>
+              <option value="NON_AKTIF">Non Aktif</option>
+              <option value="KELUAR">Keluar</option>
+            </select>
+            <Button type="submit" variant="secondary" className="px-6">Cari</Button>
+          </form>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[110px]">No. Anggota</TableHead>
+                <TableHead>Nama Lengkap</TableHead>
+                <TableHead className="hidden md:table-cell">NIK</TableHead>
+                <TableHead className="hidden lg:table-cell">Kelompok</TableHead>
+                <TableHead className="hidden lg:table-cell">Kolektor</TableHead>
+                <TableHead className="hidden xl:table-cell">Indikator</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Tgl. Gabung</TableHead>
+                <TableHead className="w-[50px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {nasabahList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-24 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Search className="size-8 opacity-20" />
+                      <p>{search ? `Tidak ada nasabah dengan kata kunci "${search}"` : "Belum ada data nasabah. Tambah nasabah pertama."}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                nasabahList.map((row) => {
+                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs font-semibold text-slate-500">{row.nomorAnggota}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold tracking-tight">{row.namaLengkap}</span>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge
+                              className={`${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} hover:${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} border-0 text-[10px] font-black h-5 uppercase tracking-wider`}
+                              title="Ranking risiko"
+                            >
+                              Rank {row.indikator.ranking}
+                            </Badge>
+                            {row.indikator.overdueCount > 0 && row.indikator.overdueOldestDueAt ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-black h-5 uppercase tracking-wider"
+                                title="Angsuran jatuh tempo belum lunas"
+                              >
+                                Telat {row.indikator.overdueCount} (
+                                {new Date(row.indikator.overdueOldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                ) {row.indikator.overdueOldestDaysLate} hari
+                              </Badge>
+                            ) : null}
+                            {row.indikator.tunggakanNominal > 0 ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tunggakan angsuran"
+                              >
+                                Tunggakan {fmt(Number(row.indikator.tunggakanNominal))}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tidak ada tunggakan angsuran"
+                              >
+                                Lancar
+                              </Badge>
+                            )}
+                            {row.indikator.aktifPinjaman > 0 ? (
+                              <Badge
+                                className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Jumlah pinjaman aktif"
+                              >
+                                Aktif {row.indikator.aktifPinjaman}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground md:hidden">{row.nik}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell font-mono text-[11px] text-slate-500 tracking-tight">{row.nik}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kelompok?.nama ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kolektor?.name ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Outstanding</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-200">
+                              {fmt(Number(row.indikator.outstanding))}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Telat</span>
+                            <span className={row.indikator.telat > 0 ? "font-bold text-rose-600" : "font-semibold"}>
+                              {row.indikator.telat}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Next Due</span>
+                            <span className="font-medium">
+                              {row.indikator.nextDueAt
+                                ? new Date(row.indikator.nextDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                                : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${badge.cls} hover:${badge.cls} border-0 text-[10px] font-bold px-2 py-0 h-5 uppercase tracking-wide`}>{badge.label}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-[11px] font-medium text-slate-500">
+
+exec
+/bin/bash -lc "sed -n '1,260p' 'dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx'" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { getNasabahById } from "@/actions/nasabah"
+import { getRankingConfig } from "@/actions/settings"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
+import { computeRanking, explainRanking } from "@/lib/ranking"
+
+function docTitle(url: string) {
+  const clean = url.split("?")[0]
+  return clean.split("/").filter(Boolean).pop() ?? url
+}
+
+const statusPinjaman: Record<string, string> = {
+  AKTIF: "bg-blue-100 text-blue-700",
+  MENUNGGAK: "bg-orange-100 text-orange-700",
+  MACET: "bg-red-100 text-red-700",
+  LUNAS: "bg-emerald-100 text-emerald-700",
+}
+
+const statusPengajuan: Record<string, string> = {
+  DRAFT: "bg-gray-100 text-gray-600",
+  DIAJUKAN: "bg-blue-100 text-blue-700",
+  DISURVEY: "bg-violet-100 text-violet-700",
+  DISETUJUI: "bg-emerald-100 text-emerald-700",
+  DITOLAK: "bg-red-100 text-red-700",
+  DICAIRKAN: "bg-teal-100 text-teal-700",
+  SELESAI: "bg-gray-100 text-gray-600",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+function rankingBadge(rank: string) {
+  if (rank === "A") return <Badge className="bg-emerald-100 text-emerald-700">A - Sangat Lancar</Badge>
+  if (rank === "B") return <Badge className="bg-blue-100 text-blue-700">B - Lancar</Badge>
+  if (rank === "C") return <Badge className="bg-amber-100 text-amber-700">C - Perlu Pantau</Badge>
+  return <Badge className="bg-red-100 text-red-700">D - Risiko</Badge>
+}
+
+export default async function NasabahDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const nasabah = await getNasabahById(id)
+  if (!nasabah) notFound()
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  // Indikator konsistensi dan ranking (mengikuti logika laporan).
+  const indikator = (() => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let anomaliPembayaran = 0
+    let anomaliNominal = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      const pembayaranTagMap = new Map<string, number>()
+
+      for (const p of pinjaman.pembayaran) {
+        const tags = p.catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+        if (tags.length === 0) {
+          anomaliPembayaran += 1
+          anomaliNominal += Number(p.totalBayar)
+          continue
+        }
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+        }
+      }
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      tunggakanNominal,
+      telat,
+      belumJatuhTempo,
+      belumBayar,
+      outstanding,
+      ranking,
+      anomaliPembayaran,
+      anomaliNominal,
+    }
+  })()
+  const rankingExplain = explainRanking(
+    { telat: indikator.telat, tunggakanNominal: indikator.tunggakanNominal },
+    rankingConfig
+  )
+
+  const transaksiTerjadi = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.pembayaran ?? []).map((bayar) => ({
+        id: bayar.id,
+        tanggal: bayar.tanggalBayar,
+        kontrak: p.pinjaman?.nomorKontrak ?? "-",
+        total: Number(bayar.totalBayar),
+        pokok: Number(bayar.pokok),
+        bunga: Number(bayar.bunga),
+        denda: Number(bayar.denda),
+        metode: bayar.metode,
+        petugas: bayar.inputOleh.name,
+      }))
+    )
+    .sort((a, b) => b.tanggal.getTime() - a.tanggal.getTime())
+
+  const transaksiAkanDatang = nasabah.pengajuan
+    .flatMap((p) =>
+      (p.pinjaman?.jadwalAngsuran ?? [])
+        .filter((jadwal) => !jadwal.sudahDibayar)
+        .map((jadwal) => ({
+          id: jadwal.id,
+          tanggalJatuhTempo: jadwal.tanggalJatuhTempo,
+          kontrak: p.pinjaman?.nomorKontrak ?? "-",
+          angsuranKe: jadwal.angsuranKe,
+          total: Number(jadwal.total),
+          pokok: Number(jadwal.pokok),
+          bunga: Number(jadwal.bunga),
+          status: jadwal.tanggalJatuhTempo < now ? "TERLAMBAT" : "UPCOMING",
+        }))
+    )
+    .sort((a, b) => a.tanggalJatuhTempo.getTime() - b.tanggalJatuhTempo.getTime())
+
+  const infoItems = [
+    { icon: Phone, label: "No. HP", value: nasabah.noHp },
+    { icon: MapPin, label: "Alamat", value: `${nasabah.alamat}${nasabah.kecamatan ? `, Kec. ${nasabah.kecamatan}` : ""}${nasabah.kotaKab ? `, ${nasabah.kotaKab}` : ""}` },
+    { icon: CalendarDays, label: "Tempat/Tgl. Lahir", value: nasabah.tanggalLahir ? `${nasabah.tempatLahir ?? "—"}, ${new Date(nasabah.tanggalLahir).toLocaleDateString("id-ID")}` : (nasabah.tempatLahir ?? "—") },
+    { icon: Briefcase, label: "Pekerjaan", value: nasabah.pekerjaan ?? "—" },
+    { icon: Store, label: "Nama Usaha", value: nasabah.namaUsaha ?? "—" },
+    { icon: CreditCard, label: "NIK", value: nasabah.nik },
+  ]
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/nasabah"><ArrowLeft className="size-4" /></Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{nasabah.namaLengkap}</h1>
+            <p className="text-muted-foreground text-sm font-mono">{nasabah.nomorAnggota}</p>
+          </div>
+        </div>
+        <Button asChild variant="outline">
+          <Link href={`/nasabah/${id}/edit`}>
+            <Edit className="size-4" /> Edit
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" asChild>
+          <a href="#informasi">Informasi</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#penjamin">Penjamin ({nasabah.penjamin.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#dokumen">Dokumen ({nasabah.dokumenUrls.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#pengajuan">Pengajuan ({nasabah.pengajuan.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#transaksi">Transaksi ({transaksiTerjadi.length})</a>
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#jadwal">Jadwal ({transaksiAkanDatang.length})</a>
+        </Button>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Info Utama */}
+        <Card id="informasi" className="lg:col-span-2 scroll-mt-24">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Informasi Nasabah</CardTitle>
+              <Badge className={nasabah.status === "AKTIF" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}>
+                {nasabah.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {nasabah.fotoUrl ? (
+              <div className="flex items-center gap-3 rounded-md border bg-muted/20 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={nasabah.fotoUrl}
+                  alt="Foto nasabah"
+                  className="h-14 w-14 rounded-md border bg-white object-cover"
+                />
+                <div className="text-xs text-muted-foreground">
+                  Foto profil nasabah.
+                </div>
+              </div>
+            ) : null}
+            {infoItems.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <Icon className="size-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-sm">{value}</p>
+                </div>
+              </div>
+            ))}
+            <Separator />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Kelompok</p>
+                <p>{nasabah.kelompok?.nama ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Kolektor</p>
+                <p>{nasabah.kolektor?.name ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tgl. Gabung</p>
+                <p>{new Date(nasabah.tanggalGabung).toLocaleDateString("id-ID")}</p>
+              </div>
+            </div>
+
+exec
+/bin/bash -lc 'find /tmp/codex-fanout -name README_WORKER.md -print' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 502ms:
+/tmp/codex-fanout/20260423_123616/phase0-test-baseline/README_WORKER.md
+/tmp/codex-fanout/20260423_123616/phase0-tenant-guard-audit/dashboard/README_WORKER.md
+/tmp/codex-fanout/20260423_123616/phase0-lint-hardening/README_WORKER.md
+
+exec
+/bin/bash -lc 'cd dashboard && git status --short --branch' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+## codex/20260423_125858/p1b-action-status-transition
+
+codex
+I’m ready to implement: I’ll add a dedicated status-transition action with role authorization + transition validation + tenant-scoped lookup + audit logging, then make `ubahStatusNasabah` delegate to it for compatibility. After that I’ll run `lint` and `build`, record evidence in `README_WORKER.md`, and commit.
+exec
+/bin/bash -lc 'cat dashboard/package.json' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc 'rg -n "type AuditAction|enum AuditAction|model Nasabah|enum NasabahStatus" dashboard/prisma/schema.prisma' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+88:model Nasabah {
+599:enum AuditAction {
+
+exec
+/bin/bash -lc "sed -n '70,140p' dashboard/prisma/schema.prisma && sed -n '580,660p' dashboard/prisma/schema.prisma" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+  auditLogs              AuditLog[]        @relation("AuditActor")
+  ownedCompanies         Company[]         @relation("CompanyOwner")
+  journalPosted          JournalEntry[]    @relation("JournalPostedBy")
+  kasDiinput             KasTransaksi[]
+  kolektorTargets        KolektorTarget[]  @relation("KolektorTargetUser")
+  nasabahSebagaiKolektor Nasabah[]         @relation("KolektorNasabah")
+  notifikasi             Notifikasi[]      @relation("UserNotifikasi")
+  pembayaranDiinput      Pembayaran[]
+  pengajuanDisetujui     Pengajuan[]       @relation("ApproverPengajuan")
+  pengajuanDisurvey      Pengajuan[]       @relation("SurveyorPengajuan")
+  rekonsiliasiDibuat     RekonsiliasiKas[] @relation("RekonsiliasiCreatedBy")
+  roles                  UserRole[]
+  company                Company?          @relation("UserCompany", fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model Nasabah {
+  id            String        @id @default(cuid())
+  nomorAnggota  String
+  namaLengkap   String
+  nik           String
+  tempatLahir   String?
+  tanggalLahir  DateTime?
+  alamat        String
+  kelurahan     String?
+  kecamatan     String?
+  kotaKab       String?
+  noHp          String
+  pekerjaan     String?
+  namaUsaha     String?
+  status        StatusNasabah @default(AKTIF)
+  tanggalGabung DateTime      @default(now())
+  fotoUrl       String?
+  dokumenUrls   String[]
+  kolektorId    String?
+  kelompokId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kelompok      Kelompok?     @relation(fields: [kelompokId], references: [id])
+  kolektor      User?         @relation("KolektorNasabah", fields: [kolektorId], references: [id])
+  pengajuan     Pengajuan[]
+  penjamin      Penjamin[]
+  simpanan      Simpanan[]
+
+  @@unique([companyId, nomorAnggota])
+  @@unique([companyId, nik])
+  @@index([companyId])
+  @@map("nasabah")
+}
+
+model Penjamin {
+  id          String  @id @default(cuid())
+  namaLengkap String
+  nik         String
+  hubungan    String
+  noHp        String
+  alamat      String?
+  nasabahId   String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nasabah     Nasabah @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("penjamin")
+}
+
+model Kelompok {
+  PENCAIRAN
+  KAS
+  SIMPANAN
+  ADJUSTMENT
+  REVERSAL
+  DEMO_IMPORT
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum RekonsiliasiStatus {
+  DRAFT
+  SELESAI
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  DISBURSE
+  PAYMENT
+  CASH
+  LOGIN
+  LOGOUT
+}
+
+enum ApprovalEntityType {
+  PENGAJUAN
+  PEMBAYARAN
+  KAS
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotifikasiJenis {
+  JATUH_TEMPO
+  TUNGGAKAN
+  APPROVAL
+  KAS
+  REMINDER
+  SYSTEM
+}
+
+exec
+/bin/bash -lc "rg -n \"enum StatusNasabah\" dashboard/prisma/schema.prisma && sed -n '520,580p' dashboard/prisma/schema.prisma" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+526:enum StatusNasabah {
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum StatusNasabah {
+  AKTIF
+  NON_AKTIF
+  KELUAR
+}
+
+enum JenisPinjaman {
+  REGULAR
+  MIKRO
+  USAHA
+}
+
+enum TenorType {
+  BULANAN
+  MINGGUAN
+}
+
+enum StatusPengajuan {
+  DRAFT
+  DIAJUKAN
+  DISURVEY
+  DISETUJUI
+  DITOLAK
+  DICAIRKAN
+  SELESAI
+}
+
+enum StatusPinjaman {
+  AKTIF
+  MENUNGGAK
+  MACET
+  LUNAS
+}
+
+enum MetodeBayar {
+  TUNAI
+  TRANSFER
+}
+
+enum JenisKas {
+  MASUK
+  KELUAR
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalSourceType {
+  PEMBAYARAN
+  PENCAIRAN
+
+codex
+Before editing, I’m doing the required Next.js local-doc check for APIs I’ll touch (`server actions` and `revalidatePath`) so this stays compliant with the repo rules.
+exec
+/bin/bash -lc 'cd dashboard && rg -n "revalidatePath|Server Actions|use server" node_modules/next/dist/docs -g "*.md" | head -n 20' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+exec
+/bin/bash -lc 'cd dashboard && rg --files node_modules/next/dist/docs | head -n 30' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+codex
+I’m now applying the code changes: adding `src/actions/nasabah-status.ts` for the explicit transition action, then updating `ubahStatusNasabah` in `nasabah.ts` to call it so existing callers remain intact.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/src/actions/nasabah-status.ts
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/src/actions/nasabah.ts
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+codex
+The action changes are in place. I’m running `lint` and `build` now to verify, then I’ll add the command evidence log into `README_WORKER.md`.
+exec
+/bin/bash -lc 'cd dashboard && npm run lint' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+ exited 127 in 267ms:
+
+> dashboard@0.1.0 lint
+> eslint
+
+sh: 1: eslint: not found
+
+exec
+/bin/bash -lc 'cd dashboard && npm run build' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+ exited 127 in 627ms:
+
+> dashboard@0.1.0 build
+> next build
+
+sh: 1: next: not found
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' src/actions/nasabah-status.ts" in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
+import { auth } from "@/lib/auth"
+import { writeAuditLog } from "@/lib/audit"
+import { prisma } from "@/lib/prisma"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type SessionLike = {
+  user?: {
+    id?: string
+    roles?: string[]
+    companyId?: string | null
+  }
+} | null
+
+const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
+
+type TransitionStatusInput = {
+  id: string
+  toStatus: StatusNasabah
+  reason?: string
+}
+
+type TransitionStatusResult =
+  | { success: true; status: StatusNasabah }
+  | { success: false; error: string }
+
+const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
+  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
+  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
+  KELUAR: ["KELUAR"],
+}
+
+export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+
+  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
+  const { companyId } = requireCompanyId(session as unknown as SessionLike)
+
+  const id = input.id.trim()
+  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
+
+  const current = await prisma.nasabah.findFirst({
+    where: { id, companyId },
+    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
+  })
+
+  if (!current) {
+    return { success: false, error: "Nasabah tidak ditemukan." }
+  }
+
+  if (!allowedTransitions[current.status].includes(input.toStatus)) {
+    return {
+      success: false,
+      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
+    }
+  }
+
+  if (current.status === input.toStatus) {
+    return { success: true, status: current.status }
+  }
+
+  const updated = await prisma.nasabah.updateMany({
+    where: { id, companyId },
+    data: { status: input.toStatus },
+  })
+
+  if (updated.count !== 1) {
+    return { success: false, error: "Gagal mengubah status nasabah." }
+  }
+
+  await writeAuditLog({
+    actorId: userId,
+    entityType: "NASABAH",
+    entityId: current.id,
+    action: AuditAction.UPDATE,
+    beforeData: { status: current.status },
+    afterData: { status: input.toStatus },
+    metadata: {
+      nomorAnggota: current.nomorAnggota,
+      namaLengkap: current.namaLengkap,
+      transition: `${current.status}->${input.toStatus}`,
+      reason: input.reason?.trim() || null,
+      companyId,
+    },
+  })
+
+  revalidatePath("/nasabah")
+  revalidatePath(`/nasabah/${current.id}`)
+  revalidatePath(`/nasabah/${current.id}/edit`)
+
+  return { success: true, status: input.toStatus }
+}
+
+exec
+/bin/bash -lc 'cd dashboard && git diff -- src/actions/nasabah.ts src/actions/nasabah-status.ts' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 1ms:
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae..61ea684 100644
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@ import { serializeData } from "@/lib/utils"
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@ export async function updateNasabah(id: string, input: Partial<NasabahInput>): P
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+codex
+`lint` and `build` commands were executed but failed due missing local binaries (`eslint`/`next` not installed in this workspace). I’ll record exact command evidence and outputs in `dashboard/README_WORKER.md`, then commit the branch.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/README_WORKER.md
+diff --git a/dashboard/README_WORKER.md b/dashboard/README_WORKER.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b15e1b7239cf1a8997124f6a393dd80d128917d
+--- /dev/null
++++ b/dashboard/README_WORKER.md
+@@ -0,0 +1,23 @@
++# Worker 3 Evidence
++
++## Scope
++- `src/actions/nasabah.ts`
++- `src/actions/nasabah-status.ts`
++
++## Command Evidence
++
++### `npm run lint`
++```text
++> dashboard@0.1.0 lint
++> eslint
++
++sh: 1: eslint: not found
++```
++
++### `npm run build`
++```text
++> dashboard@0.1.0 build
++> next build
++
++sh: 1: next: not found
++```
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+diff --git a/dashboard/README_WORKER.md b/dashboard/README_WORKER.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b15e1b7239cf1a8997124f6a393dd80d128917d
+--- /dev/null
++++ b/dashboard/README_WORKER.md
+@@ -0,0 +1,23 @@
++# Worker 3 Evidence
++
++## Scope
++- `src/actions/nasabah.ts`
++- `src/actions/nasabah-status.ts`
++
++## Command Evidence
++
++### `npm run lint`
++```text
++> dashboard@0.1.0 lint
++> eslint
++
++sh: 1: eslint: not found
++```
++
++### `npm run build`
++```text
++> dashboard@0.1.0 build
++> next build
++
++sh: 1: next: not found
++```
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+codex
+I’ve added the worker evidence file with raw command outputs. Next step is committing these changes with a focused message.
+exec
+/bin/bash -lc 'cd dashboard && git add src/actions/nasabah.ts src/actions/nasabah-status.ts README_WORKER.md && git commit -m "feat(nasabah): add explicit status transition action with audit log" && git status --short --branch' in /tmp/codex-fanout/20260423_125858/p1b-action-status-transition
+ succeeded in 248ms:
+[codex/20260423_125858/p1b-action-status-transition 56c6c21] feat(nasabah): add explicit status transition action with audit log
+ 3 files changed, 123 insertions(+), 8 deletions(-)
+ create mode 100644 dashboard/README_WORKER.md
+ create mode 100644 dashboard/src/actions/nasabah-status.ts
+## codex/20260423_125858/p1b-action-status-transition
+
+diff --git a/dashboard/README_WORKER.md b/dashboard/README_WORKER.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b15e1b7239cf1a8997124f6a393dd80d128917d
+--- /dev/null
++++ b/dashboard/README_WORKER.md
+@@ -0,0 +1,23 @@
++# Worker 3 Evidence
++
++## Scope
++- `src/actions/nasabah.ts`
++- `src/actions/nasabah-status.ts`
++
++## Command Evidence
++
++### `npm run lint`
++```text
++> dashboard@0.1.0 lint
++> eslint
++
++sh: 1: eslint: not found
++```
++
++### `npm run build`
++```text
++> dashboard@0.1.0 build
++> next build
++
++sh: 1: next: not found
++```
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+codex
+Implemented and committed.
+
+### What I changed
+- Added explicit server action for nasabah status transition with:
+  - authorization guard (`ADMIN`, `MANAGER`, `PIMPINAN`)
+  - tenant-safe lookup/update scoped by `companyId`
+  - explicit transition rules (`KELUAR` is terminal)
+  - audit log write (`AuditAction.UPDATE`) with before/after + metadata  
+  File: [nasabah-status.ts](/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/src/actions/nasabah-status.ts)
+
+- Kept backward compatibility by making existing `ubahStatusNasabah(id, status)` delegate to the new action.  
+  File: [nasabah.ts](/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/src/actions/nasabah.ts#L388)
+
+- Added command evidence to:  
+  [README_WORKER.md](/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/README_WORKER.md)
+
+### Verification commands
+- `npm run lint` -> failed: `eslint: not found`
+- `npm run build` -> failed: `next: not found`  
+Both outputs are recorded in `README_WORKER.md`.
+
+### Commit
+- `56c6c21`  
+- Message: `feat(nasabah): add explicit status transition action with audit log`
+diff --git a/dashboard/README_WORKER.md b/dashboard/README_WORKER.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b15e1b7239cf1a8997124f6a393dd80d128917d
+--- /dev/null
++++ b/dashboard/README_WORKER.md
+@@ -0,0 +1,23 @@
++# Worker 3 Evidence
++
++## Scope
++- `src/actions/nasabah.ts`
++- `src/actions/nasabah-status.ts`
++
++## Command Evidence
++
++### `npm run lint`
++```text
++> dashboard@0.1.0 lint
++> eslint
++
++sh: 1: eslint: not found
++```
++
++### `npm run build`
++```text
++> dashboard@0.1.0 build
++> next build
++
++sh: 1: next: not found
++```
+diff --git a/dashboard/src/actions/nasabah-status.ts b/dashboard/src/actions/nasabah-status.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83d0e049e5de3f0f0ad8be8a4f6d0143df446bb
+--- /dev/null
++++ b/dashboard/src/actions/nasabah-status.ts
+@@ -0,0 +1,97 @@
++"use server"
++
++import { revalidatePath } from "next/cache"
++import { AuditAction, RoleType, StatusNasabah } from "@prisma/client"
++import { auth } from "@/lib/auth"
++import { writeAuditLog } from "@/lib/audit"
++import { prisma } from "@/lib/prisma"
++import { requireRoles } from "@/lib/roles"
++import { requireCompanyId } from "@/lib/tenant"
++
++type SessionLike = {
++  user?: {
++    id?: string
++    roles?: string[]
++    companyId?: string | null
++  }
++} | null
++
++const ALLOWED_ROLE_FOR_STATUS_TRANSITION: RoleType[] = [RoleType.ADMIN, RoleType.MANAGER, RoleType.PIMPINAN]
++
++type TransitionStatusInput = {
++  id: string
++  toStatus: StatusNasabah
++  reason?: string
++}
++
++type TransitionStatusResult =
++  | { success: true; status: StatusNasabah }
++  | { success: false; error: string }
++
++const allowedTransitions: Record<StatusNasabah, ReadonlyArray<StatusNasabah>> = {
++  AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  NON_AKTIF: ["AKTIF", "NON_AKTIF", "KELUAR"],
++  KELUAR: ["KELUAR"],
++}
++
++export async function transitionNasabahStatus(input: TransitionStatusInput): Promise<TransitionStatusResult> {
++  const session = await auth()
++  if (!session) throw new Error("Unauthorized")
++
++  const { userId } = requireRoles(session as unknown as SessionLike, ALLOWED_ROLE_FOR_STATUS_TRANSITION)
++  const { companyId } = requireCompanyId(session as unknown as SessionLike)
++
++  const id = input.id.trim()
++  if (!id) return { success: false, error: "ID nasabah wajib diisi." }
++
++  const current = await prisma.nasabah.findFirst({
++    where: { id, companyId },
++    select: { id: true, status: true, namaLengkap: true, nomorAnggota: true },
++  })
++
++  if (!current) {
++    return { success: false, error: "Nasabah tidak ditemukan." }
++  }
++
++  if (!allowedTransitions[current.status].includes(input.toStatus)) {
++    return {
++      success: false,
++      error: `Transisi status dari ${current.status} ke ${input.toStatus} tidak diizinkan.`,
++    }
++  }
++
++  if (current.status === input.toStatus) {
++    return { success: true, status: current.status }
++  }
++
++  const updated = await prisma.nasabah.updateMany({
++    where: { id, companyId },
++    data: { status: input.toStatus },
++  })
++
++  if (updated.count !== 1) {
++    return { success: false, error: "Gagal mengubah status nasabah." }
++  }
++
++  await writeAuditLog({
++    actorId: userId,
++    entityType: "NASABAH",
++    entityId: current.id,
++    action: AuditAction.UPDATE,
++    beforeData: { status: current.status },
++    afterData: { status: input.toStatus },
++    metadata: {
++      nomorAnggota: current.nomorAnggota,
++      namaLengkap: current.namaLengkap,
++      transition: `${current.status}->${input.toStatus}`,
++      reason: input.reason?.trim() || null,
++      companyId,
++    },
++  })
++
++  revalidatePath("/nasabah")
++  revalidatePath(`/nasabah/${current.id}`)
++  revalidatePath(`/nasabah/${current.id}/edit`)
++
++  return { success: true, status: input.toStatus }
++}
+diff --git a/dashboard/src/actions/nasabah.ts b/dashboard/src/actions/nasabah.ts
+index a79ccae43a3dc2b31e9faa6bfd1cf75d7dcf7ed2..61ea6848d2f772a28dce3c3e2c96d76322b174f9
+--- a/dashboard/src/actions/nasabah.ts
++++ b/dashboard/src/actions/nasabah.ts
+@@ -10,6 +10,7 @@
+ import { Prisma, RoleType } from "@prisma/client"
+ import { requireRoles } from "@/lib/roles"
+ import { requireCompanyId } from "@/lib/tenant"
++import { transitionNasabahStatus } from "@/actions/nasabah-status"
+ 
+ type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+ type CreateNasabahResult =
+@@ -385,14 +386,8 @@
+ }
+ 
+ export async function ubahStatusNasabah(id: string, status: "AKTIF" | "NON_AKTIF" | "KELUAR") {
+-  const session = await auth()
+-  if (!session) throw new Error("Unauthorized")
+-  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+-
+-  const existing = await prisma.nasabah.findFirst({ where: { id, companyId }, select: { id: true } })
+-  if (!existing) return { success: false, error: "Nasabah tidak ditemukan." }
+-  await prisma.nasabah.update({ where: { id }, data: { status } })
+-  revalidatePath("/nasabah")
++  const result = await transitionNasabahStatus({ id, toStatus: status })
++  if (!result.success) return result
+   return { success: true }
+ }
+ 
+
+tokens used
+60,253
+Implemented and committed.
+
+### What I changed
+- Added explicit server action for nasabah status transition with:
+  - authorization guard (`ADMIN`, `MANAGER`, `PIMPINAN`)
+  - tenant-safe lookup/update scoped by `companyId`
+  - explicit transition rules (`KELUAR` is terminal)
+  - audit log write (`AuditAction.UPDATE`) with before/after + metadata  
+  File: [nasabah-status.ts](/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/src/actions/nasabah-status.ts)
+
+- Kept backward compatibility by making existing `ubahStatusNasabah(id, status)` delegate to the new action.  
+  File: [nasabah.ts](/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/src/actions/nasabah.ts#L388)
+
+- Added command evidence to:  
+  [README_WORKER.md](/tmp/codex-fanout/20260423_125858/p1b-action-status-transition/dashboard/README_WORKER.md)
+
+### Verification commands
+- `npm run lint` -> failed: `eslint: not found`
+- `npm run build` -> failed: `next: not found`  
+Both outputs are recorded in `README_WORKER.md`.
+
+### Commit
+- `56c6c21`  
+- Message: `feat(nasabah): add explicit status transition action with audit log`

@@ -1,0 +1,1 @@
+You are worker B. Resolve remaining eslint warnings in src/actions/maintenance.ts without breaking behavior. Then run npm run lint and npm run build in dashboard. Document evidence in .codex-orchestrator/workerB-report.md. Update changelog with verification summary. Commit your branch.

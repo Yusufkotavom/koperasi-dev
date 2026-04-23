@@ -1,0 +1,1 @@
+Worker 2 ownership: src/lib/validations/nasabah.ts and related types only. Add strict validation rules for lifecycle transitions (CALON->AKTIF->NON_AKTIF/KELUAR), ensure safe parsing and user-friendly errors. Add minimal docs note in docs/internal/testing-baseline.md for validation tests. Run lint/build. Commit.

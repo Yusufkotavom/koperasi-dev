@@ -7,6 +7,7 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
 
 type SessionLike = {
   user?: {
@@ -47,16 +48,10 @@ export type CreateCompanyUserState = {
   errors?: Partial<Record<"name" | "email" | "password" | "role", string[]>>
 }
 
-function getCompanyId(session: SessionLike) {
-  const companyId = session?.user?.companyId
-  if (!companyId) throw new Error("Company belum terhubung ke akun ini.")
-  return companyId
-}
-
 export async function getCompanyUsers(): Promise<CompanyUserRow[]> {
   const session = await auth()
   requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])
-  const companyId = getCompanyId(session as unknown as SessionLike)
+  const { companyId } = requireCompanyId(session as unknown as SessionLike)
 
   const users = await prisma.user.findMany({
     where: { companyId },
@@ -82,7 +77,7 @@ export async function createCompanyUser(
 ): Promise<CreateCompanyUserState> {
   const session = await auth()
   requireRoles(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])
-  const companyId = getCompanyId(session as unknown as SessionLike)
+  const { companyId } = requireCompanyId(session as unknown as SessionLike)
 
   const parsed = createCompanyUserSchema.safeParse({
     name: formData.get("name"),
@@ -125,4 +120,3 @@ export async function createCompanyUser(
   revalidatePath("/settings")
   return { success: true, message: "User company berhasil dibuat." }
 }
-

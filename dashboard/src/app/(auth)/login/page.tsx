@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useSyncExternalStore, useTransition, addTransitionType } from "react"
+import { useState, useTransition, addTransitionType } from "react"
 import Link from "next/link"
 import { getSession, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -25,10 +25,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-const subscribeNoop = () => () => {}
-const getDemoTextSnapshot = () => "admin@koperasi.id / admin123"
-// Keep server + client snapshot identical to avoid hydration mismatch.
-const getEmptySnapshot = getDemoTextSnapshot
+const DEMO_TEXT = "admin@koperasi.id / admin123"
 
 async function waitForSession(maxRetry = 6, delayMs = 150) {
   for (let i = 0; i < maxRetry; i += 1) {
@@ -44,7 +41,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const demoText = useSyncExternalStore(subscribeNoop, getDemoTextSnapshot, getEmptySnapshot)
   const [, startTransition] = useTransition()
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
@@ -190,7 +186,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             <span className="font-medium text-foreground">Demo:</span>{" "}
-            {demoText}
+            {DEMO_TEXT}
           </p>
         </div>
       </div>

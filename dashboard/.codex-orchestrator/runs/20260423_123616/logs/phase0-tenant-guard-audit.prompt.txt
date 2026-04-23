@@ -1,0 +1,1 @@
+You are worker 1. Focus ONLY on tenant guard consistency across src/actions and src/app dashboard routes. Do not push. Create commit(s) on your branch with fixes and include a concise report in README_WORKER.md listing changed files and rationale.

@@ -12,6 +12,12 @@ function fmt(n: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
 }
 
+const healthBadgeClass: Record<string, string> = {
+  SEHAT: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  WASPADA: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  KRITIS: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+}
+
 export default async function KelompokPage({
   searchParams,
 }: {
@@ -117,6 +123,11 @@ export default async function KelompokPage({
                       <span className={`text-sm font-bold tracking-tight ${row.tunggakan > 0 ? "text-red-600" : "text-emerald-600"}`}>
                         {fmt(row.tunggakan)}
                       </span>
+                      <div className="mt-1">
+                        <Badge className={`${healthBadgeClass[row.rankingKesehatan] ?? healthBadgeClass.WASPADA} border-0 h-5 px-2 text-[10px] font-bold`}>
+                          {row.rankingKesehatan} ({row.rasioTunggakan.toFixed(1)}%)
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">

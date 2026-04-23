@@ -1,0 +1,1686 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dbb5e-015f-7fe2-b14e-9ffb9fe6fd17
+--------
+user
+You are Worker p1d-upload-tests. Ownership: src/app/api/upload/nasabah/route.ts and src/app/api/upload/nasabah/__tests__/route.test.ts (new if needed). Task: ensure route enforces file count/mime/size and tenant-aware path, with focused tests for unauthorized/no-files/invalid-type/too-many/too-large/success. Keep backward-compatible response shape as much as practical. Run tests and commit. You are not alone; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+codex
+Saya akan kerjakan perubahan di endpoint upload nasabah dan menambah test terfokus untuk validasi auth/file/tenant path. Langkah pertama: saya baca implementasi route + pola test yang sudah ada agar perubahan tetap kompatibel dengan shape respons lama.
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 17:23 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 17:23 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 17:23 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 17:23 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 17:23 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 17:23 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 17:23 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 17:23 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 17:23 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 17:23 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 17:23 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 17:23 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 17:23 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 17:23 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 17:23 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 17:23 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 17:23 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 17:23 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 17:23 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 17:23 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 17:23 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 17:23 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 17:23 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 17:23 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 17:23 tsconfig.json
+
+exec
+/bin/bash -lc 'rg --files src/app/api/upload/nasabah src/app/api/upload | head -n 200' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/kas/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/logo/route.ts
+
+codex
+Saya lanjut kumpulkan konteks: membaca route upload nasabah, pola route upload lain, lalu cek panduan Next.js lokal yang relevan sebelum edit agar sesuai aturan repo.
+exec
+/bin/bash -lc "sed -n '1,240p' src/app/api/upload/nasabah/route.ts" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/nasabah")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/app/api/upload/pengajuan/route.ts" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { uploadFilesToBlob } from "@/lib/blob-upload"
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, "uploads/pengajuan")
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,220p' /home/kotacom/.codex/skills/using-superpowers/SKILL.md" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+exec
+/bin/bash -lc "rg --files node_modules/next/dist/docs | rg 'route|request|formData|app-router|api' | head -n 40" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+exec
+/bin/bash -lc "rg --files src | rg '__tests__|route\\.test|upload' | head -n 200" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+src/lib/blob-upload.ts
+src/app/api/upload/logo/route.ts
+src/app/api/upload/pengajuan/route.ts
+src/app/api/upload/nasabah/route.ts
+src/app/api/upload/pembayaran/route.ts
+src/app/api/upload/kas/route.ts
+
+codex
+Saya tidak menemukan `node_modules/next/dist/docs/` karena dependencies belum terpasang di workspace ini. Saya lanjut cek konfigurasi test dan utility upload dulu, lalu saya install deps jika diperlukan agar bisa menjalankan test sesuai instruksi.
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '1,260p' src/lib/blob-upload.ts" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import { put } from "@vercel/blob"
+import path from "node:path"
+import { randomUUID } from "node:crypto"
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+])
+
+function getBlobToken() {
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+  return token && token.length > 0 ? token : undefined
+}
+
+export function validateUploadFile(file: File): string | null {
+  if (!ALLOWED_TYPES.has(file.type)) {
+    return `Tipe file tidak didukung: ${file.name}`
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return `Ukuran file melebihi 5 MB: ${file.name}`
+  }
+  return null
+}
+
+type UploadPolicy = {
+  maxFileSize?: number
+  allowedTypes?: Set<string> | string[]
+}
+
+export function validateUploadFileWithPolicy(file: File, policy?: UploadPolicy): string | null {
+  const allowedTypes =
+    policy?.allowedTypes instanceof Set ? policy.allowedTypes : new Set(policy?.allowedTypes ?? ALLOWED_TYPES)
+  const maxFileSize = policy?.maxFileSize ?? MAX_FILE_SIZE
+
+  if (!allowedTypes.has(file.type)) {
+    return `Tipe file tidak didukung: ${file.name}`
+  }
+  if (file.size > maxFileSize) {
+    const maxMb = Math.round((maxFileSize / 1024 / 1024) * 10) / 10
+    return `Ukuran file melebihi ${maxMb} MB: ${file.name}`
+  }
+
+  return null
+}
+
+export async function uploadFilesToBlob(files: File[], folder: string, policy?: UploadPolicy): Promise<string[]> {
+  const token = getBlobToken()
+  const uploadedUrls: string[] = []
+
+  for (const file of files) {
+    const error = validateUploadFileWithPolicy(file, policy)
+    if (error) throw new Error(error)
+
+    const ext = path.extname(file.name) || ".bin"
+    const safeName = `${Date.now()}-${randomUUID()}${ext}`
+    const key = `${folder}/${safeName}`
+    const blob = await put(key, file, {
+      access: "public",
+      addRandomSuffix: false,
+      token,
+    })
+    uploadedUrls.push(blob.url)
+  }
+
+  return uploadedUrls
+}
+
+exec
+/bin/bash -lc "sed -n '1,240p' src/lib/auth.ts" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
+  logger: {
+    error(error) {
+      // Invalid credentials are expected during login attempts; avoid noisy server error logs.
+      const raw = String(error)
+      if (raw.includes("CredentialsSignin")) return
+      console.error("[auth][error]", error)
+    },
+  },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(6),
+        }).safeParse({
+          email: typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "",
+          password: typeof credentials?.password === "string" ? credentials.password : "",
+        })
+
+        if (!parsed.success) return null
+
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true, status: true, isActive: true } },
+          },
+        })
+
+        if (!user || !user.isActive) return null
+        if (user.company && (!user.company.isActive || user.company.status !== "ACTIVE")) return null
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password)
+        if (!passwordMatch) return null
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles.map((r: { role: string }) => r.role),
+          companyId: user.companyId,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      const t = token as typeof token & {
+        id?: string
+        roles?: string[]
+        companyId?: string | null
+        companyName?: string | null
+        companySlug?: string | null
+      }
+
+      if (user) {
+        // @ts-expect-error custom field
+        t.roles = user.roles
+        t.id = user.id
+        // @ts-expect-error custom field
+        t.companyId = user.companyId
+        // @ts-expect-error custom field
+        t.companyName = user.companyName
+        // @ts-expect-error custom field
+        t.companySlug = user.companySlug
+      }
+
+      if (!t.id && token.sub) {
+        t.id = token.sub
+      }
+
+      if (trigger === "update" && Array.isArray(t.roles) && t.roles.includes("SUPER_ADMIN")) {
+        const next = session as { actingCompanyId?: unknown; clearActingCompany?: unknown } | undefined
+        const clearActing = next?.clearActingCompany === true || next?.actingCompanyId === null || next?.actingCompanyId === ""
+        if (clearActing) {
+          t.companyId = null
+          t.companyName = null
+          t.companySlug = null
+        } else if (typeof next?.actingCompanyId === "string" && next.actingCompanyId.length > 0) {
+          const company = await prisma.company.findUnique({
+            where: { id: next.actingCompanyId },
+            select: { id: true, name: true, slug: true },
+          })
+          if (company) {
+            t.companyId = company.id
+            t.companyName = company.name
+            t.companySlug = company.slug
+          }
+        }
+      }
+
+      const needsHydration =
+        !Array.isArray(t.roles) ||
+        typeof t.id !== "string" ||
+        t.id.length === 0 ||
+        t.companyId === undefined
+
+      if (needsHydration && typeof token.email === "string" && token.email.length > 0) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email.toLowerCase() },
+          include: {
+            roles: true,
+            company: { select: { id: true, name: true, slug: true } },
+          },
+        })
+
+        if (dbUser) {
+          t.id = dbUser.id
+          t.roles = dbUser.roles.map((r) => r.role)
+          t.companyId = dbUser.companyId
+          t.companyName = dbUser.company?.name ?? null
+          t.companySlug = dbUser.company?.slug ?? null
+        }
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        const t = token as typeof token & {
+          id?: string
+          roles?: string[]
+          companyId?: string | null
+          companyName?: string | null
+          companySlug?: string | null
+        }
+        // @ts-expect-error custom field
+        session.user.roles = Array.isArray(t.roles) ? t.roles : []
+        session.user.id = (t.id ?? token.sub ?? "") as string
+        // @ts-expect-error custom field
+        session.user.companyId = (t.companyId ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companyName = (t.companyName ?? null) as string | null
+        // @ts-expect-error custom field
+        session.user.companySlug = (t.companySlug ?? null) as string | null
+      }
+      return session
+    },
+  },
+})
+
+exec
+/bin/bash -lc 'ls -la node_modules | head -n 30' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+ls: cannot access 'node_modules': No such file or directory
+
+exec
+/bin/bash -lc "rg --files | rg '__tests__|\\.test\\.(ts|tsx|js)"'$|'"\\.spec\\.(ts|tsx|js)"'$'"'" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ exited 1 in 0ms:
+exec
+/bin/bash -lc "rg -n \"vitest|jest|node:test|describe\\(\" src package.json" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ exited 1 in 0ms:
+codex
+Saya sudah identifikasi gap utama: route belum membatasi jumlah file dan belum mengikat folder upload ke tenant. Berikutnya saya akan implement validasi ini di route, lalu buat unit test dengan mock `auth` dan `uploadFilesToBlob` untuk 6 skenario yang Anda minta.
+exec
+/bin/bash -lc 'cat tsconfig.json' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+exec
+/bin/bash -lc 'cat next.config.ts' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+import type { NextConfig } from "next";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = dirname(fileURLToPath(import.meta.url));
+
+const nextConfig: NextConfig = {
+  allowedDevOrigins: ["168.110.210.101", "outline.webidn.eu.org"],
+  turbopack: {
+    root: projectRoot,
+  },
+};
+
+export default nextConfig;
+
+codex
+Saya perlu memasang dependency dulu supaya bisa membuka docs Next.js lokal (`node_modules/next/dist/docs`) dan menjalankan test. Setelah install selesai, saya baca guide route handler yang relevan lalu lanjut coding.
+exec
+/bin/bash -lc 'npm install' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 65930ms:
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> dashboard@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.7.0) to ./node_modules/@prisma/client in 1.18s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+added 862 packages, and audited 863 packages in 1m
+
+255 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+codex
+Dependencies sudah terpasang. Saya sekarang baca dokumen Next.js lokal untuk Route Handlers sebelum edit agar tetap sesuai perubahan API versi 16.
+exec
+/bin/bash -lc 'find node_modules/next/dist/docs -maxdepth 4 -type f | head -n 80' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/04-community/01-contribution-guide.md
+node_modules/next/dist/docs/04-community/02-rspack.md
+node_modules/next/dist/docs/04-community/index.md
+node_modules/next/dist/docs/01-app/01-getting-started/18-upgrading.md
+node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md
+node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md
+node_modules/next/dist/docs/01-app/01-getting-started/10-error-handling.md
+node_modules/next/dist/docs/01-app/01-getting-started/03-layouts-and-pages.md
+node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md
+node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md
+node_modules/next/dist/docs/01-app/01-getting-started/14-metadata-and-og-images.md
+node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md
+node_modules/next/dist/docs/01-app/01-getting-started/13-fonts.md
+node_modules/next/dist/docs/01-app/01-getting-started/07-mutating-data.md
+node_modules/next/dist/docs/01-app/01-getting-started/17-deploying.md
+node_modules/next/dist/docs/01-app/01-getting-started/06-fetching-data.md
+node_modules/next/dist/docs/01-app/01-getting-started/01-installation.md
+node_modules/next/dist/docs/01-app/01-getting-started/02-project-structure.md
+node_modules/next/dist/docs/01-app/01-getting-started/index.md
+node_modules/next/dist/docs/01-app/01-getting-started/12-images.md
+node_modules/next/dist/docs/01-app/01-getting-started/09-revalidating.md
+node_modules/next/dist/docs/01-app/01-getting-started/11-css.md
+node_modules/next/dist/docs/01-app/04-glossary.md
+node_modules/next/dist/docs/01-app/03-api-reference/08-turbopack.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-edge.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/10-routing-information.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/04-testing-adapters.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/03-api-reference.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/06-implementing-ppr-in-an-adapter.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/02-creating-an-adapter.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/09-output-types.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/11-use-cases.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/07-runtime-integration.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/01-configuration.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/05-routing-with-next-routing.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/08-invoking-entrypoints.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-client.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache-private.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-server.md
+node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache-remote.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/02-typescript.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/03-eslint.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/link.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/script.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/index.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/font.md
+node_modules/next/dist/docs/01-app/03-api-reference/02-components/form.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-report-web-vitals.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unstable_cache.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-metadata.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/headers.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unstable_rethrow.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-pathname.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/fetch.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-router.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cacheTag.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/unauthorized.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cookies.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-link-status.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidateTag.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-request.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-response.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cacheLife.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-params.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-image-metadata.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/image-response.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/draft-mode.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/userAgent.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/refresh.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/forbidden.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/catchError.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-sitemaps.md
+
+exec
+/bin/bash -lc "rg --files node_modules/next/dist/docs | rg -i 'route\\-handlers|route handlers|route\\.md|request|formdata|app/api' | head -n 50" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/02-pages/04-api-reference/03-functions/next-request.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-request.md
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md
+node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md
+
+exec
+/bin/bash -lc "sed -n '1,220p' node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+---
+title: route.js
+description: API reference for the route.js special file.
+---
+
+Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+
+```ts filename="route.ts" switcher
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+```js filename="route.js" switcher
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+## Reference
+
+### HTTP Methods
+
+A **route** file allows you to create custom request handlers for a given route. The following [HTTP methods](https://developer.mozilla.org/docs/Web/HTTP/Methods) are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
+
+```ts filename="route.ts" switcher
+export async function GET(request: Request) {}
+
+export async function HEAD(request: Request) {}
+
+export async function POST(request: Request) {}
+
+export async function PUT(request: Request) {}
+
+export async function DELETE(request: Request) {}
+
+export async function PATCH(request: Request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request: Request) {}
+```
+
+```js filename="route.js" switcher
+export async function GET(request) {}
+
+export async function HEAD(request) {}
+
+export async function POST(request) {}
+
+export async function PUT(request) {}
+
+export async function DELETE(request) {}
+
+export async function PATCH(request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request) {}
+```
+
+### Parameters
+
+#### `request` (optional)
+
+The `request` object is a [NextRequest](/docs/app/api-reference/functions/next-request) object, which is an extension of the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) API. `NextRequest` gives you further control over the incoming request, including easily accessing `cookies` and an extended, parsed, URL object `nextUrl`.
+
+```ts filename="route.ts" switcher
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const url = request.nextUrl
+}
+```
+
+```js filename="route.js" switcher
+export async function GET(request) {
+  const url = request.nextUrl
+}
+```
+
+#### `context` (optional)
+
+- **`params`**: a promise that resolves to an object containing the [dynamic route parameters](/docs/app/api-reference/file-conventions/dynamic-routes) for the current route.
+
+```ts filename="app/dashboard/[team]/route.ts" switcher
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ team: string }> }
+) {
+  const { team } = await params
+}
+```
+
+```js filename="app/dashboard/[team]/route.js" switcher
+export async function GET(request, { params }) {
+  const { team } = await params
+}
+```
+
+| Example                          | URL            | `params`                           |
+| -------------------------------- | -------------- | ---------------------------------- |
+| `app/dashboard/[team]/route.js`  | `/dashboard/1` | `Promise<{ team: '1' }>`           |
+| `app/shop/[tag]/[item]/route.js` | `/shop/1/2`    | `Promise<{ tag: '1', item: '2' }>` |
+| `app/blog/[...slug]/route.js`    | `/blog/1/2`    | `Promise<{ slug: ['1', '2'] }>`    |
+
+### Route Context Helper
+
+You can type the Route Handler context using `RouteContext` to get strongly typed `params` from a route literal. `RouteContext` is a globally available helper.
+
+```ts filename="app/users/[id]/route.ts"
+import type { NextRequest } from 'next/server'
+
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+  const { id } = await ctx.params
+  return Response.json({ id })
+}
+```
+
+> **Good to know**
+>
+> - Types are generated during `next dev`, `next build` or `next typegen`.
+> - After type generation, the `RouteContext` helper is globally available. It doesn't need to be imported.
+
+## Examples
+
+### Cookies
+
+You can read or set cookies with [`cookies`](/docs/app/api-reference/functions/cookies) from `next/headers`.
+
+```ts filename="route.ts" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request: NextRequest) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+```js filename="route.js" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+Alternatively, you can return a new `Response` using the [`Set-Cookie`](https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie) header.
+
+```ts filename="app/api/route.ts" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request: Request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token.value}` },
+  })
+}
+```
+
+```js filename="app/api/route.js" switcher
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')
+
+  return new Response('Hello, Next.js!', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token.value}` },
+  })
+}
+```
+
+You can also use the underlying Web APIs to read cookies from the request ([`NextRequest`](/docs/app/api-reference/functions/next-request)):
+
+```ts filename="app/api/route.ts" switcher
+import { type NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get('token')
+}
+```
+
+```js filename="app/api/route.js" switcher
+export async function GET(request) {
+  const token = request.cookies.get('token')
+}
+```
+
+### Headers
+
+You can read headers with [`headers`](/docs/app/api-reference/functions/headers) from `next/headers`.
+
+```ts filename="route.ts" switcher
+import { headers } from 'next/headers'
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+}
+```
+
+```js filename="route.js" switcher
+import { headers } from 'next/headers'
+
+export async function GET(request) {
+  const headersList = await headers()
+  const referer = headersList.get('referer')
+}
+```
+
+exec
+/bin/bash -lc "rg -n \"formData|Request|Response.json|Route Handlers\" node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md && sed -n '1,220p' node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+2:title: Route Handlers
+3:nav_title: Route Handlers
+4:description: Learn how to use Route Handlers
+7:  description: Learn more about Route Handlers
+13:## Route Handlers
+15:Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+25:> **Good to know**: Route Handlers are only available inside the `app` directory. They are the equivalent of [API Routes](/docs/pages/building-your-application/routing/api-routes) inside the `pages` directory meaning you **do not** need to use API Routes and Route Handlers together.
+29:Route Handlers are defined in a [`route.js|ts` file](/docs/app/api-reference/file-conventions/route) inside the `app` directory:
+32:export async function GET(request: Request) {}
+39:Route Handlers can be nested anywhere inside the `app` directory, similar to `page.js` and `layout.js`. But there **cannot** be a `route.js` file at the same route segment level as `page.js`.
+45:### Extended `NextRequest` and `NextResponse` APIs
+47:In addition to supporting the native [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs, Next.js extends them with [`NextRequest`](/docs/app/api-reference/functions/next-request) and [`NextResponse`](/docs/app/api-reference/functions/next-response) to provide convenient helpers for advanced use cases.
+51:Route Handlers are not cached by default. You can, however, opt into caching for `GET` methods. Other supported HTTP methods are **not** cached. To cache a `GET` method, use a [route config option](/docs/app/guides/caching-without-cache-components#dynamic) such as `export const dynamic = 'force-static'` in your Route Handler file.
+65:  return Response.json({ data })
+81:  return Response.json({ data })
+89:When [Cache Components](/docs/app/getting-started/caching) is enabled, `GET` Route Handlers follow the same model as normal UI routes in your application. They run at request time by default, can be prerendered when they don't access uncached or runtime data, and you can use `use cache` to include uncached data in the static response.
+95:  return Response.json({
+105:  return Response.json({
+120:  return Response.json({ userAgent })
+133:  return Response.json(products)
+146:### Special Route Handlers
+148:Special Route Handlers like [`sitemap.ts`](/docs/app/api-reference/file-conventions/metadata/sitemap), [`opengraph-image.tsx`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), and [`icon.tsx`](/docs/app/api-reference/file-conventions/metadata/app-icons), and other [metadata files](/docs/app/api-reference/file-conventions/metadata) remain static by default unless they use Request-time APIs or dynamic config options.
+172:export async function POST(request: Request) {}
+185:Read more about how Route Handlers [complement your frontend application](/docs/app/guides/backend-for-frontend), or explore the Route Handlers [API Reference](/docs/app/api-reference/file-conventions/route).
+189:In TypeScript, you can type the `context` parameter for Route Handlers with the globally available [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper) helper:
+192:import type { NextRequest } from 'next/server'
+194:export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+196:  return Response.json({ id })
+---
+title: Route Handlers
+nav_title: Route Handlers
+description: Learn how to use Route Handlers
+related:
+  title: API Reference
+  description: Learn more about Route Handlers
+  links:
+    - app/api-reference/file-conventions/route
+    - app/guides/backend-for-frontend
+---
+
+## Route Handlers
+
+Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+
+<Image
+  alt="Route.js Special File"
+  srcLight="/docs/light/route-special-file.png"
+  srcDark="/docs/dark/route-special-file.png"
+  width="1600"
+  height="444"
+/>
+
+> **Good to know**: Route Handlers are only available inside the `app` directory. They are the equivalent of [API Routes](/docs/pages/building-your-application/routing/api-routes) inside the `pages` directory meaning you **do not** need to use API Routes and Route Handlers together.
+
+### Convention
+
+Route Handlers are defined in a [`route.js|ts` file](/docs/app/api-reference/file-conventions/route) inside the `app` directory:
+
+```ts filename="app/api/route.ts" switcher
+export async function GET(request: Request) {}
+```
+
+```js filename="app/api/route.js" switcher
+export async function GET(request) {}
+```
+
+Route Handlers can be nested anywhere inside the `app` directory, similar to `page.js` and `layout.js`. But there **cannot** be a `route.js` file at the same route segment level as `page.js`.
+
+### Supported HTTP Methods
+
+The following [HTTP methods](https://developer.mozilla.org/docs/Web/HTTP/Methods) are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`. If an unsupported method is called, Next.js will return a `405 Method Not Allowed` response.
+
+### Extended `NextRequest` and `NextResponse` APIs
+
+In addition to supporting the native [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs, Next.js extends them with [`NextRequest`](/docs/app/api-reference/functions/next-request) and [`NextResponse`](/docs/app/api-reference/functions/next-response) to provide convenient helpers for advanced use cases.
+
+### Caching
+
+Route Handlers are not cached by default. You can, however, opt into caching for `GET` methods. Other supported HTTP methods are **not** cached. To cache a `GET` method, use a [route config option](/docs/app/guides/caching-without-cache-components#dynamic) such as `export const dynamic = 'force-static'` in your Route Handler file.
+
+```ts filename="app/items/route.ts" switcher
+export const dynamic = 'force-static'
+
+export async function GET() {
+  const res = await fetch('https://data.mongodb-api.com/...', {
+    headers: {
+      'Content-Type': 'application/json',
+      'API-Key': process.env.DATA_API_KEY,
+    },
+  })
+  const data = await res.json()
+
+  return Response.json({ data })
+}
+```
+
+```js filename="app/items/route.js" switcher
+export const dynamic = 'force-static'
+
+export async function GET() {
+  const res = await fetch('https://data.mongodb-api.com/...', {
+    headers: {
+      'Content-Type': 'application/json',
+      'API-Key': process.env.DATA_API_KEY,
+    },
+  })
+  const data = await res.json()
+
+  return Response.json({ data })
+}
+```
+
+> **Good to know**: Other supported HTTP methods are **not** cached, even if they are placed alongside a `GET` method that is cached, in the same file.
+
+#### With Cache Components
+
+When [Cache Components](/docs/app/getting-started/caching) is enabled, `GET` Route Handlers follow the same model as normal UI routes in your application. They run at request time by default, can be prerendered when they don't access uncached or runtime data, and you can use `use cache` to include uncached data in the static response.
+
+**Static example** - doesn't access uncached or runtime data, so it will be prerendered at build time:
+
+```tsx filename="app/api/project-info/route.ts"
+export async function GET() {
+  return Response.json({
+    projectName: 'Next.js',
+  })
+}
+```
+
+**Dynamic example** - accesses non-deterministic operations. During the build, prerendering stops when `Math.random()` is called, deferring to request-time rendering:
+
+```tsx filename="app/api/random-number/route.ts"
+export async function GET() {
+  return Response.json({
+    randomNumber: Math.random(),
+  })
+}
+```
+
+**Runtime data example** - accesses request-specific data. Prerendering terminates when runtime APIs like `headers()` are called:
+
+```tsx filename="app/api/user-agent/route.ts"
+import { headers } from 'next/headers'
+
+export async function GET() {
+  const headersList = await headers()
+  const userAgent = headersList.get('user-agent')
+
+  return Response.json({ userAgent })
+}
+```
+
+> **Good to know**: Prerendering stops if the `GET` handler accesses network requests, database queries, async file system operations, request object properties (like `req.url`, `request.headers`, `request.cookies`, `request.body`), runtime APIs like [`cookies()`](/docs/app/api-reference/functions/cookies), [`headers()`](/docs/app/api-reference/functions/headers), [`connection()`](/docs/app/api-reference/functions/connection), or non-deterministic operations.
+
+**Cached example** - accesses uncached data (database query) but caches it with `use cache`, allowing it to be included in the prerendered response:
+
+```tsx filename="app/api/products/route.ts"
+import { cacheLife } from 'next/cache'
+
+export async function GET() {
+  const products = await getProducts()
+  return Response.json(products)
+}
+
+async function getProducts() {
+  'use cache'
+  cacheLife('hours')
+
+  return await db.query('SELECT * FROM products')
+}
+```
+
+> **Good to know**: `use cache` cannot be used directly inside a Route Handler body; extract it to a helper function. Cached responses revalidate according to `cacheLife` when a new request arrives.
+
+### Special Route Handlers
+
+Special Route Handlers like [`sitemap.ts`](/docs/app/api-reference/file-conventions/metadata/sitemap), [`opengraph-image.tsx`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), and [`icon.tsx`](/docs/app/api-reference/file-conventions/metadata/app-icons), and other [metadata files](/docs/app/api-reference/file-conventions/metadata) remain static by default unless they use Request-time APIs or dynamic config options.
+
+### Route Resolution
+
+You can consider a `route` the lowest level routing primitive.
+
+- They **do not** participate in layouts or client-side navigations like `page`.
+- There **cannot** be a `route.js` file at the same route as `page.js`.
+
+| Page                 | Route              | Result                       |
+| -------------------- | ------------------ | ---------------------------- |
+| `app/page.js`        | `app/route.js`     | <Cross size={18} /> Conflict |
+| `app/page.js`        | `app/api/route.js` | <Check size={18} /> Valid    |
+| `app/[user]/page.js` | `app/api/route.js` | <Check size={18} /> Valid    |
+
+Each `route.js` or `page.js` file takes over all HTTP verbs for that route.
+
+```ts filename="app/page.ts" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>
+}
+
+// Conflict
+// `app/route.ts`
+export async function POST(request: Request) {}
+```
+
+```js filename="app/page.js" switcher
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>
+}
+
+// Conflict
+// `app/route.js`
+export async function POST(request) {}
+```
+
+Read more about how Route Handlers [complement your frontend application](/docs/app/guides/backend-for-frontend), or explore the Route Handlers [API Reference](/docs/app/api-reference/file-conventions/route).
+
+### Route Context Helper
+
+In TypeScript, you can type the `context` parameter for Route Handlers with the globally available [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper) helper:
+
+```ts filename="app/users/[id]/route.ts" switcher
+import type { NextRequest } from 'next/server'
+
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+  const { id } = await ctx.params
+  return Response.json({ id })
+}
+```
+
+> **Good to know**
+>
+> - Types are generated during `next dev`, `next build` or `next typegen`.
+
+codex
+Saya akan edit `route.ts` sekarang: tambah batas jumlah file, validasi MIME+size sebelum upload, dan wajibkan konteks tenant untuk menentukan folder upload berbasis `companyId`. Setelah itu saya buat test untuk 6 skenario yang diminta.
+exec
+/bin/bash -lc "cat > src/app/api/upload/nasabah/route.ts <<'EOF'
+import { auth } from \"@/lib/auth\"
+import { uploadFilesToBlob, validateUploadFile } from \"@/lib/blob-upload\"
+
+const MAX_FILES = 10
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if ("'!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const companyId = (session.user as { companyId?: string | null } | undefined)?.companyId
+  if (!companyId || typeof companyId !== "string") {
+    return Response.json({ error: "Konteks tenant tidak ditemukan." }, { status: 403 })
+  }
+
+  const formData = await req.formData()
+  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+
+  if (files.length === 0) {
+    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+  }
+
+  if (files.length > MAX_FILES) {
+    return Response.json(
+      { error: `Jumlah file melebihi batas maksimal ${MAX_FILES} file.` },
+      { status: 400 }
+    )
+  }
+
+  for (const file of files) {
+    const validationError = validateUploadFile(file)
+    if (validationError) {
+      return Response.json({ error: validationError }, { status: 400 })
+    }
+  }
+
+  try {
+    const uploadedUrls = await uploadFilesToBlob(files, `uploads/nasabah/${companyId}`)
+    return Response.json({ urls: uploadedUrls })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    return Response.json({ error: message }, { status: 400 })
+  }
+}
+EOF' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc "mkdir -p src/app/api/upload/nasabah/__tests__ && cat > src/app/api/upload/nasabah/__tests__/route.test.ts <<'EOF'
+import { beforeEach, describe, expect, it, vi } from \"vitest\"
+
+vi.mock(\"@/lib/auth\", () => ({
+  auth: vi.fn(),
+}))
+
+vi.mock(\"@/lib/blob-upload\", () => ({
+  uploadFilesToBlob: vi.fn(),
+  validateUploadFile: vi.fn(),
+}))
+
+import { POST } from \"../route\"
+import { auth } from \"@/lib/auth\"
+import { uploadFilesToBlob, validateUploadFile } from \"@/lib/blob-upload\"
+
+const authMock = vi.mocked(auth)
+const uploadFilesToBlobMock = vi.mocked(uploadFilesToBlob)
+const validateUploadFileMock = vi.mocked(validateUploadFile)
+
+function createRequest(files: File[]) {
+  const formData = new FormData()
+  for (const file of files) {
+    formData.append(\"files\", file)
+  }
+
+  return new Request(\"http://localhost/api/upload/nasabah\", {
+    method: \"POST\",
+    body: formData,
+  })
+}
+
+function authSession(companyId = \"cmp-1\") {
+  return {
+    user: {
+      id: \"usr-1\",
+      companyId,
+    },
+  }
+}
+
+describe(\"POST /api/upload/nasabah\", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    validateUploadFileMock.mockReturnValue(null)
+  })
+
+  it(\"returns 401 when unauthorized\", async () => {
+    authMock.mockResolvedValueOnce(null as never)
+
+    const res = await POST(createRequest([]))
+
+    expect(res.status).toBe(401)
+    await expect(res.json()).resolves.toEqual({ error: \"Unauthorized\" })
+  })
+
+  it(\"returns 400 when no files are provided\", async () => {
+    authMock.mockResolvedValueOnce(authSession() as never)
+
+    const res = await POST(createRequest([]))
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({ error: \"Tidak ada file yang diupload.\" })
+    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+  })
+
+  it(\"returns 400 when file mime type is invalid\", async () => {
+    authMock.mockResolvedValueOnce(authSession() as never)
+    validateUploadFileMock.mockReturnValueOnce(\"Tipe file tidak didukung: notes.txt\")
+
+    const invalidFile = new File([\"hello\"], \"notes.txt\", { type: \"text/plain\" })
+    const res = await POST(createRequest([invalidFile]))
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({ error: \"Tipe file tidak didukung: notes.txt\" })
+    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+  })
+
+  it(\"returns 400 when too many files are provided\", async () => {
+    authMock.mockResolvedValueOnce(authSession() as never)
+
+    const files = Array.from(
+      { length: 11 },
+      (_, i) => new File(["'`f-${i}`], `file-${i}.png`, { type: "image/png" })
+    )
+
+    const res = await POST(createRequest(files))
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({
+      error: "Jumlah file melebihi batas maksimal 10 file.",
+    })
+    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+  })
+
+  it("returns 400 when file size is too large", async () => {
+    authMock.mockResolvedValueOnce(authSession() as never)
+    validateUploadFileMock.mockReturnValueOnce("Ukuran file melebihi 5 MB: besar.pdf")
+
+    const bigFile = new File([new Uint8Array(5 * 1024 * 1024 + 1)], "besar.pdf", {
+      type: "application/pdf",
+    })
+
+    const res = await POST(createRequest([bigFile]))
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({ error: "Ukuran file melebihi 5 MB: besar.pdf" })
+    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+  })
+
+  it("uploads files to tenant-aware path on success", async () => {
+    authMock.mockResolvedValueOnce(authSession("company-42") as never)
+    uploadFilesToBlobMock.mockResolvedValueOnce(["https://blob.example/doc1.png"])
+
+    const file = new File(["ok"], "doc1.png", { type: "image/png" })
+    const res = await POST(createRequest([file]))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ urls: ["https://blob.example/doc1.png"] })
+    expect(uploadFilesToBlobMock).toHaveBeenCalledTimes(1)
+    expect(uploadFilesToBlobMock).toHaveBeenCalledWith(expect.any(Array), "uploads/nasabah/company-42")
+  })
+})
+EOF' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+codex
+Perubahan inti sudah ditulis. Saya lanjut jalankan test file ini sekarang; bila resolver alias `@/` gagal, saya akan jalankan dengan config Vitest sementara (tanpa ubah file project lain).
+exec
+/bin/bash -lc 'npx --yes vitest run src/app/api/upload/nasabah/__tests__/route.test.ts' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 14582ms:
+
+ RUN  v4.1.5 /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  17:26:41
+   Duration  916ms (transform 176ms, setup 0ms, import 207ms, tests 238ms, environment 0ms)
+
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 317ms:
+ M src/app/api/upload/nasabah/route.ts
+?? src/app/api/upload/nasabah/__tests__/
+
+exec
+/bin/bash -lc 'git add src/app/api/upload/nasabah/route.ts && git commit -m "fix(upload): enforce nasabah upload tenant scope and file guards"' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+[codex_20260423_1733_p1d-upload-tests 7a3d555] fix(upload): enforce nasabah upload tenant scope and file guards
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+codex
+Validasi route sudah ter-commit. Saya lanjut commit terpisah untuk test coverage agar jejak perubahan per-scope jelas, lalu saya re-run test sebagai verifikasi akhir.
+exec
+/bin/bash -lc 'git add src/app/api/upload/nasabah/__tests__/route.test.ts && git commit -m "test(upload): add nasabah route guard scenarios"' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+[codex_20260423_1733_p1d-upload-tests dc0c28e] test(upload): add nasabah route guard scenarios
+ 1 file changed, 122 insertions(+)
+ create mode 100644 dashboard/src/app/api/upload/nasabah/__tests__/route.test.ts
+
+exec
+/bin/bash -lc 'npx --yes vitest run src/app/api/upload/nasabah/__tests__/route.test.ts' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 15358ms:
+
+ RUN  v4.1.5 /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  17:27:11
+   Duration  1.50s (transform 339ms, setup 0ms, import 408ms, tests 271ms, environment 0ms)
+
+
+exec
+/bin/bash -lc 'git status --short && git log --oneline -n 3' in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+dc0c28e test(upload): add nasabah route guard scenarios
+7a3d555 fix(upload): enforce nasabah upload tenant scope and file guards
+1cf4435 Harden superadmin actions when acting as company context
+
+exec
+/bin/bash -lc "nl -ba src/app/api/upload/nasabah/route.ts | sed -n '1,220p'" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+     1	import { auth } from "@/lib/auth"
+     2	import { uploadFilesToBlob, validateUploadFile } from "@/lib/blob-upload"
+     3	
+     4	const MAX_FILES = 10
+     5	
+     6	export async function POST(req: Request) {
+     7	  const session = await auth()
+     8	  if (!session) {
+     9	    return Response.json({ error: "Unauthorized" }, { status: 401 })
+    10	  }
+    11	
+    12	  const companyId = (session.user as { companyId?: string | null } | undefined)?.companyId
+    13	  if (!companyId || typeof companyId !== "string") {
+    14	    return Response.json({ error: "Konteks tenant tidak ditemukan." }, { status: 403 })
+    15	  }
+    16	
+    17	  const formData = await req.formData()
+    18	  const files = formData.getAll("files").filter((v): v is File => v instanceof File)
+    19	
+    20	  if (files.length === 0) {
+    21	    return Response.json({ error: "Tidak ada file yang diupload." }, { status: 400 })
+    22	  }
+    23	
+    24	  if (files.length > MAX_FILES) {
+    25	    return Response.json(
+    26	      { error: `Jumlah file melebihi batas maksimal ${MAX_FILES} file.` },
+    27	      { status: 400 }
+    28	    )
+    29	  }
+    30	
+    31	  for (const file of files) {
+    32	    const validationError = validateUploadFile(file)
+    33	    if (validationError) {
+    34	      return Response.json({ error: validationError }, { status: 400 })
+    35	    }
+    36	  }
+    37	
+    38	  try {
+    39	    const uploadedUrls = await uploadFilesToBlob(files, `uploads/nasabah/${companyId}`)
+    40	    return Response.json({ urls: uploadedUrls })
+    41	  } catch (error) {
+    42	    const message = error instanceof Error ? error.message : "Upload dokumen gagal."
+    43	    return Response.json({ error: message }, { status: 400 })
+    44	  }
+    45	}
+
+exec
+/bin/bash -lc "nl -ba src/app/api/upload/nasabah/__tests__/route.test.ts | sed -n '1,260p'" in /tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard
+ succeeded in 0ms:
+     1	import { beforeEach, describe, expect, it, vi } from "vitest"
+     2	
+     3	vi.mock("@/lib/auth", () => ({
+     4	  auth: vi.fn(),
+     5	}))
+     6	
+     7	vi.mock("@/lib/blob-upload", () => ({
+     8	  uploadFilesToBlob: vi.fn(),
+     9	  validateUploadFile: vi.fn(),
+    10	}))
+    11	
+    12	import { POST } from "../route"
+    13	import { auth } from "@/lib/auth"
+    14	import { uploadFilesToBlob, validateUploadFile } from "@/lib/blob-upload"
+    15	
+    16	const authMock = vi.mocked(auth)
+    17	const uploadFilesToBlobMock = vi.mocked(uploadFilesToBlob)
+    18	const validateUploadFileMock = vi.mocked(validateUploadFile)
+    19	
+    20	function createRequest(files: File[]) {
+    21	  const formData = new FormData()
+    22	  for (const file of files) {
+    23	    formData.append("files", file)
+    24	  }
+    25	
+    26	  return new Request("http://localhost/api/upload/nasabah", {
+    27	    method: "POST",
+    28	    body: formData,
+    29	  })
+    30	}
+    31	
+    32	function authSession(companyId = "cmp-1") {
+    33	  return {
+    34	    user: {
+    35	      id: "usr-1",
+    36	      companyId,
+    37	    },
+    38	  }
+    39	}
+    40	
+    41	describe("POST /api/upload/nasabah", () => {
+    42	  beforeEach(() => {
+    43	    vi.clearAllMocks()
+    44	    validateUploadFileMock.mockReturnValue(null)
+    45	  })
+    46	
+    47	  it("returns 401 when unauthorized", async () => {
+    48	    authMock.mockResolvedValueOnce(null as never)
+    49	
+    50	    const res = await POST(createRequest([]))
+    51	
+    52	    expect(res.status).toBe(401)
+    53	    await expect(res.json()).resolves.toEqual({ error: "Unauthorized" })
+    54	  })
+    55	
+    56	  it("returns 400 when no files are provided", async () => {
+    57	    authMock.mockResolvedValueOnce(authSession() as never)
+    58	
+    59	    const res = await POST(createRequest([]))
+    60	
+    61	    expect(res.status).toBe(400)
+    62	    await expect(res.json()).resolves.toEqual({ error: "Tidak ada file yang diupload." })
+    63	    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+    64	  })
+    65	
+    66	  it("returns 400 when file mime type is invalid", async () => {
+    67	    authMock.mockResolvedValueOnce(authSession() as never)
+    68	    validateUploadFileMock.mockReturnValueOnce("Tipe file tidak didukung: notes.txt")
+    69	
+    70	    const invalidFile = new File(["hello"], "notes.txt", { type: "text/plain" })
+    71	    const res = await POST(createRequest([invalidFile]))
+    72	
+    73	    expect(res.status).toBe(400)
+    74	    await expect(res.json()).resolves.toEqual({ error: "Tipe file tidak didukung: notes.txt" })
+    75	    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+    76	  })
+    77	
+    78	  it("returns 400 when too many files are provided", async () => {
+    79	    authMock.mockResolvedValueOnce(authSession() as never)
+    80	
+    81	    const files = Array.from(
+    82	      { length: 11 },
+    83	      (_, i) => new File([`f-${i}`], `file-${i}.png`, { type: "image/png" })
+    84	    )
+    85	
+    86	    const res = await POST(createRequest(files))
+    87	
+    88	    expect(res.status).toBe(400)
+    89	    await expect(res.json()).resolves.toEqual({
+    90	      error: "Jumlah file melebihi batas maksimal 10 file.",
+    91	    })
+    92	    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+    93	  })
+    94	
+    95	  it("returns 400 when file size is too large", async () => {
+    96	    authMock.mockResolvedValueOnce(authSession() as never)
+    97	    validateUploadFileMock.mockReturnValueOnce("Ukuran file melebihi 5 MB: besar.pdf")
+    98	
+    99	    const bigFile = new File([new Uint8Array(5 * 1024 * 1024 + 1)], "besar.pdf", {
+   100	      type: "application/pdf",
+   101	    })
+   102	
+   103	    const res = await POST(createRequest([bigFile]))
+   104	
+   105	    expect(res.status).toBe(400)
+   106	    await expect(res.json()).resolves.toEqual({ error: "Ukuran file melebihi 5 MB: besar.pdf" })
+   107	    expect(uploadFilesToBlobMock).not.toHaveBeenCalled()
+   108	  })
+   109	
+   110	  it("uploads files to tenant-aware path on success", async () => {
+   111	    authMock.mockResolvedValueOnce(authSession("company-42") as never)
+   112	    uploadFilesToBlobMock.mockResolvedValueOnce(["https://blob.example/doc1.png"])
+   113	
+   114	    const file = new File(["ok"], "doc1.png", { type: "image/png" })
+   115	    const res = await POST(createRequest([file]))
+   116	
+   117	    expect(res.status).toBe(200)
+   118	    await expect(res.json()).resolves.toEqual({ urls: ["https://blob.example/doc1.png"] })
+   119	    expect(uploadFilesToBlobMock).toHaveBeenCalledTimes(1)
+   120	    expect(uploadFilesToBlobMock).toHaveBeenCalledWith(expect.any(Array), "uploads/nasabah/company-42")
+   121	  })
+   122	})
+
+codex
+Implemented and committed in 2 scoped commits:
+
+1. `7a3d555` `fix(upload): enforce nasabah upload tenant scope and file guards`
+2. `dc0c28e` `test(upload): add nasabah route guard scenarios`
+
+Changes:
+- Updated [route.ts](/tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/route.ts:1)
+  - Enforces auth (`401` unchanged shape `{ error }`)
+  - Enforces tenant context from session (`403` with `{ error }`)
+  - Enforces no-files (`400`)
+  - Enforces max file count (`MAX_FILES = 10`, `400`)
+  - Enforces MIME/size using `validateUploadFile` before upload (`400`)
+  - Uses tenant-aware upload path: `uploads/nasabah/${companyId}`
+  - Keeps success shape `{ urls }`
+
+- Added focused tests [route.test.ts](/tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/__tests__/route.test.ts:1)
+  - unauthorized
+  - no-files
+  - invalid-type
+  - too-many
+  - too-large
+  - success (asserts tenant-aware path)
+
+Verification run:
+- `npx --yes vitest run src/app/api/upload/nasabah/__tests__/route.test.ts`
+- Result: `1 passed`, `6 passed` tests.
+
+Working tree is clean.
+tokens used
+70,392
+Implemented and committed in 2 scoped commits:
+
+1. `7a3d555` `fix(upload): enforce nasabah upload tenant scope and file guards`
+2. `dc0c28e` `test(upload): add nasabah route guard scenarios`
+
+Changes:
+- Updated [route.ts](/tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/route.ts:1)
+  - Enforces auth (`401` unchanged shape `{ error }`)
+  - Enforces tenant context from session (`403` with `{ error }`)
+  - Enforces no-files (`400`)
+  - Enforces max file count (`MAX_FILES = 10`, `400`)
+  - Enforces MIME/size using `validateUploadFile` before upload (`400`)
+  - Uses tenant-aware upload path: `uploads/nasabah/${companyId}`
+  - Keeps success shape `{ urls }`
+
+- Added focused tests [route.test.ts](/tmp/codex-fanout/20260423_172310/p1d-upload-tests/dashboard/src/app/api/upload/nasabah/__tests__/route.test.ts:1)
+  - unauthorized
+  - no-files
+  - invalid-type
+  - too-many
+  - too-large
+  - success (asserts tenant-aware path)
+
+Verification run:
+- `npx --yes vitest run src/app/api/upload/nasabah/__tests__/route.test.ts`
+- Result: `1 passed`, `6 passed` tests.
+
+Working tree is clean.

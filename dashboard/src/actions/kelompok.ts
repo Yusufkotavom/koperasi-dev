@@ -36,6 +36,9 @@ export async function getKelompokById(id: string) {
   return prisma.kelompok.findFirst({
     where: { id, companyId },
     include: {
+      kolektor: {
+        select: { id: true, name: true },
+      },
       nasabah: {
         select: {
           id: true,
@@ -63,6 +66,25 @@ export async function getNasabahOptionsForKelompok() {
   })
 }
 
+export async function getKolektorOptionsForKelompok() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  return prisma.user.findMany({
+    where: {
+      companyId,
+      isActive: true,
+      roles: { some: { role: "KOLEKTOR" } },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: { name: "asc" },
+  })
+}
+
 async function resolveKetuaNama(companyId: string, ketuaNasabahId?: string, ketuaManual?: string) {
   if (!ketuaNasabahId) return ketuaManual || null
   const ketuaNasabah = await prisma.nasabah.findFirst({
@@ -70,6 +92,21 @@ async function resolveKetuaNama(companyId: string, ketuaNasabahId?: string, ketu
     select: { namaLengkap: true },
   })
   return ketuaNasabah?.namaLengkap ?? ketuaManual ?? null
+}
+
+async function resolveKolektorId(companyId: string, kolektorId?: string) {
+  if (!kolektorId) return null
+  const kolektor = await prisma.user.findFirst({
+    where: {
+      id: kolektorId,
+      companyId,
+      isActive: true,
+      roles: { some: { role: RoleType.KOLEKTOR } },
+    },
+    select: { id: true },
+  })
+  if (!kolektor) throw new Error("Kolektor tidak valid untuk company ini.")
+  return kolektor.id
 }
 
 export async function createKelompok(input: unknown) {
@@ -91,6 +128,13 @@ export async function createKelompok(input: unknown) {
   const anggotaIds = Array.from(anggotaSet)
 
   const ketuaNama = await resolveKetuaNama(companyId, parsed.data.ketuaNasabahId, parsed.data.ketua)
+  let kolektorId: string | null = null
+  try {
+    kolektorId = await resolveKolektorId(companyId, parsed.data.kolektorId)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Kolektor tidak valid."
+    return { error: { kolektorId: [message] } }
+  }
 
   const kelompok = await prisma.$transaction(async (tx) => {
     const created = await tx.kelompok.create({
@@ -99,6 +143,7 @@ export async function createKelompok(input: unknown) {
         kode: parsed.data.kode,
         nama: parsed.data.nama,
         ketua: ketuaNama,
+        kolektorId,
         wilayah: parsed.data.wilayah,
         jadwalPertemuan: parsed.data.jadwalPertemuan,
       },
@@ -138,6 +183,13 @@ export async function updateKelompok(id: string, input: unknown) {
   const anggotaIds = Array.from(anggotaSet)
 
   const ketuaNama = await resolveKetuaNama(companyId, parsed.data.ketuaNasabahId, parsed.data.ketua)
+  let kolektorId: string | null = null
+  try {
+    kolektorId = await resolveKolektorId(companyId, parsed.data.kolektorId)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Kolektor tidak valid."
+    return { error: { kolektorId: [message] } }
+  }
 
   await prisma.$transaction(async (tx) => {
     const current = await tx.kelompok.findFirst({ where: { id, companyId }, select: { id: true } })
@@ -149,6 +201,7 @@ export async function updateKelompok(id: string, input: unknown) {
         kode: parsed.data.kode,
         nama: parsed.data.nama,
         ketua: ketuaNama,
+        kolektorId,
         wilayah: parsed.data.wilayah,
         jadwalPertemuan: parsed.data.jadwalPertemuan,
       },

@@ -1,0 +1,1 @@
+You are worker 2. Focus ONLY on resolving simple lint/runtime hazards (especially warnings/errors likely to break CI or hydration) in dashboard app. Do not push. Commit your fixes and write README_WORKER.md with exact commands run and remaining warnings.

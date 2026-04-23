@@ -1,9 +1,17 @@
 import { auth } from "@/lib/auth"
+import { RoleType } from "@prisma/client"
+import { hasAnyRole } from "@/lib/roles"
+import { redirect } from "next/navigation"
 import { getCompanyUsers } from "@/actions/company-users"
 import { UserManagementCard } from "../user-management-card"
 
+type SessionLike = { user?: { id?: string; roles?: string[] } } | null
+
 export default async function SettingsUsersPage() {
   const session = await auth()
+  if (!hasAnyRole(session as unknown as SessionLike, [RoleType.SUPER_ADMIN, RoleType.OWNER, RoleType.ADMIN])) {
+    redirect("/dashboard?unauthorized=true")
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const companyId = (session?.user as any)?.companyId as string | null | undefined
   const users = companyId ? await getCompanyUsers() : []
@@ -26,4 +34,3 @@ export default async function SettingsUsersPage() {
     </div>
   )
 }
-

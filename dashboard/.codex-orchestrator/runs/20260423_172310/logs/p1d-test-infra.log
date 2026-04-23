@@ -1,0 +1,3038 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dbb5d-ffd7-7ff1-839b-28d1a2b0676c
+--------
+user
+You are Worker p1d-test-infra. Ownership: package.json, vitest.config.ts (or equivalent), tests/setup.ts, docs/internal/testing-baseline.md. Task: establish unit/integration test baseline with scripts test, test:watch, test:coverage for this Next.js repo, minimal and stable. Do not break existing e2e scripts. Add one tiny sanity test to verify runner works. Run tests and commit. You are not alone; do not revert unrelated files.
+
+MANDATORY COMMIT CADENCE: Commit early and often. Create a commit after each meaningful subtask (target every 10-20 minutes or each completed scope slice). Use clear commit messages with prefixes like feat/fix/test/docs/chore. Before finishing, ensure all completed work is committed. If quota/session ends unexpectedly, your latest commit must preserve progress.
+codex
+Saya akan menyiapkan baseline testing unit/integration yang minimal untuk repo ini tanpa mengganggu script e2e, lalu menambahkan sanity test, menjalankan test, dan commit bertahap per scope. Langkah pertama saya: cek skill/instruksi yang wajib dipakai dan audit konfigurasi testing saat ini di `package.json` serta file config terkait.
+exec
+/bin/bash -lc 'cat /home/kotacom/.agents/skills/nextjs/SKILL.md' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+---
+name: nextjs
+description: Next.js App Router expert guidance. Use when building, debugging, or architecting Next.js applications — routing, Server Components, Server Actions, Cache Components, layouts, middleware/proxy, data fetching, rendering strategies, and deployment on Vercel.
+metadata:
+  priority: 5
+  docs:
+    - "https://nextjs.org/docs"
+    - "https://nextjs.org/docs/app"
+  sitemap: "https://nextjs.org/sitemap.xml"
+  pathPatterns:
+    - 'next.config.*'
+    - 'next-env.d.ts'
+    - 'app/**'
+    - 'pages/**'
+    - 'src/app/**'
+    - 'src/pages/**'
+    - 'tailwind.config.*'
+    - 'postcss.config.*'
+    - 'tsconfig.json'
+    - 'tsconfig.*.json'
+    - 'apps/*/app/**'
+    - 'apps/*/pages/**'
+    - 'apps/*/src/app/**'
+    - 'apps/*/src/pages/**'
+    - 'apps/*/next.config.*'
+  bashPatterns:
+    - '\bnext\s+(dev|build|start|lint)\b'
+    - '\bnext\s+experimental-analyze\b'
+    - '\bnpx\s+create-next-app\b'
+    - '\bbunx\s+create-next-app\b'
+    - '\bnpm\s+run\s+(dev|build|start)\b'
+    - '\bpnpm\s+(dev|build)\b'
+    - '\bbun\s+run\s+(dev|build)\b'
+  promptSignals:
+    phrases:
+      - "next.js"
+      - "nextjs"
+      - "app router"
+      - "server component"
+      - "server action"
+    allOf:
+      - [middleware, next]
+      - [layout, route]
+    anyOf:
+      - "pages router"
+      - "getserversideprops"
+      - "use server"
+    noneOf: []
+    minScore: 6
+validate:
+  -
+    pattern: export.*getServerSideProps
+    message: 'getServerSideProps is removed in App Router — use server components or route handlers'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from Pages Router getServerSideProps to App Router server components with async data fetching.'
+  -
+    pattern: getServerSideProps
+    message: 'getServerSideProps is a Pages Router pattern — migrate to App Router server components'
+    severity: warn
+  -
+    pattern: export.*getStaticProps
+    message: 'getStaticProps is removed in App Router — use generateStaticParams + server components instead'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from Pages Router getStaticProps to App Router generateStaticParams with server components.'
+  -
+    pattern: getStaticProps
+    message: 'getStaticProps is a Pages Router pattern — migrate to App Router generateStaticParams + server components'
+    severity: warn
+  -
+    pattern: from\s+['"]next/router['"]
+    message: 'next/router is Pages Router only — use next/navigation for App Router'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from next/router to next/navigation with useRouter, usePathname, useSearchParams hooks.'
+  -
+    pattern: (useState|useEffect)
+    message: 'React hooks require "use client" directive — add it at the top of client components'
+    severity: warn
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: from\s+['"]next/head['"]
+    message: 'next/head is Pages Router — use export const metadata or generateMetadata() in App Router. Run Skill(nextjs) for metadata API guidance.'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from next/head to the App Router metadata API (export const metadata / generateMetadata()).'
+    skipIfFileContains: export\s+(const\s+)?metadata|generateMetadata
+  -
+    pattern: export\s+(default\s+)?function\s+middleware
+    message: 'middleware() is renamed to proxy() in Next.js 16 — rename the function and the file to proxy.ts. Run Skill(routing-middleware) for proxy.ts migration guidance.'
+    severity: recommended
+    upgradeToSkill: routing-middleware
+    upgradeWhy: 'Guides migration from middleware.ts to proxy.ts with correct file placement, runtime config, and request interception patterns.'
+  -
+    pattern: revalidateTag\(\s*['"][^'"]+['"]\s*\)
+    message: 'Single-arg revalidateTag(tag) is deprecated in Next.js 16 — pass a cacheLife profile: revalidateTag(tag, "max")'
+    severity: recommended
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from single-arg revalidateTag to the Next.js 16 two-arg API with cacheLife profiles.'
+  -
+    pattern: '\bcacheHandler\s*:'
+    message: 'Singular cacheHandler is deprecated in Next.js 16 — use cacheHandlers (plural) with per-type handlers'
+    severity: recommended
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from singular cacheHandler to Next.js 16 cacheHandlers (plural) with per-type handler config.'
+  -
+    pattern: useRef\(\s*\)
+    message: 'useRef() requires an initial value in React 19 — use useRef(null) or useRef(0)'
+    severity: error
+  -
+    pattern: next\s+export
+    message: 'next export was removed — use output: "export" in next.config.js for static export'
+    severity: error
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from next export CLI command to output: "export" in next.config for static site generation.'
+  -
+    pattern: (?<!await )\bcookies\(\s*\)
+    message: 'cookies() is async in Next.js 16 — add await: const cookieStore = await cookies()'
+    severity: error
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: (?<!await )\bheaders\(\s*\)
+    message: 'headers() is async in Next.js 16 — add await: const headersList = await headers()'
+    severity: error
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: =\s*(?!await\b)params\b
+    message: 'params is async in Next.js 16 — add await: const { slug } = await params'
+    severity: recommended
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: =\s*(?!await\b)searchParams\b
+    message: 'searchParams is async in Next.js 16 — add await: const { query } = await searchParams'
+    severity: recommended
+    skipIfFileContains: "^['\"]use client['\"]"
+  -
+    pattern: 'from\s+[''""](next-auth|@auth/core)[''""]|NextAuth\(|getServerSession\('
+    message: 'Legacy auth pattern detected. Modern Vercel apps should use Clerk, Descope, or Auth0 for managed authentication.'
+    severity: recommended
+    upgradeToSkill: auth
+    upgradeWhy: 'Migrate from next-auth/manual JWT to a managed auth provider (Clerk, Descope, Auth0) for better Vercel integration.'
+    skipIfFileContains: '@clerk/|@descope/|@auth0/'
+  -
+    pattern: 'NextApiRequest|NextApiResponse|export\s+default\s+function\s+handler'
+    message: 'Pages Router API handler detected. Use App Router route handlers with named HTTP exports instead.'
+    severity: recommended
+    upgradeToSkill: vercel-functions
+    upgradeWhy: 'Migrate from Pages Router API routes to App Router route handlers with Web Request/Response API.'
+    skipIfFileContains: 'export\s+(async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)'
+  -
+    pattern: 'from\s+[''""](lru-cache|node-cache|memory-cache)[''""]|new\s+(LRUCache|NodeCache)\('
+    message: 'In-process cache detected. Serverless deployments lose process memory between invocations.'
+    severity: recommended
+    upgradeToSkill: runtime-cache
+    upgradeWhy: 'Replace process-memory caches with Vercel Runtime Cache for shared, region-aware caching.'
+  -
+    pattern: 'from\s+[''""](express|fastify|koa|hapi)[''""]|require\s*\(\s*[''""](express|fastify|koa|hapi)[''""]'
+    message: 'Express/Fastify/Koa/Hapi server framework detected in a Next.js project. Use Next.js route handlers or proxy.ts for request handling instead.'
+    severity: recommended
+    upgradeToSkill: routing-middleware
+    upgradeWhy: 'Replace custom server frameworks with Next.js proxy.ts for request interception and route handlers for API endpoints.'
+    skipIfFileContains: 'proxy\.ts|from\s+[''""](next/server)[''""]|@vercel/functions'
+  -
+    pattern: 'from\s+[''""](typeorm|sequelize|mikro-orm|objection|bookshelf|knex)[''""]|require\s*\(\s*[''""](typeorm|sequelize|mikro-orm|objection|bookshelf|knex)[''""]'
+    message: 'Heavy ORM detected. Consider using lightweight serverless-native alternatives like Drizzle, Prisma, or direct Neon for better cold start performance.'
+    severity: recommended
+    upgradeToSkill: vercel-storage
+    upgradeWhy: 'Migrate from heavy ORMs to serverless-native database clients (Drizzle + Neon, Prisma, or @neondatabase/serverless) for faster cold starts.'
+    skipIfFileContains: 'from\s+[''""](drizzle-orm|@neondatabase|@prisma/client|prisma)[''""]'
+  -
+    pattern: 'fonts\.googleapis\.com|from\s+[''""](fontsource|@fontsource)[''""]|<link[^>]*fonts\.googleapis'
+    message: 'External font loader detected. Use next/font for zero-CLS, self-hosted font loading with automatic optimization.'
+    severity: recommended
+    upgradeToSkill: nextjs
+    upgradeWhy: 'Guides migration from external font loaders to next/font with Geist Sans/Mono for zero-CLS font optimization.'
+    skipIfFileContains: 'next/font'
+chainTo:
+  -
+    pattern: 'export\s+(default\s+)?function\s+middleware'
+    targetSkill: routing-middleware
+    message: 'middleware() is renamed to proxy() in Next.js 16 — loading Routing Middleware guidance for proxy.ts migration.'
+  -
+    pattern: "from\\s+['\"]@vercel/(postgres|kv)['\"]"
+    targetSkill: vercel-storage
+    message: 'Sunset storage package detected — loading Vercel Storage guidance for Neon/Upstash migration.'
+  -
+    pattern: "from\\s+['\"]@ai-sdk/(anthropic|openai)['\"]"
+    targetSkill: ai-gateway
+    message: 'Direct AI provider SDK import — loading AI Gateway guidance for unified model routing with failover and cost tracking.'
+  -
+    pattern: 'from\s+[''""](next-auth|@auth/core)[''""]|NextAuth\(|getServerSession\('
+    targetSkill: auth
+    message: 'Legacy auth pattern detected — loading managed authentication guidance (Clerk, Descope, Auth0).'
+  -
+    pattern: 'NextApiRequest|NextApiResponse|export\s+default\s+function\s+handler'
+    targetSkill: vercel-functions
+    message: 'Pages Router API handler detected — loading Vercel Functions guidance for App Router migration.'
+  -
+    pattern: 'from\s+[''""](lru-cache|node-cache|memory-cache)[''""]|new\s+(LRUCache|NodeCache)\('
+    targetSkill: runtime-cache
+    message: 'In-process cache detected — loading Runtime Cache guidance for serverless-compatible caching.'
+  -
+    pattern: 'fetch\s*\(\s*[''""](https?://)?(api\.openai\.com|api\.anthropic\.com|api\.cohere\.ai)'
+    targetSkill: ai-gateway
+    message: 'Raw AI provider fetch URL detected — loading AI Gateway guidance for unified routing, failover, and OIDC auth.'
+    skipIfFileContains: '@ai-sdk/|from\s+[''""](ai)[''""]|ai-gateway|gateway\('
+  -
+    pattern: 'jwt\.(sign|verify|decode)\(|from\s+[''""](jsonwebtoken)[''""]|new\s+SignJWT\(|jwtVerify\('
+    targetSkill: auth
+    message: 'Manual JWT token handling detected — loading Auth guidance for managed authentication (Clerk, Descope, Auth0).'
+    skipIfFileContains: 'clerkMiddleware|@clerk/|@auth0/|@descope/|from\s+[''""](next-auth)[''""]'
+  -
+    pattern: 'from\s+[''"]@/components/ui/|from\s+[''"]@/components/ui[''""]'
+    targetSkill: shadcn
+    message: 'shadcn/ui component imports detected — loading shadcn guidance for component composition, theming, and registry patterns.'
+    skipIfFileContains: 'shadcn|components\.json'
+  -
+    pattern: 'from\s+[''""](styled-components|@emotion/(react|styled)|@mui/material)[''""]'
+    targetSkill: shadcn
+    message: 'CSS-in-JS library detected — loading shadcn/ui guidance for Tailwind CSS + Radix UI component patterns (Vercel recommended).'
+    skipIfFileContains: '@/components/ui|shadcn'
+  -
+    pattern: 'getInitialProps'
+    targetSkill: nextjs
+    message: 'getInitialProps is a legacy Pages Router pattern — loading Next.js guidance for App Router migration with server components and async data fetching.'
+    skipIfFileContains: 'app/.*page\.|generateStaticParams|use cache'
+  -
+    pattern: 'export.*getServerSideProps|getServerSideProps\s*\('
+    targetSkill: nextjs
+    message: 'getServerSideProps is a Pages Router pattern — loading Next.js guidance for App Router migration with server components and async data fetching.'
+    skipIfFileContains: 'generateStaticParams|use cache|app/.*page\.'
+  -
+    pattern: 'export.*getStaticProps|getStaticProps\s*\('
+    targetSkill: nextjs
+    message: 'getStaticProps is a Pages Router pattern — loading Next.js guidance for App Router migration with generateStaticParams and server components.'
+    skipIfFileContains: 'generateStaticParams|use cache|app/.*page\.'
+  -
+    pattern: '_app\.(tsx?|jsx?)'
+    targetSkill: nextjs
+    message: '_app.tsx is a Pages Router pattern — loading Next.js guidance for App Router layout.tsx migration.'
+    skipIfFileContains: 'app/layout\.|app/.*layout\.'
+  -
+    pattern: '_document\.(tsx?|jsx?)'
+    targetSkill: nextjs
+    message: '_document.tsx is a Pages Router pattern — loading Next.js guidance for App Router layout.tsx with metadata API migration.'
+    skipIfFileContains: 'app/layout\.|app/.*layout\.'
+  -
+    pattern: "from\\s+['\"]next/document['\"]"
+    targetSkill: nextjs
+    message: 'next/document is Pages Router only — loading Next.js guidance for App Router layout.tsx with html/body structure.'
+    skipIfFileContains: 'app/layout\.|app/.*layout\.'
+  -
+    pattern: 'pages/api/'
+    targetSkill: vercel-functions
+    message: 'Pages Router API route (pages/api/) detected — loading Vercel Functions guidance for App Router route handlers with named HTTP exports.'
+    skipIfFileContains: 'export\s+(async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)'
+retrieval:
+  aliases:
+    - next.js
+    - nextjs app
+    - react framework
+    - app router
+  intents:
+    - set up routing and layouts in a Next.js app
+    - choose between server and client components for a feature
+    - configure data fetching or caching in App Router
+    - add middleware or proxy logic to handle requests
+    - set up server rendering for React pages
+    - add a new page with dynamic route segments
+  entities:
+    - App Router
+    - Server Components
+    - Server Actions
+    - generateMetadata
+    - layout
+    - proxy
+    - next.config
+  examples:
+    - add a new page with dynamic routing
+    - should this be a server or client component
+    - set up middleware for auth redirects
+    - configure caching for this data fetch
+    - set up server rendering for my pages
+
+---
+
+# Next.js Best Practices
+
+Apply these rules when writing or reviewing Next.js code.
+
+## File Conventions
+
+See [file-conventions.md](./file-conventions.md) for:
+- Project structure and special files
+- Route segments (dynamic, catch-all, groups)
+- Parallel and intercepting routes
+- Middleware rename in v16 (middleware → proxy)
+
+## RSC Boundaries
+
+Detect invalid React Server Component patterns.
+
+See [rsc-boundaries.md](./rsc-boundaries.md) for:
+- Async client component detection (invalid)
+- Non-serializable props detection
+- Server Action exceptions
+
+## Async Patterns
+
+Next.js 15+ async API changes.
+
+See [async-patterns.md](./async-patterns.md) for:
+- Async `params` and `searchParams`
+- Async `cookies()` and `headers()`
+- Migration codemod
+
+## Runtime Selection
+
+See [runtime-selection.md](./runtime-selection.md) for:
+- Default to Node.js runtime
+- When Edge runtime is appropriate
+
+## Directives
+
+See [directives.md](./directives.md) for:
+- `'use client'`, `'use server'` (React)
+- `'use cache'` (Next.js)
+
+## Functions
+
+See [functions.md](./functions.md) for:
+- Navigation hooks: `useRouter`, `usePathname`, `useSearchParams`, `useParams`
+- Server functions: `cookies`, `headers`, `draftMode`, `after`
+- Generate functions: `generateStaticParams`, `generateMetadata`
+
+## Error Handling
+
+See [error-handling.md](./error-handling.md) for:
+- `error.tsx`, `global-error.tsx`, `not-found.tsx`
+- `redirect`, `permanentRedirect`, `notFound`
+- `forbidden`, `unauthorized` (auth errors)
+- `unstable_rethrow` for catch blocks
+
+## Data Patterns
+
+See [data-patterns.md](./data-patterns.md) for:
+- Server Components vs Server Actions vs Route Handlers
+- Avoiding data waterfalls (`Promise.all`, Suspense, preload)
+- Client component data fetching
+
+## Route Handlers
+
+See [route-handlers.md](./route-handlers.md) for:
+- `route.ts` basics
+- GET handler conflicts with `page.tsx`
+- Environment behavior (no React DOM)
+- When to use vs Server Actions
+
+## Metadata & OG Images
+
+See [metadata.md](./metadata.md) for:
+- Static and dynamic metadata
+- `generateMetadata` function
+- OG image generation with `next/og`
+- File-based metadata conventions
+
+## Image Optimization
+
+See [image.md](./image.md) for:
+- Always use `next/image` over `<img>`
+- Remote images configuration
+- Responsive `sizes` attribute
+- Blur placeholders
+- Priority loading for LCP
+
+## Font Optimization
+
+See [font.md](./font.md) for:
+- `next/font` setup
+- Google Fonts, local fonts
+- Tailwind CSS integration
+- Preloading subsets
+
+## Bundling
+
+See [bundling.md](./bundling.md) for:
+- Server-incompatible packages
+- CSS imports (not link tags)
+- Polyfills (already included)
+- ESM/CommonJS issues
+- Bundle analysis
+
+## Scripts
+
+See [scripts.md](./scripts.md) for:
+- `next/script` vs native script tags
+- Inline scripts need `id`
+- Loading strategies
+- Google Analytics with `@next/third-parties`
+
+## Hydration Errors
+
+See [hydration-error.md](./hydration-error.md) for:
+- Common causes (browser APIs, dates, invalid HTML)
+- Debugging with error overlay
+- Fixes for each cause
+
+## Suspense Boundaries
+
+See [suspense-boundaries.md](./suspense-boundaries.md) for:
+- CSR bailout with `useSearchParams` and `usePathname`
+- Which hooks require Suspense boundaries
+
+## Parallel & Intercepting Routes
+
+See [parallel-routes.md](./parallel-routes.md) for:
+- Modal patterns with `@slot` and `(.)` interceptors
+- `default.tsx` for fallbacks
+- Closing modals correctly with `router.back()`
+
+## Self-Hosting
+
+See [self-hosting.md](./self-hosting.md) for:
+- `output: 'standalone'` for Docker
+- Cache handlers for multi-instance ISR
+- What works vs needs extra setup
+
+## Debug Tricks
+
+See [debug-tricks.md](./debug-tricks.md) for:
+- MCP endpoint for AI-assisted debugging
+- Rebuild specific routes with `--debug-build-paths`
+
+
+exec
+/bin/bash -lc 'cat /home/kotacom/.codex/skills/using-superpowers/SKILL.md' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+exec
+/bin/bash -lc 'pwd && ls -la && rg --files | rg -n "package.json|vitest|jest|playwright|cypress|tests/setup|testing"' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 17:23 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 17:23 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 17:23 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 17:23 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 17:23 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 17:23 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 17:23 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 17:23 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 17:23 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 17:23 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 17:23 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 17:23 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 17:23 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 17:23 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 17:23 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 17:23 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 17:23 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 17:23 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 17:23 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 17:23 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 17:23 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 17:23 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 17:23 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 17:23 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 17:23 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 17:23 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 17:23 tsconfig.json
+22:package.json
+
+codex
+Saya memakai skill `nextjs` untuk memastikan setup testing tetap kompatibel dengan pola Next.js terbaru, dan saya akan ambil baseline seminimal mungkin. Berikutnya saya baca `package.json` dan cek apakah sudah ada config test/e2e agar tidak bentrok.
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc "rg -n \"\\b(e2e|playwright|cypress|vitest|jest|test:|coverage)\\b\" -S ." in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+./docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md:68:| Hak Akses | Partial | RBAC + audit log ada; coverage per fitur masih bertahap |
+./package-lock.json:48:        "@playwright/test": "^1.59.1",
+./package-lock.json:55:        "playwright": "^1.59.1",
+./package-lock.json:2097:    "node_modules/@playwright/test": {
+./package-lock.json:2099:      "resolved": "https://registry.npmjs.org/@playwright/test/-/test-1.59.1.tgz",
+./package-lock.json:2104:        "playwright": "1.59.1"
+./package-lock.json:2107:        "playwright": "cli.js"
+./package-lock.json:9712:        "@playwright/test": "^1.51.1",
+./package-lock.json:9722:        "@playwright/test": {
+./package-lock.json:10478:    "node_modules/playwright": {
+./package-lock.json:10480:      "resolved": "https://registry.npmjs.org/playwright/-/playwright-1.59.1.tgz",
+./package-lock.json:10485:        "playwright-core": "1.59.1"
+./package-lock.json:10488:        "playwright": "cli.js"
+./package-lock.json:10497:    "node_modules/playwright-core": {
+./package-lock.json:10499:      "resolved": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.59.1.tgz",
+./package-lock.json:10504:        "playwright-core": "cli.js"
+./package.json:57:    "@playwright/test": "^1.59.1",
+./package.json:64:    "playwright": "^1.59.1",
+./capture-screenshots.mjs:1:import { chromium } from 'playwright';
+
+exec
+/bin/bash -lc "ls -la docs && rg --files docs | sed -n '1,120p'" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+total 16
+drwxr-xr-x  4 kotacom kotacom 4096 Apr 23 17:23 .
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 17:23 ..
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 17:23 internal
+drwxr-xr-x  4 kotacom kotacom 4096 Apr 23 17:23 superpowers
+docs/internal/accounting-extension-plan.md
+docs/internal/panduan-pengguna.md
+docs/superpowers/using-superpowers.md
+docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+docs/superpowers/plans/plan.md
+docs/superpowers/plans/accounting-scoring-plan.md
+docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+
+codex
+Saya sudah konfirmasi belum ada baseline test script saat ini, jadi saya akan menambahkannya secara terisolasi agar e2e tidak berubah. Sebelum edit, saya cek dokumentasi lokal Next.js di `node_modules/next/dist/docs/` terkait testing supaya align dengan versi repo ini.
+exec
+/bin/bash -lc "ls -la node_modules/next/dist/docs | sed -n '1,120p'" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+ls: cannot access 'node_modules/next/dist/docs': No such file or directory
+
+exec
+/bin/bash -lc "rg -n \"vitest|testing|unit\" node_modules/next/dist/docs -S | sed -n '1,160p'" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs: No such file or directory (os error 2)
+
+codex
+`node_modules` belum ada, jadi path docs Next.js lokal belum bisa dibaca sekarang. Rencana eksekusi saya:
+
+1. Install dependency dulu (`npm install`) agar `node_modules/next/dist/docs/` tersedia.  
+2. Baca dokumen Next.js lokal yang relevan untuk testing/Vitest.  
+3. Tambah baseline testing minimal: script `test`, `test:watch`, `test:coverage`, config Vitest, dan `tests/setup.ts`.  
+4. Tambah 1 sanity test kecil untuk validasi runner.  
+5. Jalankan test suite untuk verifikasi.  
+6. Commit bertahap per scope (config, test, docs), tanpa menyentuh script e2e yang sudah ada.
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+exec
+/bin/bash -lc 'npm install' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+codex
+Saya sedang menjalankan `npm install` untuk menyiapkan dependency dan membuka akses ke docs Next.js lokal; proses masih berjalan. Setelah selesai saya lanjut baca doc testing lalu implement config Vitest.
+ succeeded in 34949ms:
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> dashboard@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.7.0) to ./node_modules/@prisma/client in 981ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+added 862 packages, and audited 863 packages in 35s
+
+255 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+codex
+Dependency sudah terpasang. Saya lanjut verifikasi dokumen Next.js lokal untuk testing lalu mulai buat konfigurasi baseline test.
+exec
+/bin/bash -lc "ls -la node_modules/next/dist/docs | sed -n '1,120p'" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+total 28
+drwxr-xr-x  6 kotacom kotacom 4096 Apr 23 17:24 .
+drwxr-xr-x 22 kotacom kotacom 4096 Apr 23 17:24 ..
+drwxr-xr-x  5 kotacom kotacom 4096 Apr 23 17:24 01-app
+drwxr-xr-x  6 kotacom kotacom 4096 Apr 23 17:24 02-pages
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 17:24 03-architecture
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 17:24 04-community
+-rw-r--r--  1 kotacom kotacom 3361 Apr 23 17:24 index.md
+
+exec
+/bin/bash -lc "rg -n \"vitest|testing|unit|jest\" node_modules/next/dist/docs -S | sed -n '1,200p'" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+node_modules/next/dist/docs/index.md:67:## Join our Community
+node_modules/next/dist/docs/index.md:69:If you have questions about anything related to Next.js, you're always welcome to ask our community on [GitHub Discussions](https://github.com/vercel/next.js/discussions), [Discord](https://discord.com/invite/bUG2bvbtHy), [X (Twitter)](https://x.com/nextjs), and [Reddit](https://www.reddit.com/r/nextjs).
+node_modules/next/dist/docs/02-pages/02-guides/draft-mode.md:34:// simple example for testing it manually from your browser.
+node_modules/next/dist/docs/02-pages/02-guides/preview-mode.md:70:// simple example for testing it manually from your browser.
+node_modules/next/dist/docs/02-pages/02-guides/internationalization.md:26:- `en-US` - English as spoken in the United States
+node_modules/next/dist/docs/02-pages/02-guides/testing/index.md:2:title: Testing
+node_modules/next/dist/docs/02-pages/02-guides/testing/index.md:3:description: Learn how to set up Next.js with three commonly used testing tools — Cypress, Playwright, Vitest, and Jest.
+node_modules/next/dist/docs/02-pages/02-guides/testing/index.md:4:source: app/guides/testing
+node_modules/next/dist/docs/02-pages/02-guides/testing/playwright.md:4:description: Learn how to set up Next.js with Playwright for End-to-End (E2E) and Integration testing.
+node_modules/next/dist/docs/02-pages/02-guides/testing/playwright.md:5:source: app/guides/testing/playwright
+node_modules/next/dist/docs/02-pages/02-guides/testing/vitest.md:2:title: How to set up Vitest with Next.js
+node_modules/next/dist/docs/02-pages/02-guides/testing/vitest.md:3:nav_title: Vitest
+node_modules/next/dist/docs/02-pages/02-guides/testing/vitest.md:4:description: Learn how to set up Next.js with Vitest and React Testing Library - two popular unit testing libraries.
+node_modules/next/dist/docs/02-pages/02-guides/testing/vitest.md:5:source: app/guides/testing/vitest
+node_modules/next/dist/docs/02-pages/02-guides/testing/jest.md:2:title: How to set up Jest with Next.js
+node_modules/next/dist/docs/02-pages/02-guides/testing/jest.md:3:nav_title: Jest
+node_modules/next/dist/docs/02-pages/02-guides/testing/jest.md:4:description: Learn how to set up Next.js with Jest for Unit Testing.
+node_modules/next/dist/docs/02-pages/02-guides/testing/jest.md:5:source: app/guides/testing/jest
+node_modules/next/dist/docs/02-pages/02-guides/testing/cypress.md:4:description: Learn how to set up Next.js with Cypress for End-to-End (E2E) and Component Testing.
+node_modules/next/dist/docs/02-pages/02-guides/testing/cypress.md:5:source: app/guides/testing/cypress
+node_modules/next/dist/docs/02-pages/02-guides/upgrading/version-9.md:68:> This list was created by the community to help you upgrade, if you find other differences please send a pull-request to this list to help other users.
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/04-testing-adapters.md:2:title: Testing Adapters
+node_modules/next/dist/docs/02-pages/04-api-reference/06-adapters/04-testing-adapters.md:4:source: app/api-reference/adapters/testing-adapters
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:21:- **Community:** The Rust community and ecosystem are amazing and still growing.
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:74:### Jest
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:76:The Next.js Compiler transpiles your tests and simplifies configuring Jest together with Next.js including:
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:85:First, update to the latest version of Next.js: `npm install next@latest`. Then, update your `jest.config.js` file:
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:87:```js filename="jest.config.js"
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:88:const nextJest = require('next/jest')
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:91:const createJestConfig = nextJest({ dir: './' })
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:93:// Any custom config you want to pass to Jest
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:94:const customJestConfig = {
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:95:  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:98:// createJestConfig is exported in this way to ensure that next/jest can load the Next.js configuration, which is async
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:99:module.exports = createJestConfig(customJestConfig)
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:124:Allows to remove JSX properties. This is often used for testing. Similar to `babel-plugin-react-remove-properties`.
+node_modules/next/dist/docs/03-architecture/nextjs-compiler.md:358:| `v12.1.0` | Added support for Styled Components, Jest, Relay, Remove React Properties, Legacy Decorators, Remove Console, and jsxImportSource.                                                                       |
+node_modules/next/dist/docs/01-app/02-guides/open-telemetry.md:176:## Testing your instrumentation
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:831:Community libraries often use the factory pattern for Route Handlers.
+node_modules/next/dist/docs/01-app/02-guides/backend-for-frontend.md:884:For these, use community libraries like [`swr`](https://swr.vercel.app/) or [`react-query`](https://tanstack.com/query/latest/docs/framework/react/overview).
+node_modules/next/dist/docs/01-app/02-guides/rendering-philosophy.md:65:**Functional fidelity** means every Next.js feature works correctly on the platform. The [adapter test suite](/docs/app/api-reference/adapters/testing-adapters) is the contract: if a platform's adapter passes the tests, it has full functional fidelity. This is binary: it passes or it doesn't. The test suite is open to contributions from platform partners to ensure it is fair and complete.
+node_modules/next/dist/docs/01-app/02-guides/rendering-philosophy.md:73:Many CDNs have useful primitives for deeper Next.js integration (edge compute, key-value storage, blob storage), but end-to-end PPR resume support is still emerging and may require bespoke platform work. Most community adapters today deploy Next.js as a Node.js server without leveraging these CDN-specific primitives. See the [Deploying](/docs/app/getting-started/deploying#adapters) page for the current list of adapters.
+node_modules/next/dist/docs/01-app/02-guides/preserving-ui-state.md:305:## Testing
+node_modules/next/dist/docs/01-app/02-guides/preserving-ui-state.md:307:Hidden Activity content has `display: none` but remains in the document. This applies both to routes preserved by Cache Components and to content you hide with `<Activity>` directly. It affects end-to-end testing with tools like Playwright, Cypress, or Puppeteer:
+node_modules/next/dist/docs/01-app/02-guides/preserving-ui-state.md:341:`getByRole` is robust to Activity, tabbed navigation, accordions, and any other pattern that keeps hidden content in the DOM. It queries the accessibility tree, which excludes hidden elements. For other testing tools, check their documentation for visibility-aware selectors. For example, Cypress uses `.should('be.visible')` or `{ visible: true }` options.
+node_modules/next/dist/docs/01-app/02-guides/local-development.md:207:- Reserve Docker for production deployments and testing production builds
+node_modules/next/dist/docs/01-app/02-guides/data-security.md:600:- **`proxy.ts` and `route.ts`:** Have a lot of power. Spend extra time auditing these using traditional techniques. Perform Penetration Testing or Vulnerability Scanning regularly or in alignment with your team's software development lifecycle.
+node_modules/next/dist/docs/01-app/02-guides/css-in-js.md:33:> **Good to know**: We're testing out different CSS-in-JS libraries and we'll be adding more examples for libraries that support React 18 features and/or the `app` directory.
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md:26:**Functional fidelity** means every Next.js feature works correctly. The [adapter test suite](/docs/app/api-reference/adapters/testing-adapters) is the contract: if a platform's adapter passes the tests, it supports Next.js. This is binary: it passes or it doesn't.
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md:66:These are available building blocks, not finished integrations. Most community adapters today deploy Next.js as a Docker container or Node.js server without leveraging CDN-specific primitives like edge KV or PPR resuming. See the [Deploying](/docs/app/getting-started/deploying#adapters) page for the current list of adapters. For CDN-specific caching considerations (including known limitations with `Vary` on custom headers), see [CDN Caching](/docs/app/guides/cdn-caching).
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md:78:1. **Open source.** The adapter source code is publicly available so the community and the Next.js team can inspect, contribute to, and verify it.
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md:79:2. **Runs the compatibility test suite.** The platform provides a way to run the full [Next.js compatibility test suite](/docs/app/api-reference/adapters/testing-adapters) against their adapter. This gives visibility into which features work, which are in progress, and where gaps remain.
+node_modules/next/dist/docs/01-app/02-guides/deploying-to-platforms.md:85:- **Coordinated testing.** Before major releases, we work with platform teams to run the compatibility test suite and surface issues early.
+node_modules/next/dist/docs/01-app/02-guides/mcp.md:49:- **Browser Testing**: [Playwright MCP](https://github.com/microsoft/playwright-mcp) integration for verifying pages in the browser
+node_modules/next/dist/docs/01-app/02-guides/progressive-web-apps.md:593:### 7. Testing Locally
+node_modules/next/dist/docs/01-app/02-guides/progressive-web-apps.md:598:  - Use `next dev --experimental-https` for testing
+node_modules/next/dist/docs/01-app/02-guides/videos.md:253:- Find [examples](https://github.com/cloudinary-community/cloudinary-examples/?tab=readme-ov-file#nextjs) of integrating Cloudinary with Next.js including [Adaptive Bitrate Streaming](https://github.com/cloudinary-community/cloudinary-examples/tree/main/examples/nextjs-cldvideoplayer-abr).
+node_modules/next/dist/docs/01-app/02-guides/streaming.md:600:Streaming enables [selective hydration](https://react.dev/reference/react-dom/client/hydrateRoot): React hydrates components independently as they stream in, and prioritizes hydrating whatever the user is interacting with. Each `<Suspense>` boundary is a hydration unit. Without them, React hydrates the entire page in one blocking pass. With them, hydration is broken into smaller tasks that yield to the browser, keeping the main thread responsive. The [companion demo](https://streaming-demo.labs.vercel.dev/hydration-single) lets you compare a single blocking hydration pass with [split hydration](https://streaming-demo.labs.vercel.dev/hydration-split) using Suspense boundaries.
+node_modules/next/dist/docs/01-app/02-guides/migrating/from-create-react-app.md:42:[Next.js Proxy](/docs/app/api-reference/file-conventions/proxy) allows you to run code on the server before a request is completed. For instance, you can avoid a flash of unauthenticated content by redirecting a user to a login page in the proxy for authenticated-only pages. You can also use it for features like A/B testing, experimentation, and [internationalization](/docs/app/guides/internationalization).
+node_modules/next/dist/docs/01-app/02-guides/migrating/from-create-react-app.md:160:> **Good to know**: Next.js ignores CRA’s `public/manifest.json`, additional iconography, and [testing configuration](/docs/app/guides/testing) by default. If you need these, Next.js has support with its [Metadata API](/docs/app/getting-started/metadata-and-og-images) and [Testing](/docs/app/guides/testing) setup.
+node_modules/next/dist/docs/01-app/02-guides/internationalization.md:11:  - `en-US`: English as spoken in the United States
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:2:title: Testing
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:3:description: Learn how to set up Next.js with four commonly used testing tools — Cypress, Playwright, Vitest, and Jest.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:10:- **Unit Testing** involves testing individual units (or blocks of code) in isolation. In React, a unit can be a single function, hook, or component.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:11:- **Component Testing** is a more focused version of unit testing where the primary subject of the tests is React components. This may involve testing how components are rendered, their interaction with props, and their behavior in response to user events.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:12:- **Integration Testing** involves testing how multiple units work together. This can be a combination of components, hooks, and functions.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:13:- **End-to-End (E2E) Testing** involves testing user flows in an environment that simulates real user scenarios, like the browser. This means testing specific tasks (e.g. signup flow) in a production-like environment.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:14:- **Snapshot Testing** involves capturing the rendered output of a component and saving it to a snapshot file. When tests run, the current rendered output of the component is compared against the saved snapshot. Changes in the snapshot are used to indicate unexpected changes in behavior.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:20:Since `async` Server Components are new to the React ecosystem, some tools do not fully support them. In the meantime, we recommend using **End-to-End Testing** over **Unit Testing** for `async` components.
+node_modules/next/dist/docs/01-app/02-guides/testing/index.md:26:See the guides below to learn how to set up Next.js with these commonly used testing tools:
+node_modules/next/dist/docs/01-app/02-guides/environment-variables.md:246:Apart from `development` and `production` environments, there is a 3rd option available: `test`. In the same way you can set defaults for development or production environments, you can do the same with a `.env.test` file for the `testing` environment (though this one is not as common as the previous two). Next.js will not load environment variables from `.env.development` or `.env.production` in the `testing` environment.
+node_modules/next/dist/docs/01-app/02-guides/environment-variables.md:248:This one is useful when running tests with tools like `jest` or `cypress` where you need to set specific environment vars only for testing purposes. Test default values will be loaded if `NODE_ENV` is set to `test`, though you usually don't need to do this manually as testing tools will address it for you.
+node_modules/next/dist/docs/01-app/02-guides/environment-variables.md:254:While running unit tests you can make sure to load your environment variables the same way Next.js does by leveraging the `loadEnvConfig` function from the `@next/env` package.
+node_modules/next/dist/docs/01-app/02-guides/environment-variables.md:257:// The below can be used in a Jest global setup file or similar for your testing set-up
+node_modules/next/dist/docs/01-app/02-guides/testing/playwright.md:4:description: Learn how to set up Playwright with Next.js for End-to-End (E2E) Testing.
+node_modules/next/dist/docs/01-app/02-guides/testing/playwright.md:7:Playwright is a testing framework that lets you automate Chromium, Firefox, and WebKit with a single API. You can use it to write **End-to-End (E2E)** testing. This guide will show you how to set up Playwright with Next.js and write your first tests.
+node_modules/next/dist/docs/01-app/02-guides/json-ld.md:13:Review your organization's recommended approach to sanitize potentially dangerous strings, or use community maintained alternatives for `JSON.stringify` such as, [serialize-javascript](https://www.npmjs.com/package/serialize-javascript).
+node_modules/next/dist/docs/01-app/02-guides/json-ld.md:73:You can type your JSON-LD with TypeScript using community packages like [`schema-dts`](https://www.npmjs.com/package/schema-dts):
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:2:title: How to set up Jest with Next.js
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:3:nav_title: Jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:4:description: Learn how to set up Jest with Next.js for Unit Testing and Snapshot Testing.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:9:Jest and React Testing Library are frequently used together for **Unit Testing** and **Snapshot Testing**. This guide will show you how to set up Jest with Next.js and write your first tests.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:11:> **Good to know:** Since `async` Server Components are new to the React ecosystem, Jest currently does not support them. While you can still run **unit tests** for synchronous Server and Client Components, we recommend using an **E2E tests** for `async` components.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:15:You can use `create-next-app` with the Next.js [with-jest](https://github.com/vercel/next.js/tree/canary/examples/with-jest) example to quickly get started:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:18:pnpm create next-app --example with-jest with-jest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:22:npx create-next-app@latest --example with-jest with-jest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:26:yarn create next-app --example with-jest with-jest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:30:bun create next-app --example with-jest with-jest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:35:Since the release of [Next.js 12](https://nextjs.org/blog/next-12), Next.js now has built-in configuration for Jest.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:37:To set up Jest, install `jest` and the following packages as dev dependencies:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:40:pnpm add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:44:npm install -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:48:yarn add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:52:bun add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node @types/jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:55:Generate a basic Jest configuration file by running the following command:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:58:pnpm create jest@latest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:62:npm init jest@latest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:66:yarn create jest@latest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:70:bun create jest@latest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:73:This will take you through a series of prompts to setup Jest for your project, including automatically creating a `jest.config.ts|js` file.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:75:Update your config file to use `next/jest`. This transformer has all the necessary configuration options for Jest to work with Next.js:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:77:```ts filename="jest.config.ts" switcher
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:78:import type { Config } from 'jest'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:79:import nextJest from 'next/jest.js'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:81:const createJestConfig = nextJest({
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:86:// Add any custom config to be passed to Jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:91:  // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:94:// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:95:export default createJestConfig(config)
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:98:```js filename="jest.config.js" switcher
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:99:const nextJest = require('next/jest')
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:101:/** @type {import('jest').Config} */
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:102:const createJestConfig = nextJest({
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:107:// Add any custom config to be passed to Jest
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:112:  // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:115:// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:116:module.exports = createJestConfig(config)
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:119:Under the hood, `next/jest` is automatically configuring Jest for you, including:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:128:> **Good to know**: To test environment variables directly, load them manually in a separate setup script or in your `jest.config.ts` file. For more information, please see [Test Environment Variables](/docs/app/guides/environment-variables#test-environment-variables).
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:132:## Setting up Jest (with Babel)
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:134:If you opt out of the [Next.js Compiler](/docs/architecture/nextjs-compiler) and use Babel instead, you will need to manually configure Jest and install `babel-jest` and `identity-obj-proxy` in addition to the packages above.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:136:Here are the recommended options to configure Jest for Next.js:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:138:```js filename="jest.config.js"
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:154:    // https://jestjs.io/docs/webpack#mocking-css-modules
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:161:    // https://jestjs.io/docs/webpack#handling-static-assets
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:175:  // setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:179:    // Use babel-jest to transpile tests with the next/babel preset
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:180:    // https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:181:    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:190:You can learn more about each configuration option in the [Jest docs](https://jestjs.io/docs/configuration). We also recommend reviewing [`next/jest` configuration](https://github.com/vercel/next.js/blob/e02fe314dcd0ae614c65b505c6daafbdeebb920e/packages/next/src/build/jest/jest.ts) to see how Next.js configures Jest.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:206:For more information on handling static assets, please refer to the [Jest Docs](https://jestjs.io/docs/webpack#handling-static-assets).
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:231:If your project is using [Module Path Aliases](/docs/app/getting-started/installation#set-up-absolute-imports-and-module-path-aliases), you will need to configure Jest to resolve the imports by matching the paths option in the `jsconfig.json` file with the `moduleNameMapper` option in the `jest.config.js` file. For example:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:246:```js filename="jest.config.js"
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:253:## Optional: Extend Jest with custom matchers
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:255:`@testing-library/jest-dom` includes a set of convenient [custom matchers](https://github.com/testing-library/jest-dom#custom-matchers) such as `.toBeInTheDocument()` making it easier to write tests. You can import the custom matchers for every test by adding the following option to the Jest configuration file:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:257:```ts filename="jest.config.ts" switcher
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:258:setupFilesAfterEnv: ['<rootDir>/jest.setup.ts']
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:261:```js filename="jest.config.js" switcher
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:262:setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:265:Then, inside `jest.setup`, add the following import:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:267:```ts filename="jest.setup.ts" switcher
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:268:import '@testing-library/jest-dom'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:271:```js filename="jest.setup.js" switcher
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:272:import '@testing-library/jest-dom'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:275:> **Good to know:** [`extend-expect` was removed in `v6.0`](https://github.com/testing-library/jest-dom/releases/tag/v6.0.0), so if you are using `@testing-library/jest-dom` before version 6, you will need to import `@testing-library/jest-dom/extend-expect` instead.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:277:If you need to add more setup options before each test, you can add them to the `jest.setup` file above.
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:281:Finally, add a Jest `test` script to your `package.json` file:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:289:    "test": "jest",
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:290:    "test:watch": "jest --watch"
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:295:`jest --watch` will re-run tests when a file is changed. For more Jest CLI options, please refer to the [Jest Docs](https://jestjs.io/docs/cli#reference).
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:312:import '@testing-library/jest-dom'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:313:import { render, screen } from '@testing-library/react'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:347:import '@testing-library/jest-dom'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:348:import { render, screen } from '@testing-library/react'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:364:Optionally, add a [snapshot test](https://jestjs.io/docs/snapshot-testing) to keep track of any unexpected changes in your component:
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:369:import { render } from '@testing-library/react'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:385:import { render } from '@testing-library/react'
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:420:- [Next.js with Jest example](https://github.com/vercel/next.js/tree/canary/examples/with-jest)
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:421:- [Jest Docs](https://jestjs.io/docs/getting-started)
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:422:- [React Testing Library Docs](https://testing-library.com/docs/react-testing-library/intro/)
+node_modules/next/dist/docs/01-app/02-guides/testing/jest.md:423:- [Testing Playground](https://testing-playground.com/) - use good testing practices to match elements.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:4:description: Learn how to set up Cypress with Next.js for End-to-End (E2E) and Component Testing.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:7:[Cypress](https://www.cypress.io/) is a test runner used for **End-to-End (E2E)** and **Component Testing**. This page will show you how to set up Cypress with Next.js and write your first tests.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:71:Run Cypress for the first time to open the Cypress testing suite:
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:89:You can choose to configure **E2E Testing** and/or **Component Testing**. Selecting any of these options will automatically create a `cypress.config.js` file and a `cypress` folder in your project.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:201:Run `npm run build && npm run start` to build your Next.js application, then run `npm run cypress:open` in another terminal window to start Cypress and run your E2E Testing suite.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:212:Select **Component Testing** in the Cypress app, then select **Next.js** as your front-end framework. A `cypress/component` folder will be created in your project, and a `cypress.config.js` file will be updated to enable Component Testing.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:290:> - Cypress currently doesn't support Component Testing for `async` Server Components. We recommend using E2E testing.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:295:Run `npm run cypress:open` in your terminal to start Cypress and run your Component Testing suite.
+node_modules/next/dist/docs/01-app/02-guides/testing/cypress.md:299:In addition to interactive testing, you can also run Cypress headlessly using the `cypress run` command, which is better suited for CI environments:
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:692:### Unit testing (experimental)
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:694:Starting in Next.js 15.1, the `next/experimental/testing/server` package contains utilities to help unit test proxy files. Unit testing proxy can help ensure that it's only run on desired paths and that custom routing logic works as intended before code reaches production.
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:699:import { unstable_doesProxyMatch } from 'next/experimental/testing/server'
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md:713:import { isRewrite, getRewrittenUrl } from 'next/experimental/testing/server'
+node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/serverExternalPackages.md:60:- `jest`
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.md:89:## Testing instant navigation
+node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.md:101:The DevTools use a `next-instant-navigation-testing` cookie to freeze the UI at the static shell. Because cookies are scoped to the domain and not the port, running multiple projects on the same domain (typically `localhost`) means the cookie is shared across them and can cause unexpected behavior. Clear the cookie or close the Instant Navs panel when switching between projects to avoid issues.
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/proxyClientMaxBodySize.md:40:Supported units: `b`, `kb`, `mb`, `gb`
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/serverExternalPackages.md:60:- `jest`
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:2:title: How to set up Vitest with Next.js
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:3:nav_title: Vitest
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:4:description: Learn how to set up Vitest with Next.js for Unit Testing.
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:7:Vitest and React Testing Library are frequently used together for **Unit Testing**. This guide will show you how to setup Vitest with Next.js and write your first tests.
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:9:> **Good to know:** Since `async` Server Components are new to the React ecosystem, Vitest currently does not support them. While you can still run **unit tests** for synchronous Server and Client Components, we recommend using **E2E tests** for `async` components.
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:13:You can use `create-next-app` with the Next.js [with-vitest](https://github.com/vercel/next.js/tree/canary/examples/with-vitest) example to quickly get started:
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:16:pnpm create next-app --example with-vitest with-vitest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:20:npx create-next-app@latest --example with-vitest with-vitest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:24:yarn create next-app --example with-vitest with-vitest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:28:bun create next-app --example with-vitest with-vitest-app
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:33:To manually set up Vitest, install `vitest` and the following packages as dev dependencies:
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:37:pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:39:pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:44:npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:46:npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:51:yarn add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:53:yarn add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:58:bun add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:60:bun add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:63:Create a `vitest.config.mts|js` file in the root of your project, and add the following options:
+node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md:65:```ts filename="vitest.config.mts" switcher
+
+exec
+/bin/bash -lc "sed -n '1,220p' node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+---
+title: How to set up Vitest with Next.js
+nav_title: Vitest
+description: Learn how to set up Vitest with Next.js for Unit Testing.
+---
+
+Vitest and React Testing Library are frequently used together for **Unit Testing**. This guide will show you how to setup Vitest with Next.js and write your first tests.
+
+> **Good to know:** Since `async` Server Components are new to the React ecosystem, Vitest currently does not support them. While you can still run **unit tests** for synchronous Server and Client Components, we recommend using **E2E tests** for `async` components.
+
+## Quickstart
+
+You can use `create-next-app` with the Next.js [with-vitest](https://github.com/vercel/next.js/tree/canary/examples/with-vitest) example to quickly get started:
+
+```bash package="pnpm"
+pnpm create next-app --example with-vitest with-vitest-app
+```
+
+```bash package="npm"
+npx create-next-app@latest --example with-vitest with-vitest-app
+```
+
+```bash package="yarn"
+yarn create next-app --example with-vitest with-vitest-app
+```
+
+```bash package="bun"
+bun create next-app --example with-vitest with-vitest-app
+```
+
+## Manual Setup
+
+To manually set up Vitest, install `vitest` and the following packages as dev dependencies:
+
+```bash package="pnpm"
+# Using TypeScript
+pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+# Using JavaScript
+pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+```
+
+```bash package="npm"
+# Using TypeScript
+npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+# Using JavaScript
+npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+```
+
+```bash package="yarn"
+# Using TypeScript
+yarn add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+# Using JavaScript
+yarn add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+```
+
+```bash package="bun"
+# Using TypeScript
+bun add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths
+# Using JavaScript
+bun add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+```
+
+Create a `vitest.config.mts|js` file in the root of your project, and add the following options:
+
+```ts filename="vitest.config.mts" switcher
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import tsconfigPaths from 'vite-tsconfig-paths'
+
+export default defineConfig({
+  plugins: [tsconfigPaths(), react()],
+  test: {
+    environment: 'jsdom',
+  },
+})
+```
+
+```js filename="vitest.config.js" switcher
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+  },
+})
+```
+
+For more information on configuring Vitest, please refer to the [Vitest Configuration](https://vitest.dev/config/#configuration) docs.
+
+Then, add a `test` script to your `package.json`:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest"
+  }
+}
+```
+
+When you run `npm run test`, Vitest will **watch** for changes in your project by default.
+
+## Creating your first Vitest Unit Test
+
+Check that everything is working by creating a test to check if the `<Page />` component successfully renders a heading:
+
+<AppOnly>
+
+```tsx filename="app/page.tsx" switcher
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```jsx filename="app/page.jsx" switcher
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```tsx filename="__tests__/page.test.tsx" switcher
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../app/page'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+```jsx filename="__tests__/page.test.jsx" switcher
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../app/page'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+> **Good to know**: The example above uses the common `__tests__` convention, but test files can also be colocated inside the `app` router.
+
+</AppOnly>
+
+<PagesOnly>
+
+```tsx filename="pages/index.tsx" switcher
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```jsx filename="pages/index.jsx" switcher
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```tsx filename="__tests__/index.test.tsx" switcher
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../pages/index'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+```jsx filename="__tests__/index.test.jsx" switcher
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../pages/index'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+</PagesOnly>
+
+## Running your tests
+
+Then, run the following command to run your tests:
+
+
+exec
+/bin/bash -lc 'cat tsconfig.json' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+exec
+/bin/bash -lc "rg --files | rg -n \"playwright\\.config|e2e|\\.spec\\.|\\.e2e\\.|tests\"" in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ exited 1 in 0ms:
+codex
+Saya akan mulai edit baseline: menambahkan dependency + script test di `package.json`, lalu membuat `vitest.config.ts`, `tests/setup.ts`, dan 1 sanity test yang tidak menyentuh flow aplikasi. Setelah slice ini selesai saya commit pertama.
+exec
+/bin/bash -lc 'npm install -D vitest @vitejs/plugin-react vite-tsconfig-paths jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom @vitest/coverage-v8' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+codex
+Dependency testing sedang diinstal. Setelah ini saya langsung tulis konfigurasi Vitest dan sanity test minimal, lalu jalankan `npm run test` untuk verifikasi awal sebelum commit.
+ succeeded in 32199ms:
+
+added 99 packages, and audited 962 packages in 32s
+
+277 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+exec
+/bin/bash -lc 'cat package.json' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.5",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "jsdom": "^29.0.2",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.5"
+  }
+}
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/package.json
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+
+codex
+Saya sedang menambahkan file konfigurasi dan setup test sekarang: `vitest.config.ts`, `tests/setup.ts`, dan sanity test kecil. Setelah itu saya commit scope pertama (tooling baseline).
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/vitest.config.ts
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/tests/setup.ts
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/tests/sanity.test.ts
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+exec
+/bin/bash -lc 'npm run test' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a12b97d87b2a7f1276c9d9fb365b9c746afd418
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,18 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++import tsconfigPaths from "vite-tsconfig-paths";
++
++export default defineConfig({
++  plugins: [tsconfigPaths(), react()],
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+ succeeded in 3846ms:
+
+> dashboard@0.1.0 test
+> vitest run
+
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+
+ RUN  v4.1.5 /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:25:36
+   Duration  2.78s (transform 50ms, setup 314ms, import 15ms, tests 10ms, environment 1.77s)
+
+
+codex
+Baseline sudah jalan, tapi ada warning dari `vite-tsconfig-paths` karena Vite versi ini sudah support native `tsconfigPaths`. Saya akan rapikan config agar output test bersih dan lebih stabil sebelum commit.
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/vitest.config.ts
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..66824c7f6da6cd84c93eb93f42b6757b470abae7
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+exec
+/bin/bash -lc 'npm uninstall -D vite-tsconfig-paths' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+ succeeded in 7134ms:
+
+added 1 package, removed 3 packages, and audited 960 packages in 7s
+
+277 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+exec
+/bin/bash -lc 'npm run test' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+ succeeded in 2644ms:
+
+> dashboard@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.5 /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:25:57
+   Duration  1.93s (transform 72ms, setup 173ms, import 14ms, tests 6ms, environment 1.38s)
+
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+ M package-lock.json
+ M package.json
+?? tests/
+?? vitest.config.ts
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+codex
+Saya akan commit pertama untuk slice baseline tooling+sanity test (`package.json`, lockfile, Vitest config, setup, sanity test). Setelah itu saya tambahkan dokumentasi internal sebagai commit terpisah.
+exec
+/bin/bash -lc 'git add package.json package-lock.json vitest.config.ts tests/setup.ts tests/sanity.test.ts && git commit -m "test: add vitest baseline scripts and sanity test"' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+[codex_20260423_1733_p1d-test-infra 78a77bd] test: add vitest baseline scripts and sanity test
+ 5 files changed, 1843 insertions(+), 114 deletions(-)
+ create mode 100644 dashboard/tests/sanity.test.ts
+ create mode 100644 dashboard/tests/setup.ts
+ create mode 100644 dashboard/vitest.config.ts
+
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+apply patch
+patch: completed
+/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/docs/internal/testing-baseline.md
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+codex
+Saya lanjut menambahkan dokumentasi baseline internal, lalu verifikasi script coverage (`npm run test:coverage`) supaya ketiga script yang diminta benar-benar berfungsi.
+exec
+/bin/bash -lc 'npm run test:coverage' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+ succeeded in 5225ms:
+
+> dashboard@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v4.1.5 /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+      Coverage enabled with v8
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:26:18
+   Duration  3.41s (transform 87ms, setup 319ms, import 23ms, tests 41ms, environment 2.33s)
+
+ % Coverage report from v8
+----------|---------|----------|---------|---------|-------------------
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------|---------|----------|---------|---------|-------------------
+All files |       0 |        0 |       0 |       0 |                   
+----------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : Unknown% ( 0/0 )
+Branches     : Unknown% ( 0/0 )
+Functions    : Unknown% ( 0/0 )
+Lines        : Unknown% ( 0/0 )
+================================================================================
+
+exec
+/bin/bash -lc 'git status --short' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+?? docs/internal/testing-baseline.md
+
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+exec
+/bin/bash -lc 'git add docs/internal/testing-baseline.md && git commit -m "docs: add internal testing baseline guide"' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+[codex_20260423_1733_p1d-test-infra c32088c] docs: add internal testing baseline guide
+ 1 file changed, 26 insertions(+)
+ create mode 100644 dashboard/docs/internal/testing-baseline.md
+
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+exec
+/bin/bash -lc 'git status --short && git log --oneline -n 3' in /tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard
+ succeeded in 0ms:
+c32088c docs: add internal testing baseline guide
+78a77bd test: add vitest baseline scripts and sanity test
+1cf4435 Harden superadmin actions when acting as company context
+
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+codex
+Selesai. Baseline unit/integration testing sudah dipasang dengan perubahan minimal dan e2e tidak disentuh.
+
+Perubahan:
+- Tambah script di [package.json](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/package.json):
+  - `test`: `vitest run`
+  - `test:watch`: `vitest`
+  - `test:coverage`: `vitest run --coverage`
+- Tambah konfigurasi Vitest di [vitest.config.ts](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/vitest.config.ts)
+- Tambah setup file di [tests/setup.ts](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/tests/setup.ts)
+- Tambah sanity test di [tests/sanity.test.ts](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/tests/sanity.test.ts)
+- Tambah dokumentasi baseline di [docs/internal/testing-baseline.md](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/docs/internal/testing-baseline.md)
+
+Verifikasi:
+- `npm run test` lulus (1 file, 1 test passed)
+- `npm run test:coverage` lulus (coverage runner aktif)
+
+Commit yang dibuat:
+1. `78a77bd` - `test: add vitest baseline scripts and sanity test`
+2. `c32088c` - `docs: add internal testing baseline guide`
+diff --git a/dashboard/docs/internal/testing-baseline.md b/dashboard/docs/internal/testing-baseline.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd1a36d0c0ad0b0654665b0ce5e424aee006baa
+--- /dev/null
++++ b/dashboard/docs/internal/testing-baseline.md
+@@ -0,0 +1,26 @@
++# Testing Baseline (Unit/Integration)
++
++Dokumen ini menetapkan baseline testing minimal yang stabil untuk repo dashboard.
++
++## Runner
++
++- Runner: `vitest`
++- Environment default: `jsdom`
++- Setup file: `tests/setup.ts`
++- Config: `vitest.config.ts`
++
++## Script NPM
++
++- `npm run test`: jalankan test sekali (`vitest run`)
++- `npm run test:watch`: mode watch lokal (`vitest`)
++- `npm run test:coverage`: jalankan test + coverage V8 (`vitest run --coverage`)
++
++## Struktur Awal
++
++- `tests/setup.ts`: import matcher tambahan untuk Vitest (`@testing-library/jest-dom/vitest`)
++- `tests/sanity.test.ts`: sanity check paling kecil untuk memastikan runner aktif
++
++## Batasan Baseline
++
++- Baseline ini fokus unit/integration dan tidak mengubah alur E2E yang sudah ada.
++- Untuk komponen `async` Server Components, prioritaskan E2E sesuai rekomendasi Next.js.
+diff --git a/dashboard/package.json b/dashboard/package.json
+index a1808fbe1a030bf418788862c698a27948f2087c..f77bf41a67d8fd4915a9bb09c48b611ac84a7777
+--- a/dashboard/package.json
++++ b/dashboard/package.json
+@@ -6,6 +6,9 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "lint": "eslint",
+     "postinstall": "prisma generate",
+     "db:generate": "prisma generate",
+@@ -70,7 +73,6 @@
+     "playwright": "^1.59.1",
+     "tailwindcss": "^4",
+     "typescript": "^5",
+-    "vite-tsconfig-paths": "^6.1.1",
+     "vitest": "^4.1.5"
+   }
+ }
+diff --git a/dashboard/tests/sanity.test.ts b/dashboard/tests/sanity.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b82ca8b2598783c5440a13c130deb29cb6c98f5
+--- /dev/null
++++ b/dashboard/tests/sanity.test.ts
+@@ -0,0 +1,7 @@
++import { describe, expect, it } from "vitest";
++
++describe("test runner sanity", () => {
++  it("runs assertions", () => {
++    expect(1 + 1).toBe(2);
++  });
++});
+diff --git a/dashboard/tests/setup.ts b/dashboard/tests/setup.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f149f27ae4bbd7cc4f6253570176a4fce144ef95
+--- /dev/null
++++ b/dashboard/tests/setup.ts
+@@ -0,0 +1 @@
++import "@testing-library/jest-dom/vitest";
+diff --git a/dashboard/vitest.config.ts b/dashboard/vitest.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d02edb79504f16a910a68b1535e6f07ca37abc7a
+--- /dev/null
++++ b/dashboard/vitest.config.ts
+@@ -0,0 +1,20 @@
++import { defineConfig } from "vitest/config";
++import react from "@vitejs/plugin-react";
++
++export default defineConfig({
++  plugins: [react()],
++  resolve: {
++    tsconfigPaths: true,
++  },
++  test: {
++    environment: "jsdom",
++    globals: true,
++    setupFiles: ["./tests/setup.ts"],
++    include: ["tests/**/*.test.{ts,tsx}", "tests/**/*.spec.{ts,tsx}"],
++    coverage: {
++      provider: "v8",
++      reporter: ["text", "html"],
++      reportsDirectory: "./coverage",
++    },
++  },
++});
+
+tokens used
+65,413
+Selesai. Baseline unit/integration testing sudah dipasang dengan perubahan minimal dan e2e tidak disentuh.
+
+Perubahan:
+- Tambah script di [package.json](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/package.json):
+  - `test`: `vitest run`
+  - `test:watch`: `vitest`
+  - `test:coverage`: `vitest run --coverage`
+- Tambah konfigurasi Vitest di [vitest.config.ts](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/vitest.config.ts)
+- Tambah setup file di [tests/setup.ts](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/tests/setup.ts)
+- Tambah sanity test di [tests/sanity.test.ts](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/tests/sanity.test.ts)
+- Tambah dokumentasi baseline di [docs/internal/testing-baseline.md](/tmp/codex-fanout/20260423_172310/p1d-test-infra/dashboard/docs/internal/testing-baseline.md)
+
+Verifikasi:
+- `npm run test` lulus (1 file, 1 test passed)
+- `npm run test:coverage` lulus (coverage runner aktif)
+
+Commit yang dibuat:
+1. `78a77bd` - `test: add vitest baseline scripts and sanity test`
+2. `c32088c` - `docs: add internal testing baseline guide`

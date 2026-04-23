@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Plus, Search, Download, Eye, Pencil } from "lucide-react"
+import { Plus, Search, Eye, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -7,8 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getKelompokList, getNasabahList } from "@/actions/nasabah"
 import { Input } from "@/components/ui/input"
 import { DeleteNasabahButton } from "./delete-nasabah-button"
+import { ExportDataButton } from "./export-data-button"
 
 const statusBadge: Record<string, { label: string; cls: string }> = {
+  CALON: { label: "Calon", cls: "bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
   AKTIF: { label: "Aktif", cls: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
   NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
   KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
@@ -23,6 +25,13 @@ const rankBadge: Record<string, string> = {
 
 function fmt(n: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+function formatStatusLabel(status: string) {
+  return status
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 export default async function NasabahPage({
@@ -68,10 +77,7 @@ export default async function NasabahPage({
               <CardTitle className="text-base font-semibold">Daftar Nasabah</CardTitle>
               <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
             </div>
-            <Button variant="outline" size="sm" className="gap-2 border-slate-200/80 dark:border-slate-800/80">
-              <Download className="size-3.5" /> 
-              <span className="hidden sm:inline">Export Data</span>
-            </Button>
+            <ExportDataButton />
           </div>
           <form method="GET" className="flex flex-col lg:flex-row gap-3">
             <div className="relative flex-1 group">
@@ -98,6 +104,7 @@ export default async function NasabahPage({
               title="Filter status"
             >
               <option value="">Semua status</option>
+              <option value="CALON">Calon</option>
               <option value="AKTIF">Aktif</option>
               <option value="NON_AKTIF">Non Aktif</option>
               <option value="KELUAR">Keluar</option>
@@ -132,7 +139,10 @@ export default async function NasabahPage({
                 </TableRow>
               ) : (
                 nasabahList.map((row) => {
-                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+                  const badge = statusBadge[row.status] ?? {
+                    label: formatStatusLabel(row.status),
+                    cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400",
+                  }
                   return (
                     <TableRow key={row.id}>
                       <TableCell className="font-mono text-xs font-semibold text-slate-500">{row.nomorAnggota}</TableCell>

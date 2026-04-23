@@ -256,7 +256,7 @@ function parseBlocks(md: string): Block[] {
 }
 
 export function Markdown({ content, className }: { content: string; className?: string }) {
-  const blocks = React.useMemo(() => parseBlocks(content), [content])
+  const blocks = parseBlocks(content)
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -319,4 +319,3 @@ export function Markdown({ content, className }: { content: string; className?: 
     </div>
   )
 }
-

@@ -277,6 +277,8 @@ type KelompokOverview = {
   pinjamanAktif: number
   outstanding: number
   tunggakan: number
+  rasioTunggakan: number
+  rankingKesehatan: "SEHAT" | "WASPADA" | "KRITIS"
 }
 
 export async function getKelompokOverview(search?: string): Promise<{
@@ -310,10 +312,10 @@ export async function getKelompokOverview(search?: string): Promise<{
         : {}),
     },
     include: {
+      kolektor: { select: { name: true } },
       nasabah: {
         select: {
           id: true,
-          kolektor: { select: { name: true } },
         },
       },
       pengajuan: {
@@ -339,14 +341,7 @@ export async function getKelompokOverview(search?: string): Promise<{
   })
 
   const data = kelompok.map((k) => {
-    const kolektorCounter: Record<string, number> = {}
-    for (const n of k.nasabah) {
-      const nama = n.kolektor?.name
-      if (!nama) continue
-      kolektorCounter[nama] = (kolektorCounter[nama] ?? 0) + 1
-    }
-    const kolektor =
-      Object.entries(kolektorCounter).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Belum ditetapkan"
+    const kolektor = k.kolektor?.name ?? "Belum ditetapkan"
 
     const pinjaman = k.pengajuan.map((p) => p.pinjaman).filter((p): p is NonNullable<typeof p> => Boolean(p))
 
@@ -356,6 +351,9 @@ export async function getKelompokOverview(search?: string): Promise<{
       (sum, p) => sum + p.jadwalAngsuran.reduce((inner, j) => inner + Number(j.total), 0),
       0
     )
+    const rasioTunggakan = outstanding > 0 ? (tunggakan / outstanding) * 100 : 0
+    const rankingKesehatan: KelompokOverview["rankingKesehatan"] =
+      rasioTunggakan <= 5 ? "SEHAT" : rasioTunggakan <= 15 ? "WASPADA" : "KRITIS"
 
     return {
       id: k.id,
@@ -367,6 +365,8 @@ export async function getKelompokOverview(search?: string): Promise<{
       pinjamanAktif,
       outstanding,
       tunggakan,
+      rasioTunggakan,
+      rankingKesehatan,
     }
   })
 

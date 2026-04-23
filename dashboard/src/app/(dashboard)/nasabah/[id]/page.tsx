@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ArrowLeft, Edit, Phone, MapPin, Briefcase, CreditCard, CalendarDays, Store } from "lucide-react"
 import { computeRanking, explainRanking } from "@/lib/ranking"
+import { NasabahSurveyNotes } from "@/components/nasabah-survey-notes"
+import { StatusLifecycleControls } from "./edit/status-lifecycle-controls"
 
 function docTitle(url: string) {
   const clean = url.split("?")[0]
@@ -207,6 +209,9 @@ export default async function NasabahDetailPage({ params }: { params: Promise<{ 
         <Button variant="outline" size="sm" asChild>
           <a href="#jadwal">Jadwal ({transaksiAkanDatang.length})</a>
         </Button>
+        <Button variant="outline" size="sm" asChild>
+          <a href="#survey">Survey</a>
+        </Button>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -316,6 +321,8 @@ export default async function NasabahDetailPage({ params }: { params: Promise<{ 
           </CardContent>
         </Card>
 
+        <StatusLifecycleControls nasabahId={nasabah.id} status={nasabah.status} />
+
         {/* Penjamin */}
         <Card id="penjamin" className="scroll-mt-24">
           <CardHeader>
@@ -361,6 +368,10 @@ export default async function NasabahDetailPage({ params }: { params: Promise<{ 
           )}
         </CardContent>
       </Card>
+
+      <div id="survey" className="scroll-mt-24">
+        <NasabahSurveyNotes nasabahId={nasabah.id} />
+      </div>
 
       {/* Riwayat Pengajuan */}
       <Card id="pengajuan" className="scroll-mt-24">

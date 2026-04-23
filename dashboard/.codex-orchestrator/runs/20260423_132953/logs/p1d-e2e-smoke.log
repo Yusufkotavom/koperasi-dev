@@ -1,0 +1,3298 @@
+OpenAI Codex v0.120.0 (research preview)
+--------
+workdir: /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+model: gpt-5.3-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 019dba88-72e3-7890-8981-febdf89f7203
+--------
+user
+You are Worker p1d-e2e-smoke. Ownership: tests/e2e/smoke.spec.ts and playwright.config.ts if necessary only. Task: strengthen smoke tests for login page render consistency, dashboard auth redirect/access, nasabah list load, dokumen routes basic availability. Keep tests low-flake and fast. Run smoke tests if feasible and commit. You are not alone; do not revert unrelated files.
+2026-04-23T13:29:58.448285Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer error=\"invalid_token\", error_description=\"No authorization provided\", resource_metadata=\"https://mcp.vercel.com/.well-known/oauth-protected-resource\"" })
+codex
+I’ll update the smoke E2E coverage in the files you assigned (`tests/e2e/smoke.spec.ts`, and `playwright.config.ts` only if needed), then run the smoke suite and commit the result without touching unrelated changes. I’m first checking the current test and config state.
+exec
+/bin/bash -lc 'ls -la' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+total 20
+drwxr-xr-x  3 kotacom kotacom 4096 Apr 23 13:29 .
+drwxr-xr-x 10 kotacom kotacom 4096 Apr 23 13:29 ..
+-rw-r--r--  1 kotacom kotacom    0 Apr 23 13:29 .codex
+-rw-r--r--  1 kotacom kotacom   76 Apr 23 13:29 .git
+-rw-r--r--  1 kotacom kotacom  370 Apr 23 13:29 .gitignore
+drwxr-xr-x 11 kotacom kotacom 4096 Apr 23 13:29 dashboard
+
+exec
+/bin/bash -lc 'rg --files' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+dashboard/skills-lock.json
+dashboard/fix-inputs.js
+dashboard/README.md
+dashboard/postcss.config.mjs
+dashboard/package-lock.json
+dashboard/docs/internal/accounting-extension-plan.md
+dashboard/docs/internal/panduan-pengguna.md
+dashboard/docs/superpowers/using-superpowers.md
+dashboard/docs/superpowers/plans/2026-04-19-akuntansi-customer-group-enrich.md
+dashboard/docs/superpowers/plans/2026-04-20-update-ranking-indicators.md
+dashboard/AGENTS.md
+dashboard/USING-SUPERPOWERS.md
+dashboard/eslint.config.mjs
+dashboard/docs/superpowers/plans/plan.md
+dashboard/docs/superpowers/plans/accounting-scoring-plan.md
+dashboard/PANDUAN-PENGGUNA.md
+dashboard/middleware.ts
+dashboard/307
+dashboard/package.json
+dashboard/next.config.ts
+dashboard/CLAUDE.md
+dashboard/docs/superpowers/plans/2026-04-19-koperasi-mvp-gap-implementation.md
+dashboard/docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md
+dashboard/public/vercel.svg
+dashboard/public/file.svg
+dashboard/public/window.svg
+dashboard/public/next.svg
+dashboard/public/docs/screenshots/error-login.png
+dashboard/docs/superpowers/specs/2026-04-20-two-mode-accounting-design.md
+dashboard/public/docs/screenshots/debug-login-page.png
+dashboard/src/actions/kolektor.ts
+dashboard/public/globe.svg
+dashboard/src/actions/platform-admin.ts
+dashboard/src/actions/kas.ts
+dashboard/src/actions/dashboard.ts
+dashboard/src/actions/pembayaran.ts
+dashboard/src/components/markdown.tsx
+dashboard/src/actions/company-users.ts
+dashboard/src/components/app-sidebar.tsx
+dashboard/src/components/nav-secondary.tsx
+dashboard/src/actions/kelompok.ts
+dashboard/src/actions/nasabah.ts
+dashboard/src/components/print-button.tsx
+dashboard/src/actions/akuntansi.ts
+dashboard/src/actions/maintenance.ts
+dashboard/src/actions/auth-registration.ts
+dashboard/src/actions/pengajuan.ts
+dashboard/src/actions/settings.ts
+dashboard/public/static/sw.js
+dashboard/public/uploads/pengajuan/1776690235978-b0820c74-004c-48e0-b84c-4e6a7fa30f24.jpeg
+dashboard/public/uploads/nasabah/1776618214801-f5c7641f-ee89-4e0d-ade6-672c31aef520.jpeg
+dashboard/public/uploads/nasabah/1776613912086-44c59630-5991-4c7d-b064-c8e9a6096319.jpeg
+dashboard/public/uploads/nasabah/1776851508256-de1ba137-c597-44e0-8d9c-5a24a8578751.pdf
+dashboard/public/uploads/pembayaran/1776700680512-a635469f-803c-4b6c-b940-9e710a4fa1bb.jpeg
+dashboard/src/components/app-link.tsx
+dashboard/src/components/navigation-indicator.tsx
+dashboard/src/components/ui/dialog.tsx
+dashboard/src/hooks/use-mobile.ts
+dashboard/src/components/ui/textarea.tsx
+dashboard/src/components/ui/collapsible.tsx
+dashboard/src/components/ui/sidebar.tsx
+dashboard/src/components/ui/select.tsx
+dashboard/src/components/ui/badge.tsx
+dashboard/src/components/ui/tooltip.tsx
+dashboard/src/components/ui/button.tsx
+dashboard/src/components/ui/sonner.tsx
+dashboard/src/components/ui/breadcrumb.tsx
+dashboard/src/components/ui/sheet.tsx
+dashboard/src/components/ui/card.tsx
+dashboard/src/components/ui/tabs.tsx
+dashboard/src/components/ui/field.tsx
+dashboard/src/components/ui/avatar.tsx
+dashboard/src/components/ui/dropdown-menu.tsx
+dashboard/src/components/ui/separator.tsx
+dashboard/src/components/ui/skeleton.tsx
+dashboard/src/components/ui/alert.tsx
+dashboard/src/components/ui/table.tsx
+dashboard/src/components/ui/input.tsx
+dashboard/src/components/ui/label.tsx
+dashboard/public/snitch/project/master_nasabah_client_data_management/nasabah.png
+dashboard/public/snitch/project/master_nasabah_client_data_management/screen.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/screen.png
+dashboard/public/snitch/project/kas_masuk_keluar_cash_flow_management/kas.png
+dashboard/public/snitch/project/login_cooperative_management_dashboard/screen.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/laporan.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/screen.png
+dashboard/public/snitch/project/pengajuan_pinjaman_loan_application_form/pengajuan.png
+dashboard/public/snitch/project/laporan_laba_rugi_profit_loss_report/screen.png
+dashboard/public/snitch/project/vault_cooperative_management_landing_page/screen.png
+dashboard/src/app/favicon.ico
+dashboard/src/app/layout.tsx
+dashboard/public/snitch/project/cooperative_manager_dashboard/screen.png
+dashboard/public/snitch/project/cooperative_manager_dashboard/dashboard.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/pembayaran.png
+dashboard/public/snitch/project/data_tunggakan_arrears_monitoring/screen.png
+dashboard/src/app/(auth)/login/page.tsx
+dashboard/src/app/(marketing)/contact/page.tsx
+dashboard/src/app/(marketing)/penawaran/page.tsx
+dashboard/src/app/(marketing)/penawaran/_lib/screenshots.ts
+dashboard/src/app/(marketing)/product/page.tsx
+dashboard/src/app/(marketing)/about/page.tsx
+dashboard/src/app/(marketing)/_components/marketing-shell.tsx
+dashboard/src/app/(marketing)/_components/marketing-data.ts
+dashboard/src/app/(marketing)/page.tsx
+dashboard/src/app/(marketing)/home/page.tsx
+dashboard/src/app/(auth)/layout.tsx
+dashboard/src/app/(auth)/loading.tsx
+dashboard/src/app/(marketing)/blog/page.tsx
+dashboard/src/app/(auth)/register/page.tsx
+dashboard/public/snitch/project/settings_user_role_management/settings.png
+dashboard/public/snitch/project/settings_user_role_management/screen.png
+dashboard/src/app/globals.css
+dashboard/src/app/(dashboard)/pengajuan/[id]/batalkan-pencairan-card.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approval-form.tsx
+dashboard/src/app/(dashboard)/kelompok/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/[id]/approve/page.tsx
+dashboard/src/app/(dashboard)/pengajuan/baru/page.tsx
+dashboard/src/app/(dashboard)/kelompok/page.tsx
+dashboard/src/app/(dashboard)/kelompok/_components/kelompok-form.tsx
+dashboard/src/app/(dashboard)/kelompok/delete-kelompok-button.tsx
+dashboard/src/app/(dashboard)/kelompok/baru/page.tsx
+dashboard/src/app/(dashboard)/roadmap/page.tsx
+dashboard/src/app/(dashboard)/roadmap/roadmap-client.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/page.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/edit/edit-form.tsx
+dashboard/src/app/(dashboard)/nasabah/[id]/page.tsx
+dashboard/src/app/(dashboard)/docs/panduan-pengguna/page.tsx
+dashboard/src/app/(dashboard)/nasabah/page.tsx
+dashboard/src/app/(dashboard)/nasabah/baru/page.tsx
+dashboard/src/app/(dashboard)/nasabah/delete-nasabah-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/pembatalan-actions.tsx
+dashboard/src/app/(dashboard)/pembayaran/[id]/pembatalan/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/edit-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/page.tsx
+dashboard/src/app/(dashboard)/pembayaran/bayar-button.tsx
+dashboard/src/app/(dashboard)/pembayaran/manual-input.tsx
+dashboard/src/app/(dashboard)/layout.tsx
+dashboard/src/app/(dashboard)/platform/page.tsx
+dashboard/src/app/(dashboard)/platform/users/page.tsx
+dashboard/src/app/(dashboard)/platform/users/user-admin-table.tsx
+dashboard/src/app/(dashboard)/platform/companies/company-admin-panel.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/workspace/open-company-button.tsx
+dashboard/src/app/(dashboard)/platform/companies/[id]/page.tsx
+dashboard/src/app/(dashboard)/platform/companies/page.tsx
+dashboard/src/app/(dashboard)/_components/dashboard-header.tsx
+dashboard/src/app/(dashboard)/_components/top-bar.tsx
+dashboard/src/app/api/auth/[...nextauth]/route.ts
+dashboard/src/app/(dashboard)/monitoring/tunggakan/page.tsx
+dashboard/src/app/(dashboard)/monitoring/kolektor/page.tsx
+dashboard/src/app/api/upload/pengajuan/route.ts
+dashboard/src/app/api/upload/nasabah/route.ts
+dashboard/src/app/api/upload/pembayaran/route.ts
+dashboard/src/app/api/upload/kas/route.ts
+dashboard/src/app/api/upload/logo/route.ts
+dashboard/src/app/(dashboard)/laporan/buku-besar/page.tsx
+dashboard/src/app/(dashboard)/laporan/per-kelompok/page.tsx
+dashboard/src/app/(dashboard)/laporan/laba-rugi/page.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/ui/rekonsiliasi-client.tsx
+dashboard/src/app/(dashboard)/laporan/rekonsiliasi/page.tsx
+dashboard/src/app/(dashboard)/laporan/history-pembayaran/page.tsx
+dashboard/src/app/(dashboard)/laporan/transaksi-per-user/page.tsx
+dashboard/src/app/(dashboard)/laporan/neraca/page.tsx
+dashboard/src/app/(dashboard)/laporan/arus-kas/page.tsx
+dashboard/src/app/(dashboard)/settings/ranking-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/accounting/page.tsx
+dashboard/src/app/(dashboard)/settings/user-management-card.tsx
+dashboard/src/app/(dashboard)/settings/accounting-mode-card.tsx
+dashboard/src/app/(dashboard)/settings/company/page.tsx
+dashboard/src/app/(dashboard)/settings/db-maintenance-card.tsx
+dashboard/src/app/(dashboard)/settings/page.tsx
+dashboard/src/app/(dashboard)/settings/ranking/page.tsx
+dashboard/src/app/(dashboard)/settings/users/page.tsx
+dashboard/src/app/(dashboard)/settings/company-settings-form.tsx
+dashboard/src/app/(dashboard)/settings/maintenance/page.tsx
+dashboard/src/app/(dashboard)/settings/settings-profile-card.tsx
+dashboard/src/app/(dashboard)/settings/profile/page.tsx
+dashboard/src/app/(dashboard)/loading.tsx
+dashboard/src/app/(dashboard)/kas/page.tsx
+dashboard/src/app/(dashboard)/kas/kas-row-actions.tsx
+dashboard/src/app/(dashboard)/kas/kas-client.tsx
+dashboard/src/app/(dashboard)/pencairan/pencairan-form.tsx
+dashboard/src/app/(dashboard)/pencairan/page.tsx
+dashboard/src/components/page-view-transition.tsx
+dashboard/src/components/nav-main.tsx
+dashboard/src/components/theme-provider.tsx
+dashboard/src/components/nav-user.tsx
+dashboard/src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx
+dashboard/src/components/print/company-document-header.tsx
+dashboard/src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx
+dashboard/src/app/(dashboard)/dashboard/page.tsx
+dashboard/src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx
+dashboard/src/app/(dashboard)/docs/using-superpowers/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/akun/ui/account-create-form.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/page.tsx
+dashboard/src/app/(dashboard)/akuntansi/mapping-kategori/ui/mapping-kategori-client.tsx
+dashboard/src/app/(dashboard)/kolektor/page.tsx
+dashboard/src/app/(dashboard)/kolektor/kolektor-management.tsx
+dashboard/prisma.config.ts
+dashboard/tsconfig.json
+dashboard/components.json
+dashboard/SUPER-ADMIN-PLAN.md
+dashboard/src/lib/accounting.ts
+dashboard/src/lib/report-period.ts
+dashboard/prisma/schema.prisma
+dashboard/src/lib/blob-upload.ts
+dashboard/src/lib/pembayaran-notes.ts
+dashboard/src/lib/tenant.ts
+dashboard/src/lib/roles.ts
+dashboard/prisma/seed.cjs
+dashboard/src/lib/prisma.ts
+dashboard/src/lib/utils.ts
+dashboard/src/lib/datetime.ts
+dashboard/prisma/seed.ts
+dashboard/src/lib/audit.ts
+dashboard/src/lib/accounting-mode.ts
+dashboard/src/lib/auth.ts
+dashboard/src/lib/pembayaran.ts
+dashboard/src/lib/ranking.ts
+dashboard/proposal_premium.html
+dashboard/capture-screenshots.mjs
+dashboard/src/lib/validations/kelompok.ts
+dashboard/src/lib/validations/nasabah.ts
+dashboard/src/lib/validations/pengajuan.ts
+dashboard/src/lib/validations/pembayaran.ts
+dashboard/prisma/migrations/20260418204642_init/migration.sql
+dashboard/prisma/migrations/20260422103000_company_user_scope/migration.sql
+dashboard/prisma/migrations/20260419160000_app_settings_ranking_config/migration.sql
+dashboard/prisma/migrations/20260419194500_coa_rekonsiliasi/migration.sql
+dashboard/prisma/migrations/20260419103000_task1_audit_approval_foundation/migration.sql
+dashboard/prisma/migrations/20260422105500_backfill_super_admin/migration.sql
+dashboard/prisma/migrations/20260419190000_pengajuan_docs_kas_kategori/migration.sql
+dashboard/prisma/migrations/20260422132000_multi_tenant_backfill/migration.sql
+dashboard/prisma/migrations/20260421110000_journal_entries/migration.sql
+dashboard/prisma/migrations/20260422104500_backfill_demo_company/migration.sql
+dashboard/prisma/migrations/migration_lock.toml
+dashboard/prisma/migrations/20260419141000_tenor_type_and_payment_proof/migration.sql
+dashboard/prisma/migrations/20260422120000_company_status_fields/migration.sql
+
+exec
+/bin/bash -lc 'cat /home/kotacom/.codex/skills/using-superpowers/SKILL.md' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
+2. **Superpowers skills** — override default system behavior where they conflict
+3. **Default system prompt** — lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOP—you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+codex
+Using `using-superpowers` to ensure skill compliance, then proceeding directly with the E2E smoke test updates. I’m now inspecting the current smoke spec and Playwright config to make targeted, low-flake changes.
+exec
+/bin/bash -lc 'cd dashboard && git status --short' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' tests/e2e/smoke.spec.ts" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 2 in 0ms:
+sed: can't read tests/e2e/smoke.spec.ts: No such file or directory
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' playwright.config.ts" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 2 in 0ms:
+sed: can't read playwright.config.ts: No such file or directory
+
+codex
+The files are not at the repository root, so I’m locating the exact paths and then editing only the owned targets.
+exec
+/bin/bash -lc "cd dashboard && rg --files | rg 'smoke\\.spec\\.ts|playwright\\.config\\.ts|playwright\\.config\\.'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 1 in 0ms:
+exec
+/bin/bash -lc "cd dashboard && find . -maxdepth 4 -type d | rg 'tests|e2e|playwright'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 1 in 0ms:
+exec
+/bin/bash -lc 'cd dashboard && ls -la' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+total 652
+drwxr-xr-x 11 kotacom kotacom   4096 Apr 23 13:29 .
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:29 ..
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:29 .agents
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:29 .claude
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:29 .codex
+-rw-r--r--  1 kotacom kotacom    503 Apr 23 13:29 .gitignore
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:29 .kiro
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:29 .qwen
+-rw-r--r--  1 kotacom kotacom      0 Apr 23 13:29 307
+-rw-r--r--  1 kotacom kotacom   6425 Apr 23 13:29 AGENTS.md
+-rw-r--r--  1 kotacom kotacom     11 Apr 23 13:29 CLAUDE.md
+-rw-r--r--  1 kotacom kotacom  14824 Apr 23 13:29 PANDUAN-PENGGUNA.md
+-rw-r--r--  1 kotacom kotacom   1654 Apr 23 13:29 README.md
+-rw-r--r--  1 kotacom kotacom   6024 Apr 23 13:29 SUPER-ADMIN-PLAN.md
+-rw-r--r--  1 kotacom kotacom   4537 Apr 23 13:29 USING-SUPERPOWERS.md
+-rw-r--r--  1 kotacom kotacom   2146 Apr 23 13:29 capture-screenshots.mjs
+-rw-r--r--  1 kotacom kotacom    519 Apr 23 13:29 components.json
+drwxr-xr-x  4 kotacom kotacom   4096 Apr 23 13:29 docs
+-rw-r--r--  1 kotacom kotacom    488 Apr 23 13:29 eslint.config.mjs
+-rw-r--r--  1 kotacom kotacom   1235 Apr 23 13:29 fix-inputs.js
+-rw-r--r--  1 kotacom kotacom   2688 Apr 23 13:29 middleware.ts
+-rw-r--r--  1 kotacom kotacom    356 Apr 23 13:29 next.config.ts
+-rw-r--r--  1 kotacom kotacom 481059 Apr 23 13:29 package-lock.json
+-rw-r--r--  1 kotacom kotacom   1903 Apr 23 13:29 package.json
+-rw-r--r--  1 kotacom kotacom     94 Apr 23 13:29 postcss.config.mjs
+drwxr-xr-x  3 kotacom kotacom   4096 Apr 23 13:29 prisma
+-rw-r--r--  1 kotacom kotacom    477 Apr 23 13:29 prisma.config.ts
+-rw-r--r--  1 kotacom kotacom  38769 Apr 23 13:29 proposal_premium.html
+drwxr-xr-x  6 kotacom kotacom   4096 Apr 23 13:29 public
+drwxr-xr-x  2 kotacom kotacom   4096 Apr 23 13:29 skills
+-rw-r--r--  1 kotacom kotacom    240 Apr 23 13:29 skills-lock.json
+drwxr-xr-x  7 kotacom kotacom   4096 Apr 23 13:29 src
+-rw-r--r--  1 kotacom kotacom    670 Apr 23 13:29 tsconfig.json
+
+codex
+I found this snapshot has no existing Playwright files, so I’m checking repo docs/config for expected test location and scripts before creating the owned smoke test files.
+exec
+/bin/bash -lc 'cd dashboard && cat package.json' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.2",
+    "@base-ui/react": "^1.4.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.20.0",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "next-auth": "^5.0.0-beta.31",
+    "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
+    "prisma": "^7.7.0",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "react-number-format": "^5.4.5",
+    "shadcn": "^4.3.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+exec
+/bin/bash -lc 'cd dashboard && rg -n "playwright|e2e|smoke" package.json README.md AGENTS.md docs -S' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+package.json:57:    "@playwright/test": "^1.59.1",
+package.json:64:    "playwright": "^1.59.1",
+docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:144:- Manual smoke test:
+docs/superpowers/plans/2026-04-20-two-mode-accounting-implementation-plan.md:165:5. Verify with build and smoke tests.
+
+exec
+/bin/bash -lc 'cd dashboard && cat AGENTS.md' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+# Agent Handoff: Koperasi Pinjam Dashboard
+
+Dokumen ini adalah konteks kerja cepat untuk agent berikutnya agar langsung paham arsitektur, batasan data, dan flow kritis.
+
+## 1. Stack & Struktur Utama
+
+- Framework: Next.js `16.2.4` (App Router, Turbopack)
+- Runtime UI: React `19.2.4`
+- ORM: Prisma `7.7.0` + PostgreSQL (`@prisma/adapter-pg`)
+- Auth: NextAuth v5 beta (Credentials provider)
+- UI: shadcn + Tailwind
+
+Folder penting:
+- `src/app`: routes App Router (auth, dashboard, platform)
+- `src/actions`: server actions domain bisnis
+- `src/lib`: auth, tenant, accounting, prisma client, utils
+- `prisma/schema.prisma`: source of truth model database
+- `prisma/seed.ts`: seed default accounts/demo users
+
+## 2. Rule Wajib Sebelum Ngoding
+
+1. Baca panduan Next.js lokal di `node_modules/next/dist/docs/` untuk API yang mau disentuh.
+2. Jangan asumsi API lama Next.js masih sama.
+3. Untuk perubahan signifikan, validasi minimal dengan:
+   - `npm run build`
+   - bila schema berubah: `npm run db:generate`
+
+## 3. Multi-Tenant & Auth (Sangat Penting)
+
+### Registrasi
+- Route: `/register`
+- Action: `src/actions/auth-registration.ts`
+- Efek:
+  - create user baru
+  - create company baru (`slug` unik)
+  - assign role `OWNER` + `ADMIN`
+  - set `user.companyId = company.id`
+
+### Login
+- Auth di `src/lib/auth.ts`.
+- User ditolak login jika:
+  - `user.isActive = false`
+  - company non-active (`isActive=false` atau `status != ACTIVE`)
+
+### Isolasi tenant
+- Gunakan `requireCompanyId` (`src/lib/tenant.ts`) di action tenant.
+- Semua query bisnis wajib filter `companyId`.
+- `SUPER_ADMIN` bisa tanpa `companyId`, tapi diarahkan untuk operasi lintas tenant lewat `/platform`.
+
+### Middleware akses
+- `middleware.ts` mengatur route-level role guard.
+- `/platform` hanya untuk `SUPER_ADMIN`.
+
+## 4. Prisma/DB: Ringkasan Model Kritis
+
+Sumber resmi: `prisma/schema.prisma`.
+
+### Entitas inti bisnis
+- `Company`, `User`, `UserRole`
+- `Nasabah`, `Kelompok`, `Pengajuan`, `Pinjaman`, `JadwalAngsuran`, `Pembayaran`
+- `KasKategori`, `KasTransaksi`
+- `Account`, `JournalEntry`, `JournalLine`, `RekonsiliasiKas`
+- `CompanySetting`, `AppSetting`
+
+### Constraint penting
+- `Nasabah`: unique `[companyId, nik]`, `[companyId, nomorAnggota]`
+- `Kelompok`: unique `[companyId, kode]`
+- `Account`: unique `[companyId, code]`
+- `KasKategori`: unique `[companyId, key]`
+- `JournalEntry`: unique `[sourceType, sourceId]` (idempotensi posting jurnal)
+- `CompanySetting`: unique `[companyId, key]`
+
+### Catatan tenant safety
+- Mayoritas tabel operasional sudah punya `companyId`.
+- `AuditLog` dan `ApprovalLog` tidak punya `companyId`; gunakan metadata/entity untuk pelacakan konteks.
+
+## 5. Akuntansi: Cara Kerja Saat Ini
+
+File utama: `src/lib/accounting.ts`
+
+- Daftar akun default dibuat via `ensureAccountingAccounts(companyId)`.
+- Mode akuntansi: `SIMPLE` / `PROPER` (`src/lib/accounting-mode.ts`, setting per company di `CompanySetting` key `ACCOUNTING_MODE`).
+- Saldo kas dihitung dari `JournalLine` akun kas (`CASH_TUNAI`/`CASH_BANK`) dengan `JournalEntry.status = POSTED`.
+- Posting jurnal idempotent berdasarkan `(sourceType, sourceId)`.
+
+Flow jurnal utama:
+- Pencairan pinjaman -> `postPencairanJournal`
+- Pembayaran angsuran -> `postPembayaranJournal`
+- Kas umum approved -> `postKasTransactionJournal`
+
+## 6. Flow Pencairan (Bagian Paling Sensitif)
+
+File: `src/actions/pengajuan.ts` (`cairkanPinjaman`)
+
+Validasi saldo:
+- Cek saldo berdasarkan `kasJenis` (`TUNAI`/`BANK`).
+- Gunakan tanggal akhir hari pencairan (`23:59:59.999`) untuk menghindari false negative jika kas masuk terjadi di hari yang sama.
+
+Penyebab umum error `Saldo kas tidak cukup`:
+1. Transaksi modal/simpanan masih `isApproved=false`.
+2. Kas masuk di `BANK`, tapi pencairan memilih `TUNAI` (atau sebaliknya).
+3. Jurnal kas tidak terbentuk (mis. transaksi belum approved).
+
+UI pencairan:
+- `src/app/(dashboard)/pencairan/pencairan-form.tsx`
+- Sudah ada submit lock untuk mencegah double submit/toast bentrok.
+
+## 7. Kas & Approval
+
+File: `src/actions/kas.ts`
+
+- User role non-privileged input kas -> default pending (`isApproved=false`) + `ApprovalLog`.
+- Role privileged (`ADMIN/MANAGER/PIMPINAN`) -> auto approved + langsung post jurnal.
+- Pengeluaran (`KELUAR`) divalidasi saldo kas dulu sebelum simpan/approve.
+
+## 8. Super Admin (Platform)
+
+File utama:
+- `src/actions/platform-admin.ts`
+- pages: `/platform/users`, `/platform/companies`, `/platform/companies/[id]`
+
+Kemampuan inti:
+- Suspend/activate/delete company (soft delete via status)
+- Disable/enable user
+- Reset password user (temporary password)
+- Semua aksi high-impact masuk audit log
+
+Referensi perencanaan: `SUPER-ADMIN-PLAN.md`.
+
+## 9. Runbook DB Prisma
+
+### Lokal development
+1. Set `.env` (minimal `DATABASE_URL`, `NEXTAUTH_SECRET`)
+2. Install deps:
+   - `npm install`
+3. Generate prisma client:
+   - `npm run db:generate`
+4. Sinkron schema ke DB (non-migration):
+   - `npm run db:push`
+5. (Opsional) seed:
+   - `npm run db:seed`
+
+### Tarik struktur dari DB existing (mis. prod snapshot)
+- `npx prisma db pull`
+- review perubahan `prisma/schema.prisma`
+- `npm run db:generate`
+
+### Catatan migration
+- `prisma.config.ts` memakai `DIRECT_URL` untuk migration jika tersedia.
+- Untuk perubahan production, hindari asumsi; cek skema aktual dulu (`db pull`) sebelum buat migration.
+
+## 10. Known Pitfalls Cepat
+
+- Error `Can't resolve 'tailwindcss'` biasanya karena menjalankan command dari folder salah (harus di `dashboard/` yang punya `package.json` dan `node_modules`).
+- Hydration mismatch sering dari text non-deterministic antara server/client (hindari data berubah saat render awal).
+- Untuk unique `nik` nasabah: error sudah expected, tampilkan pesan user-friendly; cek scoping `companyId`.
+
+## 11. Checklist Wajib Sebelum Selesai Task
+
+1. Pastikan query/action tenant-aware (`companyId` tidak hilang).
+2. Jalankan `npm run build`.
+3. Jika menyentuh akuntansi:
+   - cek jurnal balance
+   - cek dampak ke `Neraca`, `Laba Rugi`, `Buku Besar`
+4. Jika menyentuh auth/role:
+   - cek login user biasa
+   - cek login `SUPER_ADMIN`
+   - cek guard middleware untuk route sensitif
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' middleware.ts" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { NextRequest, NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
+
+// Route protection map: path prefix → allowed roles
+const routePermissions: Record<string, string[]> = {
+  "/laporan": ["SUPER_ADMIN", "OWNER", "MANAGER", "PIMPINAN", "AKUNTANSI", "ADMIN"],
+  "/settings": ["SUPER_ADMIN", "OWNER", "ADMIN", "PIMPINAN"],
+  "/kas": ["SUPER_ADMIN", "OWNER", "TELLER", "ADMIN", "MANAGER", "PIMPINAN"],
+  "/pencairan": ["SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "PIMPINAN", "TELLER"],
+  "/platform": ["SUPER_ADMIN"],
+}
+
+// Helper: cek apakah user minimal punya 1 role yang diizinkan
+function hasAccess(userRoles: string[], requiredRoles: string[]): boolean {
+  return userRoles.some((r) => requiredRoles.includes(r))
+}
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  const publicPaths = new Set(["/", "/home", "/about", "/product", "/blog", "/contact", "/penawaran", "/login", "/register"])
+  const isPublicPath = pathname.startsWith("/api") || publicPaths.has(pathname)
+  if (isPublicPath) {
+    return NextResponse.next()
+  }
+
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+  const token =
+    (await getToken({ req, secret })) ??
+    (await getToken({ req, secret, cookieName: "__Secure-authjs.session-token" })) ??
+    (await getToken({ req, secret, cookieName: "authjs.session-token" }))
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url))
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userRoles: string[] = Array.isArray((token as any)?.roles) ? (token as any).roles : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tokenCompanyId: string | null | undefined = (token as any)?.companyId as string | null | undefined
+
+  // SUPER_ADMIN can exist without a company context. In that case, keep them inside /platform.
+  if (userRoles.includes("SUPER_ADMIN") && !tokenCompanyId) {
+    const allowed =
+      pathname.startsWith("/platform") ||
+      pathname === "/settings" ||
+      pathname.startsWith("/settings/profile") ||
+      pathname.startsWith("/docs")
+    if (!allowed) {
+      return NextResponse.redirect(new URL("/platform", req.url))
+    }
+  }
+
+  // Cek permission per route
+  for (const [routePrefix, allowedRoles] of Object.entries(routePermissions)) {
+    if (pathname.startsWith(routePrefix)) {
+      if (!hasAccess(userRoles, allowedRoles)) {
+        return NextResponse.redirect(new URL("/dashboard?unauthorized=true", req.url))
+      }
+    }
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' src/app/(auth)/login/page.tsx" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `cd dashboard && sed -n '1,260p' src/app/(auth)/login/page.tsx'
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' src/app/(dashboard)/dashboard/page.tsx" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 2 in 0ms:
+/bin/bash: -c: line 1: syntax error near unexpected token `('
+/bin/bash: -c: line 1: `cd dashboard && sed -n '1,220p' src/app/(dashboard)/dashboard/page.tsx'
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(auth)/login/page.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+"use client"
+
+import { useState, useSyncExternalStore, useTransition, addTransitionType } from "react"
+import Link from "next/link"
+import { getSession, signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Building2, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+
+const loginSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
+const subscribeNoop = () => () => {}
+const getDemoTextSnapshot = () => "admin@koperasi.id / admin123"
+// Keep server + client snapshot identical to avoid hydration mismatch.
+const getEmptySnapshot = getDemoTextSnapshot
+
+async function waitForSession(maxRetry = 6, delayMs = 150) {
+  for (let i = 0; i < maxRetry; i += 1) {
+    const session = await getSession()
+    if (session?.user?.id) return true
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+  return false
+}
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const demoText = useSyncExternalStore(subscribeNoop, getDemoTextSnapshot, getEmptySnapshot)
+  const [, startTransition] = useTransition()
+
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  async function onSubmit(data: LoginForm) {
+    setIsLoading(true)
+    setError("")
+    const res = await signIn("credentials", {
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      redirect: false,
+      callbackUrl: "/dashboard",
+    })
+
+    if (res?.error) {
+      setIsLoading(false)
+      setError("Email atau password salah.")
+      return
+    }
+
+    const hasSession = await waitForSession()
+    setIsLoading(false)
+    if (!hasSession) {
+      setError("Login berhasil, tetapi sesi belum aktif. Silakan klik masuk sekali lagi.")
+      return
+    } else {
+      startTransition(() => {
+        addTransitionType("nav-forward")
+        router.push("/dashboard")
+        router.refresh()
+      })
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.14),transparent_24rem),linear-gradient(135deg,hsl(var(--background)),hsl(var(--muted)/0.55))]">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 p-12 text-white">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-white/15 bg-white/20 p-2 backdrop-blur">
+            <Building2 className="size-7" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight">KoperasiApp</span>
+        </div>
+        <div className="flex flex-col gap-6">
+          <h1 className="text-4xl font-bold leading-tight">
+            Sistem Informasi<br />Koperasi Simpan Pinjam
+          </h1>
+          <p className="text-emerald-100 text-lg leading-relaxed">
+            Kelola nasabah, pinjaman, angsuran, dan laporan keuangan koperasi Anda dengan mudah, aman, dan terpercaya.
+          </p>
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            {[
+              { label: "Nasabah Aktif", value: "1.2K+" },
+              { label: "Pinjaman", value: "840+" },
+              { label: "Akurasi Data", value: "99.9%" },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-emerald-200 text-sm">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-emerald-200 text-sm">© 2024 KoperasiApp. All rights reserved.</p>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+        <div className="flex w-full max-w-md flex-col gap-8">
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="bg-emerald-600 rounded-xl p-2 text-white">
+              <Building2 className="size-6" />
+            </div>
+            <span className="text-xl font-bold">KoperasiApp</span>
+          </div>
+
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Selamat Datang</h2>
+            <p className="text-muted-foreground mt-2">Masuk ke akun Anda untuk melanjutkan</p>
+          </div>
+
+          <Card>
+            <CardContent>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <FieldGroup className="gap-5">
+                  {error && (
+                    <div role="alert" aria-live="polite" className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                      {error}
+                    </div>
+                  )}
+                  <Field data-invalid={!!errors.email}>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@koperasi.id…"
+                      autoComplete="email"
+                      spellCheck={false}
+                      aria-invalid={!!errors.email}
+                      {...register("email")}
+                    />
+                    <FieldError>{errors.email?.message}</FieldError>
+                  </Field>
+                  <Field data-invalid={!!errors.password}>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Masukkan password…"
+                        autoComplete="current-password"
+                        aria-invalid={!!errors.password}
+                        {...register("password")}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                        onClick={() => setShowPassword((current) => !current)}
+                        className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
+                    <FieldError>{errors.password?.message}</FieldError>
+                  </Field>
+                  <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isLoading} size="lg">
+                    {isLoading && <Loader2 className="animate-spin" data-icon="inline-start" />}
+                    {isLoading ? "Masuk…" : "Masuk"}
+                  </Button>
+                </FieldGroup>
+              </form>
+            </CardContent>
+          </Card>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Belum punya akun?{" "}
+            <Link href="/register" className="font-medium text-emerald-700 hover:text-emerald-800">
+              Daftar
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Demo:</span>{" "}
+            {demoText}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(dashboard)/dashboard/page.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { getDashboardStats } from "@/actions/dashboard"
+import Link from "next/link"
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { DashboardHeader } from "../_components/dashboard-header"
+import { ViewTransition } from "react"
+import { getCompanyInfo } from "@/actions/settings"
+import { formatTimeId, normalizeTimeZone } from "@/lib/datetime"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Users, Banknote, TrendingUp, AlertTriangle,
+  ArrowUpRight, ArrowDownRight, Clock, UserPlus, ClipboardList,
+  HandCoins, WalletCards, Layers3, BarChart3,
+} from "lucide-react"
+
+function fmt(n: number) {
+  if (n >= 1_000_000_000) return `Rp ${(n / 1_000_000_000).toFixed(1)}M`
+  if (n >= 1_000_000) return `Rp ${(n / 1_000_000).toFixed(1)}Jt`
+  if (n >= 1_000) return `Rp ${(n / 1_000).toFixed(0)}Rb`
+  return `Rp ${n.toLocaleString("id-ID")}`
+}
+
+function BarChart({ data }: { data: { bulan: string; masuk: number; keluar: number }[] }) {
+  const max = Math.max(...data.flatMap((d) => [d.masuk, d.keluar]), 1)
+  return (
+    <div className="flex items-end gap-3 h-40 pt-2">
+      {data.map((d) => (
+        <div key={d.bulan} className="flex-1 flex flex-col items-center gap-1">
+          <div className="flex items-end gap-0.5 w-full" style={{ height: "120px" }}>
+            <div className="flex-1 bg-emerald-500 rounded-t-sm opacity-90 transition-all hover:opacity-100" style={{ height: `${(d.masuk / max) * 100}%` }} />
+            <div className="flex-1 bg-rose-400 rounded-t-sm opacity-80 transition-all hover:opacity-100" style={{ height: `${(d.keluar / max) * 100}%` }} />
+          </div>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{d.bulan}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default async function DashboardPage() {
+  const stats = await getDashboardStats()
+  const company = await getCompanyInfo()
+  const timeZone = normalizeTimeZone(company.timeZone)
+
+  const today = new Intl.DateTimeFormat("id-ID", {
+    timeZone,
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date())
+  const currentTime = formatTimeId(new Date(), { timeZone })
+
+  const surplusBulanIni = stats.arusKas6Bulan.at(-1)
+  const surplusVal = (surplusBulanIni?.masuk ?? 0) - (surplusBulanIni?.keluar ?? 0)
+
+  const statCards = [
+    { title: "Total Nasabah Aktif", value: stats.totalNasabah.toLocaleString("id-ID"), change: "Nasabah aktif", trend: "up", icon: Users, color: "text-blue-600", bg: "bg-blue-50/80", id: "total-nasabah" },
+    { title: "Pinjaman Aktif", value: stats.pinjamanAktif.toLocaleString("id-ID"), change: "Kontrak berjalan", trend: "up", icon: Banknote, color: "text-emerald-600", bg: "bg-emerald-50/80", id: "pinjaman-aktif" },
+    { title: "Total Outstanding", value: fmt(stats.totalOutstanding), change: "Sisa pokok pinjaman", trend: "neutral", icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50/80", id: "total-outstanding" },
+    { title: "Total Tunggakan", value: fmt(stats.totalTunggakan), change: "Angsuran belum dibayar", trend: "down", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50/80", id: "total-tunggakan" },
+  ]
+
+  const quickMenus = [
+    {
+      title: "Tambah Nasabah",
+      description: "Input anggota baru",
+      href: "/nasabah/baru",
+      icon: UserPlus,
+      className: "from-sky-500 to-cyan-500",
+      id: "tambah-nasabah",
+    },
+    {
+      title: "Ajukan Pinjaman",
+      description: "Buat pengajuan baru",
+      href: "/pengajuan/baru",
+      icon: ClipboardList,
+      className: "from-emerald-500 to-teal-500",
+      id: "ajukan-pinjaman",
+    },
+    {
+      title: "Proses Pencairan",
+      description: "Tindak lanjut pengajuan",
+      href: "/pencairan",
+      icon: HandCoins,
+      className: "from-amber-500 to-orange-500",
+      id: "proses-pencairan",
+    },
+    {
+      title: "Catat Pembayaran",
+      description: "Input angsuran masuk",
+      href: "/pembayaran",
+      icon: WalletCards,
+      className: "from-violet-500 to-fuchsia-500",
+      id: "catat-pembayaran",
+    },
+    {
+      title: "Data Kelompok",
+      description: "Kelola kelompok nasabah",
+      href: "/kelompok",
+      icon: Layers3,
+      className: "from-slate-700 to-slate-900",
+      id: "data-kelompok",
+    },
+    {
+      title: "Laporan Kas",
+      description: "Pantau laporan utama",
+      href: "/laporan/arus-kas",
+      icon: BarChart3,
+      className: "from-rose-500 to-pink-500",
+      id: "laporan-kas",
+    },
+  ]
+
+  return (
+    <div className="p-6 space-y-8">
+      <DashboardHeader
+        title="Dashboard Overview"
+        description="Ringkasan cepat kondisi koperasi, arus kas, tunggakan, dan notifikasi penagihan hari ini."
+        dateLabel={today}
+        initialTimeLabel={currentTime}
+        notificationCount={stats.penagihanHariIni}
+      />
+
+      {/* Quick Menu */}
+      <Card className="border-none shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Quick Menu</CardTitle>
+              <CardDescription>Akses cepat ke modul yang paling sering dipakai</CardDescription>
+            </div>
+            <Badge variant="secondary" className="hidden sm:inline-flex bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              Fast access
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+            {quickMenus.map((menu) => (
+              <Button key={menu.href} asChild variant="outline" className="h-auto items-stretch justify-start p-0 border-slate-100 hover:border-primary/20 hover:bg-primary/5 transition-all">
+                <Link href={menu.href} className="w-full">
+                  <div className="flex h-full w-full flex-col gap-3 rounded-xl p-4 text-left transition-colors">
+                    <ViewTransition name={`quick-icon-${menu.id}`} share="morph">
+                      <div className={`inline-flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${menu.className} text-white shadow-md shadow-slate-200/50 dark:shadow-none`}>
+                        <menu.icon className="size-4.5" />
+                      </div>
+                    </ViewTransition>
+                    <div className="space-y-1">
+                      <ViewTransition name={`quick-text-${menu.id}`} share="text-morph">
+                        <p className="text-sm font-semibold leading-none tracking-tight">{menu.title}</p>
+                      </ViewTransition>
+                      <p className="text-[10px] text-muted-foreground/80 leading-relaxed">{menu.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat) => (
+          <Card key={stat.title} className="border-none shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">{stat.title}</p>
+                  <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
+                  <p className={`text-[11px] font-medium flex items-center gap-1 ${stat.trend === "up" ? "text-emerald-600" : stat.trend === "down" ? "text-red-500" : "text-slate-500"}`}>
+                    {stat.trend === "up" && <ArrowUpRight className="size-3" />}
+                    {stat.trend === "down" && <ArrowDownRight className="size-3" />}
+                    {stat.change}
+                  </p>
+                </div>
+                <ViewTransition name={`stat-icon-${stat.id}`} share="morph">
+                  <div className={`${stat.bg} ${stat.color} p-2.5 rounded-xl shadow-sm border border-current/5`}>
+                    <stat.icon className="size-5" />
+                  </div>
+                </ViewTransition>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Chart + Top Tunggakan */}
+      <div className="grid lg:grid-cols-5 gap-6">
+        <Card className="lg:col-span-3 border-none shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Arus Kas Bulanan</CardTitle>
+                <CardDescription>6 bulan terakhir</CardDescription>
+              </div>
+              <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="size-2.5 bg-emerald-500 rounded-full inline-block" /> Masuk</span>
+                <span className="flex items-center gap-1.5"><span className="size-2.5 bg-rose-400 rounded-full inline-block" /> Keluar</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <BarChart data={stats.arusKas6Bulan} />
+            {surplusVal !== 0 && (
+              <div className="mt-6 p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-center justify-between dark:bg-emerald-950/20 dark:border-emerald-900/30">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/80 dark:text-emerald-400/80">Surplus Bulan Ini</p>
+                  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{fmt(surplusVal)}</p>
+                </div>
+                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-400 rounded-lg font-bold">
+                  {surplusBulanIni?.bulan}
+                </Badge>
+              </div>
+            )}
+            {surplusVal === 0 && (
+              <div className="mt-6 p-4 bg-muted/40 rounded-xl text-xs text-muted-foreground text-center border border-dashed border-slate-200 dark:border-slate-800">
+                Belum ada data kas bulan ini. Mulai input transaksi di menu Arus Kas.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2 border-none shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold">Top 5 Tunggakan Kelompok</CardTitle>
+            <CardDescription>Outstanding tertinggi</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {stats.topTunggakan.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">🎉 Tidak ada tunggakan saat ini.</p>
+            ) : (
+              <div className="overflow-hidden rounded-b-xl border-t border-slate-100 dark:border-slate-800">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 dark:bg-slate-900/50 dark:hover:bg-slate-900/50 border-b-slate-100 dark:border-b-slate-800">
+                      <TableHead className="w-12 text-center text-[10px] font-bold uppercase tracking-widest">No</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-widest">Kelompok</TableHead>
+                      <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.topTunggakan.map((item, i) => (
+                      <TableRow key={item.nama} className="border-b-slate-50 dark:border-b-slate-900/50 hover:bg-slate-50/30 transition-colors">
+                        <TableCell className="text-center">
+                          <div className={`size-6 mx-auto rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? "bg-red-100 text-red-700" : i === 1 ? "bg-orange-100 text-orange-700" : "bg-muted text-muted-foreground"}`}>
+                            {i + 1}
+                          </div>
+                        </TableCell>
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' 'src/app/(dashboard)/nasabah/page.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import Link from "next/link"
+import { Plus, Search, Download, Eye, Pencil } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getKelompokList, getNasabahList } from "@/actions/nasabah"
+import { Input } from "@/components/ui/input"
+import { DeleteNasabahButton } from "./delete-nasabah-button"
+
+const statusBadge: Record<string, { label: string; cls: string }> = {
+  AKTIF: { label: "Aktif", cls: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  NON_AKTIF: { label: "Non Aktif", cls: "bg-slate-100/80 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400" },
+  KELUAR: { label: "Keluar", cls: "bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" },
+}
+
+const rankBadge: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  B: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  C: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  D: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n)
+}
+
+export default async function NasabahPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string; page?: string; kelompokId?: string; status?: string }>
+}) {
+  const sp = await searchParams
+  const search = sp?.search ?? ""
+  const page = Number(sp?.page ?? 1)
+  const kelompokId = sp?.kelompokId ?? ""
+  const status = sp?.status ?? ""
+
+  const kelompokList = await getKelompokList()
+  const { data: nasabahList, total, totalPages } = await getNasabahList({
+    page,
+    search,
+    limit: 20,
+    kelompokId: kelompokId || undefined,
+    status: status || undefined,
+  })
+
+  return (
+    <div className="p-6 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Master Nasabah</h1>
+          <p className="text-muted-foreground text-sm">
+            {total.toLocaleString("id-ID")} total nasabah terdaftar dalam sistem.
+          </p>
+        </div>
+        <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200/50 dark:shadow-none transition-all active:scale-95">
+          <Link href="/nasabah/baru">
+            <Plus className="size-4" /> Tambah Nasabah
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-50 dark:border-slate-800/50">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <CardTitle className="text-base font-semibold">Daftar Nasabah</CardTitle>
+              <CardDescription>Kelola data anggota koperasi secara terpusat</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" className="gap-2 border-slate-200/80 dark:border-slate-800/80">
+              <Download className="size-3.5" /> 
+              <span className="hidden sm:inline">Export Data</span>
+            </Button>
+          </div>
+          <form method="GET" className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input name="search" defaultValue={search} placeholder="Cari nama, NIK, atau nomor anggota..." className="pl-9 transition-all" />
+            </div>
+            <select
+              name="kelompokId"
+              defaultValue={kelompokId}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter kelompok"
+            >
+              <option value="">Semua kelompok</option>
+              {kelompokList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama}
+                </option>
+              ))}
+            </select>
+            <select
+              name="status"
+              defaultValue={status}
+              className="h-9 rounded-lg border border-slate-100 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all dark:border-slate-800 dark:bg-slate-900"
+              title="Filter status"
+            >
+              <option value="">Semua status</option>
+              <option value="AKTIF">Aktif</option>
+              <option value="NON_AKTIF">Non Aktif</option>
+              <option value="KELUAR">Keluar</option>
+            </select>
+            <Button type="submit" variant="secondary" className="px-6">Cari</Button>
+          </form>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[110px]">No. Anggota</TableHead>
+                <TableHead>Nama Lengkap</TableHead>
+                <TableHead className="hidden md:table-cell">NIK</TableHead>
+                <TableHead className="hidden lg:table-cell">Kelompok</TableHead>
+                <TableHead className="hidden lg:table-cell">Kolektor</TableHead>
+                <TableHead className="hidden xl:table-cell">Indikator</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">Tgl. Gabung</TableHead>
+                <TableHead className="w-[50px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {nasabahList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-24 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Search className="size-8 opacity-20" />
+                      <p>{search ? `Tidak ada nasabah dengan kata kunci "${search}"` : "Belum ada data nasabah. Tambah nasabah pertama."}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                nasabahList.map((row) => {
+                  const badge = statusBadge[row.status] ?? statusBadge.NON_AKTIF
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs font-semibold text-slate-500">{row.nomorAnggota}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold tracking-tight">{row.namaLengkap}</span>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge
+                              className={`${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} hover:${rankBadge[row.indikator.ranking] ?? "bg-slate-100 text-slate-600"} border-0 text-[10px] font-black h-5 uppercase tracking-wider`}
+                              title="Ranking risiko"
+                            >
+                              Rank {row.indikator.ranking}
+                            </Badge>
+                            {row.indikator.overdueCount > 0 && row.indikator.overdueOldestDueAt ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-black h-5 uppercase tracking-wider"
+                                title="Angsuran jatuh tempo belum lunas"
+                              >
+                                Telat {row.indikator.overdueCount} (
+                                {new Date(row.indikator.overdueOldestDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                ) {row.indikator.overdueOldestDaysLate} hari
+                              </Badge>
+                            ) : null}
+                            {row.indikator.tunggakanNominal > 0 ? (
+                              <Badge
+                                className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tunggakan angsuran"
+                              >
+                                Tunggakan {fmt(Number(row.indikator.tunggakanNominal))}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Tidak ada tunggakan angsuran"
+                              >
+                                Lancar
+                              </Badge>
+                            )}
+                            {row.indikator.aktifPinjaman > 0 ? (
+                              <Badge
+                                className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 border-0 text-[10px] font-bold h-5 uppercase tracking-wider"
+                                title="Jumlah pinjaman aktif"
+                              >
+                                Aktif {row.indikator.aktifPinjaman}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground md:hidden">{row.nik}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell font-mono text-[11px] text-slate-500 tracking-tight">{row.nik}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kelompok?.nama ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{row.kolektor?.name ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Outstanding</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-200">
+                              {fmt(Number(row.indikator.outstanding))}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Telat</span>
+                            <span className={row.indikator.telat > 0 ? "font-bold text-rose-600" : "font-semibold"}>
+                              {row.indikator.telat}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Next Due</span>
+                            <span className="font-medium">
+                              {row.indikator.nextDueAt
+                                ? new Date(row.indikator.nextDueAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+                                : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${badge.cls} hover:${badge.cls} border-0 text-[10px] font-bold px-2 py-0 h-5 uppercase tracking-wide`}>{badge.label}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-[11px] font-medium text-slate-500">
+                        {new Date(row.tanggalGabung).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Detail"
+                          >
+                            <Link href={`/nasabah/${row.id}`}>
+                              <Eye className="size-4" />
+                              <span className="sr-only">Detail</span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                            asChild
+                            title="Edit"
+                          >
+                            <Link href={`/nasabah/${row.id}/edit`}>
+                              <Pencil className="size-4" />
+                              <span className="sr-only">Edit</span>
+                            </Link>
+                          </Button>
+                          <DeleteNasabahButton id={row.id} nama={row.namaLengkap} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+          <div className="px-6 py-4 flex items-center justify-between border-t border-slate-50 bg-slate-50/30 dark:border-slate-800/50 dark:bg-slate-900/10 text-xs font-medium text-slate-500 tracking-tight">
+            <span>
+              {nasabahList.length > 0
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' 'src/actions/nasabah.ts'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { nasabahSchema, type NasabahInput } from "@/lib/validations/nasabah"
+import { computeRanking } from "@/lib/ranking"
+import { getRankingConfig } from "@/actions/settings"
+import { serializeData } from "@/lib/utils"
+import { Prisma, RoleType } from "@prisma/client"
+import { requireRoles } from "@/lib/roles"
+import { requireCompanyId } from "@/lib/tenant"
+
+type NasabahActionError = Partial<Record<keyof NasabahInput | "nomorAnggota", string[]>>
+type CreateNasabahResult =
+  | { success: true; data: Awaited<ReturnType<typeof prisma.nasabah.create>> }
+  | { error: NasabahActionError }
+type UpdateNasabahResult = { success: true } | { error: NasabahActionError }
+
+function parseJadwalTags(catatan?: string | null) {
+  return catatan?.match(/\[JADWAL:([^\]]+)\]/g) ?? []
+}
+
+// Helper: generate nomor anggota otomatis
+async function generateNomorAnggota(companyId: string): Promise<string> {
+  const count = await prisma.nasabah.count({ where: { companyId } })
+  const seq = String(count + 1).padStart(4, "0")
+  const year = new Date().getFullYear().toString().slice(2)
+  return `N-${year}-${seq}`
+}
+
+function getUniqueConstraintFields(error: unknown): string[] {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    const target = error.meta?.target
+    if (Array.isArray(target)) return target.filter((field): field is string => typeof field === "string")
+  }
+
+  return []
+}
+
+export async function getNasabahList(params: {
+  page?: number
+  limit?: number
+  search?: string
+  status?: string
+  kelompokId?: string
+}) {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorized")
+  const { companyId } = requireCompanyId(session as unknown as { user?: { id?: string; companyId?: string | null; roles?: string[] } } | null)
+
+  const now = new Date()
+  const rankingConfig = await getRankingConfig()
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 20
+  const skip = (page - 1) * limit
+
+  const where = {
+    AND: [
+      { companyId },
+      params.search
+        ? {
+            OR: [
+              { namaLengkap: { contains: params.search, mode: "insensitive" as const } },
+              { nik: { contains: params.search } },
+              { nomorAnggota: { contains: params.search } },
+            ],
+          }
+        : {},
+      params.status ? { status: params.status as "AKTIF" | "NON_AKTIF" | "KELUAR" } : {},
+      params.kelompokId ? { kelompokId: params.kelompokId } : {},
+    ],
+  }
+
+  const [data, total] = await Promise.all([
+    prisma.nasabah.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        kelompok: { select: { nama: true } },
+        kolektor: { select: { name: true } },
+        pengajuan: {
+          select: {
+            pinjaman: {
+              select: {
+                id: true,
+                status: true,
+                nomorKontrak: true,
+                sisaPinjaman: true,
+                jadwalAngsuran: {
+                  select: {
+                    id: true,
+                    total: true,
+                    sudahDibayar: true,
+                    tanggalJatuhTempo: true,
+                    tanggalBayar: true,
+                  },
+                },
+                pembayaran: {
+                  where: { isBatalkan: false },
+                  select: {
+                    tanggalBayar: true,
+                    totalBayar: true,
+                    catatan: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.nasabah.count({ where }),
+  ])
+
+  const withIndicators = data.map((nasabah) => {
+    let totalTagihanArrears = 0
+    let totalDibayarArrears = 0
+    let telat = 0
+    let belumJatuhTempo = 0
+    let belumBayar = 0
+    let outstanding = 0
+    let lastPaymentAt: Date | null = null
+    let nextDueAt: Date | null = null
+    let overdueCount = 0
+    let overdueOldestDueAt: Date | null = null
+    let overdueOldestDaysLate = 0
+    let overdueMaxDaysLate = 0
+    let aktifPinjaman = 0
+
+    const pinjamanList = nasabah.pengajuan
+      .map((p) => p.pinjaman)
+      .filter((p): p is NonNullable<typeof p> => Boolean(p))
+
+    for (const pinjaman of pinjamanList) {
+      outstanding += Number(pinjaman.sisaPinjaman)
+      if (pinjaman.status !== "LUNAS") aktifPinjaman += 1
+
+      const pembayaranTagMap = new Map<string, number>()
+      for (const p of pinjaman.pembayaran) {
+        if (p.tanggalBayar) {
+          if (!lastPaymentAt || p.tanggalBayar > lastPaymentAt) lastPaymentAt = p.tanggalBayar
+        }
+        const tags = parseJadwalTags(p.catatan)
+        if (tags.length === 0) continue
+        for (const rawTag of tags) {
+          const jadwalId = rawTag.replace("[JADWAL:", "").replace("]", "")
+          const prev = pembayaranTagMap.get(jadwalId) ?? 0
+          pembayaranTagMap.set(jadwalId, prev + Number(p.totalBayar))
+        }
+      }
+
+      for (const jadwal of pinjaman.jadwalAngsuran) {
+        const nominalTagihan = Number(jadwal.total)
+        const bayarParsial = pembayaranTagMap.get(jadwal.id) ?? 0
+        const bayarEfektif = jadwal.sudahDibayar ? nominalTagihan : Math.min(nominalTagihan, bayarParsial)
+
+        // Hanya hitung tagihan yang SUDAH JATUH TEMPO (atau sudah dibayar) ke tunggakan
+        if (jadwal.sudahDibayar || jadwal.tanggalJatuhTempo <= now || bayarEfektif > 0) {
+          totalTagihanArrears += nominalTagihan
+          totalDibayarArrears += bayarEfektif
+        }
+
+        if (jadwal.sudahDibayar || bayarEfektif >= nominalTagihan) {
+          if (jadwal.tanggalBayar && jadwal.tanggalBayar > jadwal.tanggalJatuhTempo) telat += 1
+          continue
+        }
+
+        if (!nextDueAt || jadwal.tanggalJatuhTempo < nextDueAt) nextDueAt = jadwal.tanggalJatuhTempo
+
+        if (jadwal.tanggalJatuhTempo > now) {
+          belumJatuhTempo += 1
+        } else {
+          belumBayar += 1
+          telat += 1
+          overdueCount += 1
+          if (!overdueOldestDueAt || jadwal.tanggalJatuhTempo < overdueOldestDueAt) {
+            overdueOldestDueAt = jadwal.tanggalJatuhTempo
+          }
+          const daysLate = Math.max(
+            0,
+            Math.floor((now.getTime() - jadwal.tanggalJatuhTempo.getTime()) / (1000 * 60 * 60 * 24)),
+          )
+          if (daysLate > overdueMaxDaysLate) overdueMaxDaysLate = daysLate
+        }
+      }
+    }
+
+    if (overdueOldestDueAt) {
+      overdueOldestDaysLate = Math.max(
+        0,
+        Math.floor((now.getTime() - overdueOldestDueAt.getTime()) / (1000 * 60 * 60 * 24)),
+      )
+    }
+
+    const tunggakanNominal = Math.max(0, totalTagihanArrears - totalDibayarArrears)
+    const ranking = computeRanking({ telat, tunggakanNominal }, rankingConfig)
+
+    return {
+      ...nasabah,
+      indikator: {
+        ranking,
+        telat,
+        belumBayar,
+        belumJatuhTempo,
+        kurangAngsuran: tunggakanNominal, // Mapping for UI compatibility if needed, but semantic is tunggakan
+        tunggakanNominal,
+        outstanding,
+        lastPaymentAt,
+        nextDueAt,
+        overdueCount,
+        overdueOldestDueAt,
+        overdueOldestDaysLate,
+        overdueMaxDaysLate,
+        aktifPinjaman,
+      },
+    }
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,240p' 'src/app/(dashboard)/layout.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { TopBar } from "./_components/top-bar"
+import { getCompanyInfo, getAccountingMode } from "@/actions/settings"
+import { DEFAULT_ACCOUNTING_MODE } from "@/lib/accounting-mode"
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth()
+  if (!session) redirect("/login")
+  const userId = session.user?.id
+  if (!userId) redirect("/login")
+
+  // Company enforcement: block access for suspended/deleted companies.
+  // SUPER_ADMIN may not have a companyId and should still be able to access platform pages.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      isActive: true,
+      company: { select: { id: true, isActive: true, status: true } },
+    },
+  })
+  if (!dbUser || !dbUser.isActive) redirect("/login")
+  if (dbUser.company && (!dbUser.company.isActive || dbUser.company.status !== "ACTIVE")) {
+    redirect("/login")
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sessionCompanyId = (session.user as any)?.companyId as string | null | undefined
+  const [company, accountingMode] = sessionCompanyId
+    ? await Promise.all([getCompanyInfo(), getAccountingMode()])
+    : [undefined, DEFAULT_ACCOUNTING_MODE]
+  const user = {
+    name: session.user?.name ?? "User",
+    email: session.user?.email ?? "-",
+    avatar: undefined as string | undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    roles: ((session.user as any)?.roles ?? []) as string[],
+    companyId: sessionCompanyId,
+  }
+
+  return (
+    <TooltipProvider>
+      <SidebarProvider>
+        <AppSidebar user={user} company={company} accountingMode={accountingMode} />
+        <SidebarInset className="bg-background">
+          <div className="flex flex-col min-h-screen relative">
+            <TopBar />
+            <div className="flex-1 overflow-auto bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_26rem),linear-gradient(135deg,hsl(var(--background)),hsl(var(--muted)/0.55))] p-4 md:p-6 lg:p-8">
+              <div className="mx-auto max-w-7xl">
+                {children}
+              </div>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
+  )
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' 'src/actions/auth-registration.ts'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+"use server"
+
+import bcrypt from "bcryptjs"
+import { RoleType } from "@prisma/client"
+import { z } from "zod"
+import { prisma } from "@/lib/prisma"
+
+const registerSchema = z
+  .object({
+    name: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
+    companyName: z.string().trim().min(3, "Nama koperasi minimal 3 karakter").max(120),
+    email: z.string().trim().toLowerCase().email("Email tidak valid"),
+    password: z.string().min(6, "Password minimal 6 karakter").max(100),
+    confirmPassword: z.string().min(6, "Konfirmasi password wajib diisi"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Konfirmasi password tidak sama",
+  })
+
+export type RegisterState = {
+  success?: boolean
+  email?: string
+  message?: string
+  errors?: Partial<Record<"name" | "companyName" | "email" | "password" | "confirmPassword", string[]>>
+}
+
+function toSlug(value: string) {
+  const slug = value
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return slug || "koperasi"
+}
+
+async function uniqueCompanySlug(companyName: string) {
+  const baseSlug = toSlug(companyName)
+  let slug = baseSlug
+  let suffix = 1
+
+  while (await prisma.company.findUnique({ where: { slug }, select: { id: true } })) {
+    suffix += 1
+    slug = `${baseSlug}-${suffix}`
+  }
+
+  return slug
+}
+
+export async function registerUser(
+  _state: RegisterState,
+  formData: FormData
+): Promise<RegisterState> {
+  const parsed = registerSchema.safeParse({
+    name: formData.get("name"),
+    companyName: formData.get("companyName"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  })
+
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors }
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { id: true },
+  })
+
+  if (existingUser) {
+    return {
+      errors: { email: ["Email sudah terdaftar"] },
+      message: "Gunakan email lain atau masuk dengan akun yang sudah ada.",
+    }
+  }
+
+  const hashedPassword = await bcrypt.hash(parsed.data.password, 12)
+  const companySlug = await uniqueCompanySlug(parsed.data.companyName)
+
+  await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: hashedPassword,
+        isActive: true,
+        roles: {
+          create: [{ role: RoleType.OWNER }, { role: RoleType.ADMIN }],
+        },
+      },
+    })
+
+    const company = await tx.company.create({
+      data: {
+        name: parsed.data.companyName,
+        slug: companySlug,
+        email: parsed.data.email,
+        ownerId: user.id,
+      },
+    })
+
+    await tx.user.update({
+      where: { id: user.id },
+      data: { companyId: company.id },
+    })
+  })
+
+  return {
+    success: true,
+    email: parsed.data.email,
+    message: "Akun dan company berhasil dibuat.",
+  }
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' prisma/seed.ts" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import "dotenv/config"
+import { Pool } from "pg"
+import { PrismaPg } from "@prisma/adapter-pg"
+import { PrismaClient, RoleType } from "@prisma/client"
+import bcrypt from "bcryptjs"
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
+
+async function createUser(params: {
+  email: string
+  name: string
+  password: string
+  roles: RoleType[]
+  companyId?: string
+}) {
+  const hashedPassword = await bcrypt.hash(params.password, 12)
+  return prisma.user.create({
+    data: {
+      email: params.email,
+      name: params.name,
+      password: hashedPassword,
+      companyId: params.companyId,
+      isActive: true,
+      roles: {
+        create: params.roles.map((role) => ({ role })),
+      },
+    },
+    select: { id: true, email: true, name: true },
+  })
+}
+
+async function cleanDatabase() {
+  // Delete children first (FK safety)
+  await prisma.auditLog.deleteMany()
+  await prisma.approvalLog.deleteMany()
+  await prisma.kolektorTarget.deleteMany()
+  await prisma.notifikasi.deleteMany()
+  await prisma.rekonsiliasiKas.deleteMany()
+  await prisma.kasTransaksi.deleteMany()
+  await prisma.pembayaran.deleteMany()
+  await prisma.jadwalAngsuran.deleteMany()
+  await prisma.pinjaman.deleteMany()
+  await prisma.pengajuan.deleteMany()
+  await prisma.simpanan.deleteMany()
+  await prisma.penjamin.deleteMany()
+  await prisma.nasabah.deleteMany()
+  await prisma.kelompok.deleteMany()
+  await prisma.kasKategori.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.appSetting.deleteMany()
+  await prisma.userRole.deleteMany()
+  await prisma.company.deleteMany()
+  await prisma.user.deleteMany()
+}
+
+async function main() {
+  console.log("Resetting database (basic seed: users + kelompok only)...")
+  await cleanDatabase()
+
+  await createUser({
+    email: "super@koperasi.id",
+    name: "Super Admin",
+    password: "super123",
+    roles: ["SUPER_ADMIN"],
+  })
+
+  const admin = await createUser({
+    email: "admin@koperasi.id",
+    name: "Administrator",
+    password: "admin123",
+    roles: ["OWNER", "ADMIN"],
+  })
+
+  const company = await prisma.company.create({
+    data: {
+      name: "Koperasi Demo Sejahtera",
+      slug: "koperasi-demo-sejahtera",
+      email: "admin@koperasi.id",
+      ownerId: admin.id,
+    },
+  })
+
+  await prisma.user.update({
+    where: { id: admin.id },
+    data: { companyId: company.id },
+  })
+
+  await createUser({
+    email: "teller@koperasi.id",
+    name: "Teller",
+    password: "teller123",
+    roles: ["TELLER"],
+    companyId: company.id,
+  })
+
+  await createUser({
+    email: "manager@koperasi.id",
+    name: "Manager",
+    password: "manager123",
+    roles: ["MANAGER"],
+    companyId: company.id,
+  })
+
+  await prisma.kelompok.createMany({
+    data: [
+      {
+        companyId: company.id,
+        kode: "KL-001",
+        nama: "Kelompok Mentari",
+        ketua: "Pak Suryo",
+        wilayah: "Wonosobo",
+        jadwalPertemuan: "Senin",
+      },
+      {
+        companyId: company.id,
+        kode: "KL-002",
+        nama: "Mitra Sejahtera",
+        ketua: "Bu Siti",
+        wilayah: "Kertek",
+        jadwalPertemuan: "Selasa",
+      },
+      {
+        companyId: company.id,
+        kode: "KL-003",
+        nama: "Guyub Rukun",
+        ketua: "Pak Slamet",
+        wilayah: "Garung",
+        jadwalPertemuan: "Rabu",
+      },
+    ],
+  })
+
+  console.log("✅ Basic seed done.")
+  console.log("Demo login:")
+  console.log("  - super@koperasi.id / super123")
+  console.log("  - admin@koperasi.id / admin123")
+  console.log("  - teller@koperasi.id / teller123")
+  console.log("  - manager@koperasi.id / manager123")
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect()
+    await pool.end()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    await pool.end()
+    process.exit(1)
+  })
+
+exec
+/bin/bash -lc "cd dashboard && rg -n \"@playwright/test|test\\(\" -g \"**/*.{ts,tsx}\"" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+src/components/markdown.tsx:132:          const isExternal = /^https?:\/\//.test(n.href)
+src/components/markdown.tsx:247:      if (/^[-*]\s+/.test(l)) break
+src/components/markdown.tsx:248:      if (/^\d+\.\s+/.test(l)) break
+
+codex
+I’ve confirmed there were no existing Playwright smoke files in this branch. I’m now reading the document route implementations so the new smoke assertions check stable behavior (not brittle UI details).
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,240p' 'src/app/(dashboard)/dokumen/kuitansi/[id]/page.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { getPembayaranById } from "@/actions/pembayaran"
+import { format } from "date-fns"
+import { id as idLocale } from "date-fns/locale"
+import { notFound } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { PrintButton } from "@/components/print-button"
+import { ArrowLeft } from "lucide-react"
+import { CompanyDocumentHeader } from "@/components/print/company-document-header"
+import { formatPembayaranModeLabel, parsePembayaranCatatan } from "@/lib/pembayaran-notes"
+import { getCompanyInfo } from "@/actions/settings"
+
+export const metadata = {
+  title: "Kuitansi Pembayaran",
+}
+
+function fmt(n: number | string) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(n))
+}
+
+export default async function KuitansiPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const pembayaran = await getPembayaranById(id)
+
+  if (!pembayaran) {
+    notFound()
+  }
+
+  const { pinjaman } = pembayaran
+  const { pengajuan } = pinjaman
+  const { nasabah, kelompok } = pengajuan
+  const parsedCatatan = parsePembayaranCatatan(pembayaran.catatan)
+  const modeLabel = formatPembayaranModeLabel(parsedCatatan.mode)
+  const companyInfo = await getCompanyInfo()
+  const receiptSignerName = companyInfo.receiptSignerName?.trim() || pembayaran.inputOleh.name
+
+  return (
+    <div className="p-6 md:p-12 space-y-6 max-w-4xl mx-auto bg-white min-h-screen text-slate-900">
+      {/* Tombol Aksi - Disembunyikan saat print */}
+      <div className="print:hidden flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200">
+        <Link href="/pembayaran">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Kembali
+          </Button>
+        </Link>
+        <PrintButton />
+      </div>
+
+      {/* Area Kuitansi */}
+      <div id="printable-area" className="border-2 border-slate-800 p-8 rounded-lg relative bg-white">
+        <CompanyDocumentHeader
+          documentTitle="Kuitansi"
+          documentNumber={pembayaran.nomorTransaksi}
+        />
+
+        {/* Info Utama */}
+        <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
+          <div className="space-y-4">
+            <div>
+              <p className="text-slate-500 font-medium mb-1">Telah diterima dari:</p>
+              <p className="text-lg font-bold text-slate-900">{nasabah.namaLengkap}</p>
+              <p className="text-slate-600">ID: {nasabah.nomorAnggota}</p>
+              {kelompok && <p className="text-slate-600">Klp: {kelompok.nama}</p>}
+            </div>
+            <div>
+              <p className="text-slate-500 font-medium mb-1">Total Pembayaran:</p>
+              <p className="text-2xl font-bold text-slate-900">{fmt(Number(pembayaran.totalBayar))}</p>
+              {(parsedCatatan.userNote || modeLabel) && (
+                <div className="mt-2 text-slate-700 italic bg-slate-50 p-2 rounded border border-slate-200">
+                  {modeLabel ? <p>Mode: {modeLabel}</p> : null}
+                  {parsedCatatan.userNote ? <p>Catatan: {parsedCatatan.userNote}</p> : null}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between pb-2 border-b border-slate-100">
+              <span className="text-slate-500 font-medium">Tanggal Pembayaran</span>
+              <span className="font-semibold">{format(pembayaran.tanggalBayar, "dd MMMM yyyy HH:mm", { locale: idLocale })}</span>
+            </div>
+            <div className="flex justify-between pb-2 border-b border-slate-100">
+              <span className="text-slate-500 font-medium">Nomor Kontrak</span>
+              <span className="font-mono text-slate-900 font-medium">{pinjaman.nomorKontrak}</span>
+            </div>
+            <div className="flex justify-between pb-2 border-b border-slate-100">
+              <span className="text-slate-500 font-medium">Sisa Pinjaman (Aktual)</span>
+              <span className="font-semibold">{fmt(Number(pinjaman.sisaPinjaman))}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rincian Alokasi */}
+        <div className="mb-8">
+          <p className="text-slate-500 font-medium mb-3">Rincian Pembayaran:</p>
+          <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Komponen</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Jumlah</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                <tr>
+                  <td className="px-4 py-3 text-slate-600">Angsuran Pokok</td>
+                  <td className="px-4 py-3 text-right font-medium">{fmt(Number(pembayaran.pokok))}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-slate-600">Bunga / Jasa</td>
+                  <td className="px-4 py-3 text-right font-medium">{fmt(Number(pembayaran.bunga))}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-slate-600">Denda Keterlambatan</td>
+                  <td className="px-4 py-3 text-right font-medium">{fmt(Number(pembayaran.denda))}</td>
+                </tr>
+                <tr className="bg-slate-50/50 font-bold">
+                  <td className="px-4 py-3 text-slate-900 border-t-2 border-slate-300">Total</td>
+                  <td className="px-4 py-3 text-right text-slate-900 border-t-2 border-slate-300">
+                    {fmt(Number(pembayaran.totalBayar))}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Tanda Tangan */}
+        <div className="flex justify-between mt-16 text-sm">
+          <div className="text-center">
+            <p className="text-slate-500 mb-16">Nasabah / Penyetor</p>
+            <p className="font-semibold underline decoration-slate-300 underline-offset-4">{nasabah.namaLengkap}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-slate-500 mb-16">Diterima & Diinput Oleh</p>
+            <p className="font-semibold underline decoration-slate-300 underline-offset-4">{receiptSignerName}</p>
+          </div>
+        </div>
+
+        {/* Watermark/Status */}
+        {pembayaran.isBatalkan && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+            <div className="text-red-600 text-8xl font-black uppercase rotate-[-25deg] tracking-widest border-8 border-red-600 p-8 rounded-3xl">
+              DIBATALKAN
+            </div>
+          </div>
+        )}
+      </div>
+
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,240p' 'src/app/(dashboard)/dokumen/kartu-angsuran/[id]/page.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { notFound } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import { format } from "date-fns"
+import { id as idLocale } from "date-fns/locale"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
+import { PrintButton } from "@/components/print-button"
+import { CompanyDocumentHeader } from "@/components/print/company-document-header"
+
+export const metadata = {
+  title: "Kartu Angsuran",
+}
+
+function fmt(n: number | string) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(n))
+}
+
+export default async function KartuAngsuranPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const pinjaman = await prisma.pinjaman.findUnique({
+    where: { id },
+    include: {
+      pengajuan: {
+        include: {
+          nasabah: true,
+          kelompok: true,
+        },
+      },
+      jadwalAngsuran: {
+        orderBy: { angsuranKe: "asc" },
+      },
+    },
+  })
+
+  if (!pinjaman) {
+    notFound()
+  }
+
+  const tagihanPerPeriode = Number(pinjaman.totalAngsuran)
+  const nasabah = pinjaman.pengajuan.nasabah
+  
+  return (
+    <div className="p-4 md:p-8 space-y-6 max-w-4xl mx-auto bg-white min-h-screen text-slate-900">
+      {/* Tombol Aksi - Disembunyikan saat print */}
+      <div className="print:hidden flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200">
+        <Link href={`/nasabah/${nasabah.id}`}>
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Profil
+          </Button>
+        </Link>
+        <PrintButton />
+      </div>
+
+      {/* Kartu Cetak */}
+      <div id="printable-area" className="border-2 border-slate-800 p-6 sm:p-8 rounded-xl relative bg-white mx-auto print:border-0 print:p-0">
+        
+        {/* Kop Koperasi */}
+        <div className="mb-6">
+          <CompanyDocumentHeader
+            documentTitle="Kartu Angsuran"
+            documentNumber={pinjaman.nomorKontrak}
+          />
+          <div className="text-center -mt-2">
+            <p className="text-sm font-medium tracking-widest bg-slate-900 text-white inline-block px-4 py-1 mt-1 rounded-full">
+              KARTU ANGSURAN PINJAMAN
+            </p>
+          </div>
+        </div>
+
+        {/* Informasi Debitur */}
+        <div className="grid grid-cols-2 gap-4 text-sm mb-6 border border-slate-300 p-4 rounded-md bg-slate-50">
+          <div>
+            <div className="flex">
+              <span className="w-32 font-semibold">Nama Debitur</span>
+              <span>: {nasabah.namaLengkap}</span>
+            </div>
+            <div className="flex">
+              <span className="w-32 font-semibold">No. Anggota</span>
+              <span className="font-mono">: {nasabah.nomorAnggota}</span>
+            </div>
+            <div className="flex">
+              <span className="w-32 font-semibold">Kelompok</span>
+              <span>: {pinjaman.pengajuan.kelompok?.nama || "Personal"}</span>
+            </div>
+          </div>
+          <div>
+            <div className="flex">
+              <span className="w-32 font-semibold">No. Kontrak</span>
+              <span className="font-mono font-bold">: {pinjaman.nomorKontrak}</span>
+            </div>
+            <div className="flex">
+              <span className="w-32 font-semibold">Plafon Cair</span>
+              <span className="font-bold">: {fmt(Number(pinjaman.pokokPinjaman))}</span>
+            </div>
+            <div className="flex">
+              <span className="w-32 font-semibold">Wajib Angsur</span>
+              <span className="font-bold">: {fmt(tagihanPerPeriode)} / {pinjaman.tenorType === "MINGGUAN" ? "minggu" : "bulan"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabel Jadwal */}
+        <table className="w-full text-xs text-left border-collapse border border-slate-300">
+          <thead className="bg-slate-100 uppercase tracking-wider text-slate-700">
+            <tr>
+              <th className="border border-slate-300 p-2 text-center w-10">Ke</th>
+              <th className="border border-slate-300 p-2 text-center">Jatuh Tempo</th>
+              <th className="border border-slate-300 p-2 text-center">Jumlah Tagihan</th>
+              <th className="border border-slate-300 p-2 text-center">Tgl Bayar<br/>(Diisi Petugas)</th>
+              <th className="border border-slate-300 p-2 text-center">Nominal Dibayar<br/>(Diisi Petugas)</th>
+              <th className="border border-slate-300 p-2 text-center">Ttd Petugas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pinjaman.jadwalAngsuran.map((j) => (
+              <tr key={j.id}>
+                <td className="border border-slate-300 p-2 text-center font-bold">{j.angsuranKe}</td>
+                <td className="border border-slate-300 p-2 text-center font-medium">
+                  {format(j.tanggalJatuhTempo, "dd MMM yyyy", { locale: idLocale })}
+                </td>
+                <td className="border border-slate-300 p-2 text-right font-semibold text-slate-800">
+                  {fmt(Number(j.total))}
+                </td>
+                <td className="border border-slate-300 p-2 min-h-[30px]"></td>
+                <td className="border border-slate-300 p-2 min-h-[30px]"></td>
+                <td className="border border-slate-300 p-2 min-h-[30px]"></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Footer/Petunjuk */}
+        <div className="mt-8 text-xs text-slate-600 space-y-1">
+          <p className="font-bold text-slate-800">Perhatian:</p>
+          <ol className="list-decimal list-inside">
+            <li>Kartu ini harap disimpan dengan baik dan dibawa setiap kali melakukan pembayaran angsuran.</li>
+            <li>Pembayaran angsuran harus sesuai dengan jumlah dan tanggal yang tertera untuk menghindari denda.</li>
+            <li>Tanda tangan petugas sah jika disertai stempel koperasi.</li>
+          </ol>
+        </div>
+
+      </div>
+
+    </div>
+  )
+}
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,240p' 'src/app/(dashboard)/dokumen/pencairan/[id]/page.tsx'" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { getPengajuanById } from "@/actions/pengajuan"
+import { format } from "date-fns"
+import { id as idLocale } from "date-fns/locale"
+import { notFound } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+import { PrintButton } from "@/components/print-button"
+import { CompanyDocumentHeader } from "@/components/print/company-document-header"
+import { getCompanyInfo } from "@/actions/settings"
+
+export const metadata = {
+  title: "Bukti Pencairan Pinjaman",
+}
+
+function fmt(n: number | string) {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(n))
+}
+
+export default async function PencairanPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const pengajuan = await getPengajuanById(id)
+
+  if (!pengajuan || !pengajuan.pinjaman) {
+    notFound()
+  }
+
+  const { pinjaman, nasabah, kelompok, approver } = pengajuan
+  const companyInfo = await getCompanyInfo()
+  const receiptSignerName = companyInfo.receiptSignerName?.trim() || approver?.name || "Petugas Koperasi"
+
+  return (
+    <div className="p-6 md:p-12 space-y-6 max-w-4xl mx-auto bg-white min-h-screen text-slate-900">
+      {/* Tombol Aksi - Disembunyikan saat print */}
+      <div className="print:hidden flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200">
+        <Link href="/pencairan">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Kembali
+          </Button>
+        </Link>
+        <PrintButton />
+      </div>
+
+      {/* Area Bukti */}
+      <div id="printable-area" className="border-2 border-slate-800 p-8 rounded-lg relative bg-white">
+        <CompanyDocumentHeader
+          documentTitle="Bukti Pencairan"
+          documentNumber={pinjaman.nomorKontrak}
+        />
+
+        {/* Info Utama */}
+        <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
+          <div className="space-y-4">
+            <div>
+              <p className="text-slate-500 font-medium mb-1">Diberikan Kepada:</p>
+              <p className="text-lg font-bold text-slate-900">{nasabah.namaLengkap}</p>
+              <p className="text-slate-600">ID: {nasabah.nomorAnggota}</p>
+              {kelompok && <p className="text-slate-600">Klp: {kelompok.nama}</p>}
+            </div>
+            <div>
+              <p className="text-slate-500 font-medium mb-1">Nilai Diterima Bersih (Net):</p>
+              <p className="text-3xl font-bold text-slate-900">{fmt(Number(pinjaman.nilaiCair))}</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between pb-2 border-b border-slate-100">
+              <span className="text-slate-500 font-medium">Tanggal Pencairan</span>
+              <span className="font-semibold">{format(pinjaman.tanggalCair, "dd MMMM yyyy", { locale: idLocale })}</span>
+            </div>
+            <div className="flex justify-between pb-2 border-b border-slate-100">
+              <span className="text-slate-500 font-medium">Nomor Pengajuan</span>
+              <span className="font-mono text-slate-900 font-medium">{pengajuan.nomorPengajuan}</span>
+            </div>
+            <div className="flex justify-between pb-2 border-b border-slate-100">
+              <span className="text-slate-500 font-medium">Tenor</span>
+              <span className="font-semibold">{pinjaman.tenor} {pinjaman.tenorType === "BULANAN" ? "Bulan" : "Minggu"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rincian Potongan */}
+        <div className="mb-8">
+          <p className="text-slate-500 font-medium mb-3">Detail Pencairan:</p>
+          <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Keterangan</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Jumlah</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                <tr>
+                  <td className="px-4 py-3 text-slate-600 font-medium">Plafon Pinjaman Disetujui</td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900">{fmt(Number(pinjaman.pokokPinjaman))}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-rose-600 italic">Dikurangi: Biaya Administrasi</td>
+                  <td className="px-4 py-3 text-right text-rose-600 font-medium">- {fmt(Number(pinjaman.potonganAdmin))}</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-rose-600 italic">Dikurangi: Biaya Provisi</td>
+                  <td className="px-4 py-3 text-right text-rose-600 font-medium">- {fmt(Number(pinjaman.potonganProvisi))}</td>
+                </tr>
+                <tr className="bg-slate-50/50 font-bold">
+                  <td className="px-4 py-3 text-emerald-700 border-t-2 border-slate-300">Total Cair (Diterima)</td>
+                  <td className="px-4 py-3 text-right text-emerald-700 border-t-2 border-slate-300">
+                    {fmt(Number(pinjaman.nilaiCair))}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Info Angsuran */}
+        <div className="mb-8">
+          <p className="text-sm text-slate-500">
+            *Pinjaman ini wajib diangsur sebesar <span className="font-bold text-slate-900">{fmt(Number(pinjaman.totalAngsuran))}</span> per {pinjaman.tenorType === "BULANAN" ? "Bulan" : "Minggu"} sebanyak <span className="font-bold text-slate-900">{pinjaman.tenor}</span> kali pembayaran.
+          </p>
+        </div>
+
+        {/* Tanda Tangan */}
+        <div className="flex justify-between mt-12 text-sm">
+          <div className="text-center">
+            <p className="text-slate-500 mb-16">Penerima Dana (Nasabah)</p>
+            <p className="font-semibold underline decoration-slate-300 underline-offset-4">{nasabah.namaLengkap}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-slate-500 mb-16">Pihak Koperasi (Approver)</p>
+            <p className="font-semibold underline decoration-slate-300 underline-offset-4">{receiptSignerName}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+codex
+Plan for the smoke hardening (focused on low-flake, fast checks):
+
+1. Create [`tests/e2e/smoke.spec.ts`] with stable selectors/assertions only.
+2. Cover unauthenticated behavior first:
+- `/dashboard` and `/nasabah` must redirect to `/login`.
+- dokumen routes (`/dokumen/kuitansi/[id]`, `/dokumen/kartu-angsuran/[id]`, `/dokumen/pencairan/[id]`) must also gate behind login.
+3. Add authenticated checks with one shared login helper:
+- login page render consistency (title/form controls/demo text/link visibility).
+- login success redirects to dashboard.
+- `/dashboard` and `/nasabah` accessible after login.
+- nasabah list page shows key table shell/heading without overfitting dynamic row content.
+- dokumen routes are reachable in authenticated context (allow `200` or `404`, reject auth redirect and server crash patterns).
+4. Add [`playwright.config.ts`] only with minimal defaults (`testDir`, `baseURL`, conservative timeouts/retries, single-project chromium) to keep smoke stable.
+5. Run `npx playwright test tests/e2e/smoke.spec.ts` if environment permits, then commit only owned files.
+codex
+I’m now creating the smoke spec and a minimal Playwright config from scratch, keeping assertions intentionally stable (auth redirects, core headings/forms, and route HTTP availability checks instead of brittle visual details).
+exec
+/bin/bash -lc "cd dashboard && mkdir -p tests/e2e && cat > tests/e2e/smoke.spec.ts <<'EOF'
+import { test, expect, Page } from \"@playwright/test\"
+
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? \"admin@koperasi.id\"
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? \"admin123\"
+const FAKE_ID = \"smoke-missing-id\"
+
+async function expectLoginPageShell(page: Page) {
+  await expect(page.getByRole(\"heading\", { name: /selamat datang/i })).toBeVisible()
+  await expect(page.getByLabel(\"Email\")).toBeVisible()
+  await expect(page.getByLabel(\"Password\")).toBeVisible()
+  await expect(page.getByRole(\"button\", { name: /"'^Masuk/ })).toBeVisible()
+  await expect(page.getByRole("link", { name: /daftar/i })).toHaveAttribute("href", "/register")
+  await expect(page.getByText(/admin@koperasi'"\\.id\\s*\\/\\s*admin123/i)).toBeVisible()
+}
+
+async function loginAsAdmin(page: Page) {
+  await page.goto(\"/login\", { waitUntil: \"domcontentloaded\" })
+  await expectLoginPageShell(page)
+
+  await page.getByLabel(\"Email\").fill(ADMIN_EMAIL)
+  await page.getByLabel(\"Password\").fill(ADMIN_PASSWORD)
+  await page.getByRole(\"button\", { name: /"'^Masuk/ }).click()
+
+  await expect(page).toHaveURL(/'"\\/dashboard(?:\\?.*)?"'$/, { timeout: 15_000 })
+  await expect(page.getByText(/Dashboard Overview/i)).toBeVisible({ timeout: 15_000 })
+}
+
+test.describe("Smoke e2e", () => {
+  test("login page render remains consistent", async ({ page }) => {
+    await page.goto("/login", { waitUntil: "domcontentloaded" })
+    await expectLoginPageShell(page)
+
+    await page.reload({ waitUntil: "domcontentloaded" })
+    await expectLoginPageShell(page)
+  })
+
+  test("dashboard and protected routes redirect to login when unauthenticated", async ({ page }) => {
+    const protectedRoutes = [
+      "/dashboard",
+      "/nasabah",
+      `/dokumen/kuitansi/${FAKE_ID}`,
+      `/dokumen/kartu-angsuran/${FAKE_ID}`,
+      `/dokumen/pencairan/${FAKE_ID}`,
+    ]
+
+    for (const route of protectedRoutes) {
+      await page.goto(route, { waitUntil: "domcontentloaded" })
+      await expect(page).toHaveURL(/'"\\/login(?:\\?.*)?"'$/)
+      await expectLoginPageShell(page)
+    }
+  })
+
+  test("authenticated dashboard, nasabah load, and dokumen routes are available", async ({ page }) => {
+    await loginAsAdmin(page)
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" })
+    await expect(page).toHaveURL(/'"\\/dashboard(?:\\?.*)?"'$/)
+    await expect(page.getByText(/Dashboard Overview/i)).toBeVisible()
+
+    await page.goto("/nasabah", { waitUntil: "domcontentloaded" })
+    await expect(page).toHaveURL(/'"\\/nasabah(?:\\?.*)?"'$/)
+    await expect(page.getByRole("heading", { name: /master nasabah/i })).toBeVisible()
+    await expect(page.getByText(/daftar nasabah/i)).toBeVisible()
+    await expect(page.getByRole("columnheader", { name: /no'"\\. anggota/i })).toBeVisible()
+
+    const dokumenRoutes = [
+      "'`/dokumen/kuitansi/${FAKE_ID}`,
+      `/dokumen/kartu-angsuran/${FAKE_ID}`,
+      `/dokumen/pencairan/${FAKE_ID}`,
+    ]
+
+    for (const route of dokumenRoutes) {
+      const response = await page.goto(route, { waitUntil: "domcontentloaded" })
+      expect(response, `Missing document response for ${route}`).not.toBeNull()
+      expect(page.url(), `Unexpected auth redirect for ${route}`).not.toMatch(/'"\\/login(?:\\?.*)?"'$/)
+
+      const status = response?.status() ?? 0
+      expect([200, 404], `Unexpected status ${status} for ${route}`).toContain(status)
+    }
+  })
+})
+EOF' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+exec
+/bin/bash -lc "cd dashboard && cat > playwright.config.ts <<'EOF'
+import { defineConfig, devices } from \"@playwright/test\"
+
+const PORT = Number(process.env.PORT ?? 3000)
+const HOST = process.env.HOST ?? \"127.0.0.1\"
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "'`http://${HOST}:${PORT}`
+
+export default defineConfig({
+  testDir: "./tests/e2e",
+  testMatch: "smoke.spec.ts",
+  fullyParallel: false,
+  timeout: 30_000,
+  expect: {
+    timeout: 7_500,
+  },
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 1 : 2,
+  reporter: [["list"]],
+  use: {
+    baseURL,
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "off",
+  },
+  webServer: {
+    command: `npm run dev -- --hostname ${HOST} --port ${PORT}`,
+    url: `${baseURL}/login`,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+})
+EOF' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+codex
+The new smoke spec and config are in place. I’m validating the files quickly, then I’ll run the smoke test target and commit if execution is successful.
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,260p' tests/e2e/smoke.spec.ts" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { test, expect, Page } from "@playwright/test"
+
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@koperasi.id"
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123"
+const FAKE_ID = "smoke-missing-id"
+
+async function expectLoginPageShell(page: Page) {
+  await expect(page.getByRole("heading", { name: /selamat datang/i })).toBeVisible()
+  await expect(page.getByLabel("Email")).toBeVisible()
+  await expect(page.getByLabel("Password")).toBeVisible()
+  await expect(page.getByRole("button", { name: /^Masuk/ })).toBeVisible()
+  await expect(page.getByRole("link", { name: /daftar/i })).toHaveAttribute("href", "/register")
+  await expect(page.getByText(/admin@koperasi\.id\s*\/\s*admin123/i)).toBeVisible()
+}
+
+async function loginAsAdmin(page: Page) {
+  await page.goto("/login", { waitUntil: "domcontentloaded" })
+  await expectLoginPageShell(page)
+
+  await page.getByLabel("Email").fill(ADMIN_EMAIL)
+  await page.getByLabel("Password").fill(ADMIN_PASSWORD)
+  await page.getByRole("button", { name: /^Masuk/ }).click()
+
+  await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/, { timeout: 15_000 })
+  await expect(page.getByText(/Dashboard Overview/i)).toBeVisible({ timeout: 15_000 })
+}
+
+test.describe("Smoke e2e", () => {
+  test("login page render remains consistent", async ({ page }) => {
+    await page.goto("/login", { waitUntil: "domcontentloaded" })
+    await expectLoginPageShell(page)
+
+    await page.reload({ waitUntil: "domcontentloaded" })
+    await expectLoginPageShell(page)
+  })
+
+  test("dashboard and protected routes redirect to login when unauthenticated", async ({ page }) => {
+    const protectedRoutes = [
+      "/dashboard",
+      "/nasabah",
+      `/dokumen/kuitansi/${FAKE_ID}`,
+      `/dokumen/kartu-angsuran/${FAKE_ID}`,
+      `/dokumen/pencairan/${FAKE_ID}`,
+    ]
+
+    for (const route of protectedRoutes) {
+      await page.goto(route, { waitUntil: "domcontentloaded" })
+      await expect(page).toHaveURL(/\/login(?:\?.*)?$/)
+      await expectLoginPageShell(page)
+    }
+  })
+
+  test("authenticated dashboard, nasabah load, and dokumen routes are available", async ({ page }) => {
+    await loginAsAdmin(page)
+
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" })
+    await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/)
+    await expect(page.getByText(/Dashboard Overview/i)).toBeVisible()
+
+    await page.goto("/nasabah", { waitUntil: "domcontentloaded" })
+    await expect(page).toHaveURL(/\/nasabah(?:\?.*)?$/)
+    await expect(page.getByRole("heading", { name: /master nasabah/i })).toBeVisible()
+    await expect(page.getByText(/daftar nasabah/i)).toBeVisible()
+    await expect(page.getByRole("columnheader", { name: /no\. anggota/i })).toBeVisible()
+
+    const dokumenRoutes = [
+      `/dokumen/kuitansi/${FAKE_ID}`,
+      `/dokumen/kartu-angsuran/${FAKE_ID}`,
+      `/dokumen/pencairan/${FAKE_ID}`,
+    ]
+
+    for (const route of dokumenRoutes) {
+      const response = await page.goto(route, { waitUntil: "domcontentloaded" })
+      expect(response, `Missing document response for ${route}`).not.toBeNull()
+      expect(page.url(), `Unexpected auth redirect for ${route}`).not.toMatch(/\/login(?:\?.*)?$/)
+
+      const status = response?.status() ?? 0
+      expect([200, 404], `Unexpected status ${status} for ${route}`).toContain(status)
+    }
+  })
+})
+
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' playwright.config.ts" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+import { defineConfig, devices } from "@playwright/test"
+
+const PORT = Number(process.env.PORT ?? 3000)
+const HOST = process.env.HOST ?? "127.0.0.1"
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://${HOST}:${PORT}`
+
+export default defineConfig({
+  testDir: "./tests/e2e",
+  testMatch: "smoke.spec.ts",
+  fullyParallel: false,
+  timeout: 30_000,
+  expect: {
+    timeout: 7_500,
+  },
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 1 : 2,
+  reporter: [["list"]],
+  use: {
+    baseURL,
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "off",
+  },
+  webServer: {
+    command: `npm run dev -- --hostname ${HOST} --port ${PORT}`,
+    url: `${baseURL}/login`,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+})
+
+exec
+/bin/bash -lc 'cd dashboard && git status --short' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+?? playwright.config.ts
+?? tests/
+
+codex
+I’m running the smoke spec now. If environment prerequisites are missing (dependencies, browser binaries, DB/env), I’ll report exactly what failed before committing.
+exec
+/bin/bash -lc 'cd dashboard && npx playwright test tests/e2e/smoke.spec.ts' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 1 in 13069ms:
+Error: Cannot find module '@playwright/test'
+Require stack:
+- /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/playwright.config.ts
+- /home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js
+- /home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js
+- /home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js
+- /home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js
+- /home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/cli.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at Function.resolveFilename [as _resolveFilename] (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js:240:36)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (/tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/playwright.config.ts:1:1)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Module.newCompile2 (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/third_party/pirates.js:46:29)
+    at Object.<anonymous> (node:internal/modules/cjs/loader:1838:10)
+    at Object.newLoader2 [as .ts] (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/third_party/pirates.js:52:22)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at requireOrImport (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js:218:18)
+    at loadUserConfig (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:107:89)
+    at loadConfig (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:119:28)
+    at loadConfigFromFile (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:331:10)
+    at runTests (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js:51:18)
+    at i.<anonymous> (/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js:56:7) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/playwright.config.ts',
+    '/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/transform/transform.js',
+    '/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js',
+    '/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/testActions.js',
+    '/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js',
+    '/home/kotacom/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/cli.js'
+  ]
+}
+
+codex
+Smoke execution failed because local dependencies are not installed in this workspace (`@playwright/test` missing). I’m installing project dependencies next, then retrying the smoke run.
+exec
+/bin/bash -lc 'cd dashboard && npm install' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 71167ms:
+npm notice This endpoint is being retired. Use the bulk advisory endpoint instead. See the following docs for more info: https://api-docs.npmjs.com/#tag/Audit
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> dashboard@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.7.0) to ./node_modules/@prisma/client in 2.85s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+added 862 packages in 1m
+
+255 packages are looking for funding
+  run `npm fund` for details
+
+codex
+Dependencies installed successfully. I’m rerunning the smoke spec now; if browser binaries are missing I’ll install Chromium and rerun once.
+exec
+/bin/bash -lc 'cd dashboard && npx playwright test tests/e2e/smoke.spec.ts' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ exited 1 in 90740ms:
+
+Running 3 tests using 1 worker
+
+(node:2150728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2150728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › tests/e2e/smoke.spec.ts:29:7 › Smoke e2e › login page render remains consistent (12.0s)
+(node:2151138) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2151138) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [chromium] › tests/e2e/smoke.spec.ts:37:7 › Smoke e2e › dashboard and protected routes redirect to login when unauthenticated (15.9s)
+(node:2154447) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2154447) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 [chromium] › tests/e2e/smoke.spec.ts:53:7 › Smoke e2e › authenticated dashboard, nasabah load, and dokumen routes are available (16.7s)
+
+
+  1) [chromium] › tests/e2e/smoke.spec.ts:29:7 › Smoke e2e › login page render remains consistent ──
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /selamat datang/i })
+    Expected: visible
+    Timeout: 7500ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 7500ms[22m
+    [2m  - waiting for getByRole('heading', { name: /selamat datang/i })[22m
+
+
+       6 |
+       7 | async function expectLoginPageShell(page: Page) {
+    >  8 |   await expect(page.getByRole("heading", { name: /selamat datang/i })).toBeVisible()
+         |                                                                        ^
+       9 |   await expect(page.getByLabel("Email")).toBeVisible()
+      10 |   await expect(page.getByLabel("Password")).toBeVisible()
+      11 |   await expect(page.getByRole("button", { name: /^Masuk/ })).toBeVisible()
+        at expectLoginPageShell (/tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts:8:72)
+        at /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts:31:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-Smoke-e2e-login-page-render-remains-consistent-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-Smoke-e2e-login-page-render-remains-consistent-chromium/error-context.md
+
+  2) [chromium] › tests/e2e/smoke.spec.ts:37:7 › Smoke e2e › dashboard and protected routes redirect to login when unauthenticated 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/login(?:\?.*)?$/[39m
+    Received string:  [31m"http://127.0.0.1:3000/dashboard"[39m
+    Timeout: 7500ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 7500ms[22m
+    [2m    9 × unexpected value "http://127.0.0.1:3000/dashboard"[22m
+
+
+      46 |     for (const route of protectedRoutes) {
+      47 |       await page.goto(route, { waitUntil: "domcontentloaded" })
+    > 48 |       await expect(page).toHaveURL(/\/login(?:\?.*)?$/)
+         |                          ^
+      49 |       await expectLoginPageShell(page)
+      50 |     }
+      51 |   })
+        at /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts:48:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-Smoke-e2e-dashboard--bf3ed--login-when-unauthenticated-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-Smoke-e2e-dashboard--bf3ed--login-when-unauthenticated-chromium/error-context.md
+
+  3) [chromium] › tests/e2e/smoke.spec.ts:53:7 › Smoke e2e › authenticated dashboard, nasabah load, and dokumen routes are available 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /selamat datang/i })
+    Expected: visible
+    Timeout: 7500ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 7500ms[22m
+    [2m  - waiting for getByRole('heading', { name: /selamat datang/i })[22m
+
+
+       6 |
+       7 | async function expectLoginPageShell(page: Page) {
+    >  8 |   await expect(page.getByRole("heading", { name: /selamat datang/i })).toBeVisible()
+         |                                                                        ^
+       9 |   await expect(page.getByLabel("Email")).toBeVisible()
+      10 |   await expect(page.getByLabel("Password")).toBeVisible()
+      11 |   await expect(page.getByRole("button", { name: /^Masuk/ })).toBeVisible()
+        at expectLoginPageShell (/tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts:8:72)
+        at loginAsAdmin (/tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts:18:9)
+        at /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke/dashboard/tests/e2e/smoke.spec.ts:54:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-Smoke-e2e-authentica-7ae57-okumen-routes-are-available-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-Smoke-e2e-authentica-7ae57-okumen-routes-are-available-chromium/error-context.md
+
+  3 failed
+    [chromium] › tests/e2e/smoke.spec.ts:29:7 › Smoke e2e › login page render remains consistent ───
+    [chromium] › tests/e2e/smoke.spec.ts:37:7 › Smoke e2e › dashboard and protected routes redirect to login when unauthenticated 
+    [chromium] › tests/e2e/smoke.spec.ts:53:7 › Smoke e2e › authenticated dashboard, nasabah load, and dokumen routes are available 
+
+codex
+The initial run exposed real behavior differences from my assumptions: `/dashboard` is publicly reachable in this environment, and `/login` content doesn’t match the expected production shell. I’m inspecting the Playwright error snapshots and adjusting the smoke assertions to be environment-robust while still validating route availability and auth flow.
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' test-results/smoke-Smoke-e2e-login-page-render-remains-consistent-chromium/error-context.md" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 0ms:
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: smoke.spec.ts >> Smoke e2e >> login page render remains consistent
+- Location: tests/e2e/smoke.spec.ts:29:7
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('heading', { name: /selamat datang/i })
+Expected: visible
+Timeout: 7500ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 7500ms
+  - waiting for getByRole('heading', { name: /selamat datang/i })
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - heading "Loading Failed" [level=1] [ref=e5]
+  - paragraph [ref=e6]: Sorry, part of the application failed to load. This may be because it was updated since you opened the tab or because of a failed network request. Please try reloading.
+  - paragraph [ref=e7]:
+    - button "Reload" [ref=e8] [cursor=pointer]:
+      - generic [ref=e10]: Reload
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect, Page } from "@playwright/test"
+  2  | 
+  3  | const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@koperasi.id"
+  4  | const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123"
+  5  | const FAKE_ID = "smoke-missing-id"
+  6  | 
+  7  | async function expectLoginPageShell(page: Page) {
+> 8  |   await expect(page.getByRole("heading", { name: /selamat datang/i })).toBeVisible()
+     |                                                                        ^ Error: expect(locator).toBeVisible() failed
+  9  |   await expect(page.getByLabel("Email")).toBeVisible()
+  10 |   await expect(page.getByLabel("Password")).toBeVisible()
+  11 |   await expect(page.getByRole("button", { name: /^Masuk/ })).toBeVisible()
+  12 |   await expect(page.getByRole("link", { name: /daftar/i })).toHaveAttribute("href", "/register")
+  13 |   await expect(page.getByText(/admin@koperasi\.id\s*\/\s*admin123/i)).toBeVisible()
+  14 | }
+  15 | 
+  16 | async function loginAsAdmin(page: Page) {
+  17 |   await page.goto("/login", { waitUntil: "domcontentloaded" })
+  18 |   await expectLoginPageShell(page)
+  19 | 
+  20 |   await page.getByLabel("Email").fill(ADMIN_EMAIL)
+  21 |   await page.getByLabel("Password").fill(ADMIN_PASSWORD)
+  22 |   await page.getByRole("button", { name: /^Masuk/ }).click()
+  23 | 
+  24 |   await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/, { timeout: 15_000 })
+  25 |   await expect(page.getByText(/Dashboard Overview/i)).toBeVisible({ timeout: 15_000 })
+  26 | }
+  27 | 
+  28 | test.describe("Smoke e2e", () => {
+  29 |   test("login page render remains consistent", async ({ page }) => {
+  30 |     await page.goto("/login", { waitUntil: "domcontentloaded" })
+  31 |     await expectLoginPageShell(page)
+  32 | 
+  33 |     await page.reload({ waitUntil: "domcontentloaded" })
+  34 |     await expectLoginPageShell(page)
+  35 |   })
+  36 | 
+  37 |   test("dashboard and protected routes redirect to login when unauthenticated", async ({ page }) => {
+  38 |     const protectedRoutes = [
+  39 |       "/dashboard",
+  40 |       "/nasabah",
+  41 |       `/dokumen/kuitansi/${FAKE_ID}`,
+  42 |       `/dokumen/kartu-angsuran/${FAKE_ID}`,
+  43 |       `/dokumen/pencairan/${FAKE_ID}`,
+  44 |     ]
+  45 | 
+  46 |     for (const route of protectedRoutes) {
+  47 |       await page.goto(route, { waitUntil: "domcontentloaded" })
+  48 |       await expect(page).toHaveURL(/\/login(?:\?.*)?$/)
+  49 |       await expectLoginPageShell(page)
+  50 |     }
+  51 |   })
+  52 | 
+  53 |   test("authenticated dashboard, nasabah load, and dokumen routes are available", async ({ page }) => {
+  54 |     await loginAsAdmin(page)
+  55 | 
+  56 |     await page.goto("/dashboard", { waitUntil: "domcontentloaded" })
+  57 |     await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/)
+  58 |     await expect(page.getByText(/Dashboard Overview/i)).toBeVisible()
+  59 | 
+  60 |     await page.goto("/nasabah", { waitUntil: "domcontentloaded" })
+  61 |     await expect(page).toHaveURL(/\/nasabah(?:\?.*)?$/)
+  62 |     await expect(page.getByRole("heading", { name: /master nasabah/i })).toBeVisible()
+  63 |     await expect(page.getByText(/daftar nasabah/i)).toBeVisible()
+  64 |     await expect(page.getByRole("columnheader", { name: /no\. anggota/i })).toBeVisible()
+  65 | 
+  66 |     const dokumenRoutes = [
+  67 |       `/dokumen/kuitansi/${FAKE_ID}`,
+  68 |       `/dokumen/kartu-angsuran/${FAKE_ID}`,
+  69 |       `/dokumen/pencairan/${FAKE_ID}`,
+  70 |     ]
+  71 | 
+  72 |     for (const route of dokumenRoutes) {
+  73 |       const response = await page.goto(route, { waitUntil: "domcontentloaded" })
+  74 |       expect(response, `Missing document response for ${route}`).not.toBeNull()
+  75 |       expect(page.url(), `Unexpected auth redirect for ${route}`).not.toMatch(/\/login(?:\?.*)?$/)
+  76 | 
+  77 |       const status = response?.status() ?? 0
+  78 |       expect([200, 404], `Unexpected status ${status} for ${route}`).toContain(status)
+  79 |     }
+  80 |   })
+  81 | })
+  82 | 
+```
+exec
+/bin/bash -lc 'cd dashboard && ls -la test-results' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+exec
+/bin/bash -lc "cd dashboard && sed -n '1,220p' test-results/smoke-Smoke-e2e-dashboard--bf3ed--login-when-unauthenticated-chromium/error-context.md" in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke
+ succeeded in 145ms:
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: smoke.spec.ts >> Smoke e2e >> dashboard and protected routes redirect to login when unauthenticated
+- Location: tests/e2e/smoke.spec.ts:37:7
+
+# Error details
+
+```
+Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /\/login(?:\?.*)?$/
+Received string:  "http://127.0.0.1:3000/dashboard"
+Timeout: 7500ms
+
+Call log:
+  - Expect "toHaveURL" with timeout 7500ms
+    9 × unexpected value "http://127.0.0.1:3000/dashboard"
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - heading "Loading Failed" [level=1] [ref=e5]
+  - paragraph [ref=e6]: Sorry, part of the application failed to load. This may be because it was updated since you opened the tab or because of a failed network request. Please try reloading.
+  - paragraph [ref=e7]:
+    - button "Reload" [ref=e8] [cursor=pointer]:
+      - generic [ref=e10]: Reload
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect, Page } from "@playwright/test"
+  2  | 
+  3  | const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@koperasi.id"
+  4  | const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123"
+  5  | const FAKE_ID = "smoke-missing-id"
+  6  | 
+  7  | async function expectLoginPageShell(page: Page) {
+  8  |   await expect(page.getByRole("heading", { name: /selamat datang/i })).toBeVisible()
+  9  |   await expect(page.getByLabel("Email")).toBeVisible()
+  10 |   await expect(page.getByLabel("Password")).toBeVisible()
+  11 |   await expect(page.getByRole("button", { name: /^Masuk/ })).toBeVisible()
+  12 |   await expect(page.getByRole("link", { name: /daftar/i })).toHaveAttribute("href", "/register")
+  13 |   await expect(page.getByText(/admin@koperasi\.id\s*\/\s*admin123/i)).toBeVisible()
+  14 | }
+  15 | 
+  16 | async function loginAsAdmin(page: Page) {
+  17 |   await page.goto("/login", { waitUntil: "domcontentloaded" })
+  18 |   await expectLoginPageShell(page)
+  19 | 
+  20 |   await page.getByLabel("Email").fill(ADMIN_EMAIL)
+  21 |   await page.getByLabel("Password").fill(ADMIN_PASSWORD)
+  22 |   await page.getByRole("button", { name: /^Masuk/ }).click()
+  23 | 
+  24 |   await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/, { timeout: 15_000 })
+  25 |   await expect(page.getByText(/Dashboard Overview/i)).toBeVisible({ timeout: 15_000 })
+  26 | }
+  27 | 
+  28 | test.describe("Smoke e2e", () => {
+  29 |   test("login page render remains consistent", async ({ page }) => {
+  30 |     await page.goto("/login", { waitUntil: "domcontentloaded" })
+  31 |     await expectLoginPageShell(page)
+  32 | 
+  33 |     await page.reload({ waitUntil: "domcontentloaded" })
+  34 |     await expectLoginPageShell(page)
+  35 |   })
+  36 | 
+  37 |   test("dashboard and protected routes redirect to login when unauthenticated", async ({ page }) => {
+  38 |     const protectedRoutes = [
+  39 |       "/dashboard",
+  40 |       "/nasabah",
+  41 |       `/dokumen/kuitansi/${FAKE_ID}`,
+  42 |       `/dokumen/kartu-angsuran/${FAKE_ID}`,
+  43 |       `/dokumen/pencairan/${FAKE_ID}`,
+  44 |     ]
+  45 | 
+  46 |     for (const route of protectedRoutes) {
+  47 |       await page.goto(route, { waitUntil: "domcontentloaded" })
+> 48 |       await expect(page).toHaveURL(/\/login(?:\?.*)?$/)
+     |                          ^ Error: expect(page).toHaveURL(expected) failed
+  49 |       await expectLoginPageShell(page)
+  50 |     }
+  51 |   })
+  52 | 
+  53 |   test("authenticated dashboard, nasabah load, and dokumen routes are available", async ({ page }) => {
+  54 |     await loginAsAdmin(page)
+  55 | 
+  56 |     await page.goto("/dashboard", { waitUntil: "domcontentloaded" })
+  57 |     await expect(page).toHaveURL(/\/dashboard(?:\?.*)?$/)
+  58 |     await expect(page.getByText(/Dashboard Overview/i)).toBeVisible()
+  59 | 
+  60 |     await page.goto("/nasabah", { waitUntil: "domcontentloaded" })
+  61 |     await expect(page).toHaveURL(/\/nasabah(?:\?.*)?$/)
+  62 |     await expect(page.getByRole("heading", { name: /master nasabah/i })).toBeVisible()
+  63 |     await expect(page.getByText(/daftar nasabah/i)).toBeVisible()
+  64 |     await expect(page.getByRole("columnheader", { name: /no\. anggota/i })).toBeVisible()
+  65 | 
+  66 |     const dokumenRoutes = [
+  67 |       `/dokumen/kuitansi/${FAKE_ID}`,
+  68 |       `/dokumen/kartu-angsuran/${FAKE_ID}`,
+  69 |       `/dokumen/pencairan/${FAKE_ID}`,
+  70 |     ]
+  71 | 
+  72 |     for (const route of dokumenRoutes) {
+  73 |       const response = await page.goto(route, { waitUntil: "domcontentloaded" })
+  74 |       expect(response, `Missing document response for ${route}`).not.toBeNull()
+  75 |       expect(page.url(), `Unexpected auth redirect for ${route}`).not.toMatch(/\/login(?:\?.*)?$/)
+  76 | 
+  77 |       const status = response?.status() ?? 0
+  78 |       expect([200, 404], `Unexpected status ${status} for ${route}`).toContain(status)
+  79 |     }
+  80 |   })
+  81 | })
+  82 | 
+```
+ succeeded in 151ms:
+total 24
+drwxr-xr-x  5 kotacom kotacom 4096 Apr 23 13:35 .
+drwxr-xr-x 14 kotacom kotacom 4096 Apr 23 13:33 ..
+-rw-r--r--  1 kotacom kotacom  194 Apr 23 13:35 .last-run.json
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 13:35 smoke-Smoke-e2e-authentica-7ae57-okumen-routes-are-available-chromium
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 13:34 smoke-Smoke-e2e-dashboard--bf3ed--login-when-unauthenticated-chromium
+drwxr-xr-x  2 kotacom kotacom 4096 Apr 23 13:34 smoke-Smoke-e2e-login-page-render-remains-consistent-chromium
+
+exec
+/bin/bash -lc 'cd dashboard && npm run dev -- --hostname 127.0.0.1 --port 3000' in /tmp/codex-fanout/20260423_132953/p1d-e2e-smoke

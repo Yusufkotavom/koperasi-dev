@@ -1,0 +1,1 @@
+You are Worker p1d-e2e-smoke. Ownership: tests/e2e/smoke.spec.ts and playwright.config.ts if necessary only. Task: strengthen smoke tests for login page render consistency, dashboard auth redirect/access, nasabah list load, dokumen routes basic availability. Keep tests low-flake and fast. Run smoke tests if feasible and commit. You are not alone; do not revert unrelated files.

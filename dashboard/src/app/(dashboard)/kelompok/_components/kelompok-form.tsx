@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Save, Users, MapPin, Calendar, UserCheck, Shield, Trash2, Info } from "lucide-react"
-import { createKelompok, getNasabahOptionsForKelompok, updateKelompok } from "@/actions/kelompok"
+import { createKelompok, getKolektorOptionsForKelompok, getNasabahOptionsForKelompok, updateKelompok } from "@/actions/kelompok"
 import { kelompokSchema, type KelompokInput } from "@/lib/validations/kelompok"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,11 @@ type NasabahOption = {
   kelompokId: string | null
 }
 
+type KolektorOption = {
+  id: string
+  name: string
+}
+
 export function KelompokForm({
   mode,
   initialData,
@@ -35,11 +40,13 @@ export function KelompokForm({
     ketua: string | null
     wilayah: string | null
     jadwalPertemuan: string | null
+    kolektor?: { id: string; name: string } | null
     nasabah: { id: string; namaLengkap: string }[]
   }
 }) {
   const [isPending, startTransition] = useTransition()
   const [nasabahOptions, setNasabahOptions] = useState<NasabahOption[]>([])
+  const [kolektorOptions, setKolektorOptions] = useState<KolektorOption[]>([])
   const router = useRouter()
 
   const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<KelompokInput>({
@@ -50,12 +57,14 @@ export function KelompokForm({
       ketua: initialData?.ketua ?? "",
       wilayah: initialData?.wilayah ?? "",
       jadwalPertemuan: initialData?.jadwalPertemuan ?? "",
+      kolektorId: initialData?.kolektor?.id ?? "",
       anggotaIds: initialData?.nasabah?.map((n) => n.id) ?? [],
     },
   })
 
   const anggotaIds = useWatch({ control, name: "anggotaIds" }) ?? []
   const ketuaNasabahId = useWatch({ control, name: "ketuaNasabahId" })
+  const kolektorId = useWatch({ control, name: "kolektorId" })
 
   useEffect(() => {
     let cancelled = false
@@ -79,6 +88,22 @@ export function KelompokForm({
       cancelled = true
     }
   }, [initialData, mode, setValue])
+
+  useEffect(() => {
+    let cancelled = false
+    getKolektorOptionsForKelompok()
+      .then((result) => {
+        if (cancelled) return
+        setKolektorOptions(result)
+      })
+      .catch(() => {
+        toast.error("Gagal memuat daftar kolektor.")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const availableForKelompok = useMemo(() => {
     if (!initialData?.id) return nasabahOptions
@@ -163,6 +188,31 @@ export function KelompokForm({
                 </div>
               </Field>
             </div>
+
+            <Field className="space-y-2">
+              <FieldLabel className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Kolektor Penanggung Jawab</FieldLabel>
+              <Select
+                onValueChange={(value) => setValue("kolektorId", value === "__NONE__" ? undefined : value)}
+                value={kolektorId ?? "__NONE__"}
+              >
+                <SelectTrigger className="h-10 border-slate-100 bg-slate-50 dark:bg-slate-900 dark:border-slate-800">
+                  <SelectValue placeholder="Pilih kolektor penanggung jawab" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-100 dark:border-slate-800">
+                  <SelectItem value="__NONE__" className="rounded-lg italic opacity-60">
+                    Belum ditentukan
+                  </SelectItem>
+                  {kolektorOptions.map((kolektor) => (
+                    <SelectItem key={kolektor.id} value={kolektor.id} className="rounded-lg font-medium">
+                      {kolektor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.kolektorId && (
+                <FieldError className="text-[10px] font-bold text-red-500 uppercase">{errors.kolektorId.message}</FieldError>
+              )}
+            </Field>
 
             <Separator className="bg-slate-50 dark:bg-slate-800" />
 

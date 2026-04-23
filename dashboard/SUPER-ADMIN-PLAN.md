@@ -128,8 +128,8 @@ Implikasinya:
 ## 7) Rencana Implementasi (Roadmap)
 
 ### Phase 0 (1-2 hari)
-- Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
-- Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
+- [x] Buat halaman docs: kebijakan dan SOP super admin (dokumen ini).
+- [x] Tambah guard di middleware untuk company `SUSPENDED/DELETED` (jika status ditambahkan).
 
 ### Phase 1 (2-4 hari)
 - Platform pages minimal `/platform/users` dan `/platform/companies`.
@@ -157,3 +157,14 @@ Implikasinya:
   3. Komunikasi ke owner/admin company
   4. Reactivate setelah masalah selesai
 
+## 9) Changelog
+
+- 2026-04-23 (Worker A)
+  - Menambahkan `docs/internal/phase0-risk-register.md`.
+  - Menambahkan `docs/internal/phase0-scope-boundaries.md`.
+  - Mengubah item Phase 0 menjadi checklist dan menandai status sesuai implementasi aktual repo.
+  - Testing status: tidak dijalankan (perubahan dokumentasi saja, tidak ada perubahan runtime code).
+- 2026-04-23 (Orchestrator)
+  - Menambahkan guard middleware berbasis token `companyStatus` untuk memblokir akses company `SUSPENDED/DELETED`.
+  - Menambahkan hydration token `companyStatus` di `src/lib/auth.ts` agar middleware bisa enforce status pada request.
+  - Testing status: `npm run lint` pass, `npm run build` pass.

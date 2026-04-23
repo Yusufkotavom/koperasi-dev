@@ -25,6 +25,7 @@ const settingSections = [
     description: "Nama koperasi, logo, alamat, kontak, dan zona waktu.",
     href: "/settings/company",
     icon: Building2,
+    requiresCompany: true,
   },
   {
     title: "User Company",
@@ -40,12 +41,14 @@ const settingSections = [
     href: "/settings/accounting",
     icon: Landmark,
     roles: ["SUPER_ADMIN", "OWNER", "ADMIN"],
+    requiresCompany: true,
   },
   {
     title: "Ranking Risiko",
     description: "Ambang hari tunggakan untuk indikator kolektibilitas.",
     href: "/settings/ranking",
     icon: BarChart3,
+    requiresCompany: true,
   },
   {
     title: "Database",
@@ -53,6 +56,7 @@ const settingSections = [
     href: "/settings/maintenance",
     icon: Database,
     roles: ["SUPER_ADMIN", "OWNER", "ADMIN"],
+    requiresCompany: true,
   },
 ]
 
