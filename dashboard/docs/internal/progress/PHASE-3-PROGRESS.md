@@ -7,7 +7,7 @@ Seluruh item default `[ ]` sampai evidence nyata tersedia.
 
 - Phase: `Phase 3 - Ekspansi Unit Usaha & Portal Anggota`
 - Status: `IN_PROGRESS`
-- Last updated (UTC): `2026-04-23 21:32`
+- Last updated (UTC): `2026-04-24 00:46`
 
 ## Checklist & Evidence (Detail)
 
@@ -23,11 +23,20 @@ Seluruh item default `[ ]` sampai evidence nyata tersedia.
     - Command/Test: `npm run db:generate`, `npm run db:push`, `npm run test`, `npm run lint`, `npx tsc --noEmit`, `npm run build`
     - Result: `PASS`
 
-- [ ] P3.2 Laporan performa Unit Usaha (omzet periodik, komposisi channel, kontribusi ke pendapatan) tersedia.
+- [x] P3.2 Laporan performa Unit Usaha (omzet periodik, komposisi channel, kontribusi ke pendapatan) tersedia.
+  - Owner: `orchestrator`
+  - Updated at (UTC): `2026-04-24 00:46`
+  - Evidence:
+    - Artifact action: `src/actions/unit-usaha-report.ts`
+    - Artifact UI laporan: `src/app/(dashboard)/laporan/unit-usaha/page.tsx`
+    - Artifact menu laporan: `src/components/app-sidebar.tsx`
+    - Artifact test: `src/actions/__tests__/unit-usaha-report.actions.test.ts`, `src/app/(dashboard)/laporan/unit-usaha/__tests__/page.test.tsx`
+    - Command/Test: `npm run test`, `npm run lint`, `npx tsc --noEmit`, `npm run build`
+    - Result: `PASS`
 - [ ] P3.3 Portal Anggota MVP (profil anggota, histori simpanan, histori pinjaman, histori pembayaran) tersedia.
 - [ ] P3.4 Validasi role matrix untuk modul baru (`TELLER/ADMIN/OWNER/MANAGER/PIMPINAN/SUPER_ADMIN`) tervalidasi.
 - [ ] P3.5 Paket testing Phase 3 lengkap (unit + integration + smoke) dijalankan dan tercatat evidence.
-  - Catatan: Unit + smoke level page sudah dijalankan pada P3.1, namun paket integration/E2E lintas modul Phase 3 belum lengkap.
+  - Catatan: Unit + smoke level page untuk P3.1/P3.2 sudah dijalankan, namun paket integration/E2E lintas modul Phase 3 belum lengkap.
 - [ ] P3.6 Dokumentasi progress/changelog Phase 3 lengkap + review go/no-go batch.
 
 ## Log Eksekusi Phase 3
@@ -44,6 +53,20 @@ Seluruh item default `[ ]` sampai evidence nyata tersedia.
     - `npm run db:generate` -> PASS
     - `npm run db:push` -> PASS
     - `npm run test` -> PASS (29 tests)
+    - `npm run lint` -> PASS
+    - `npx tsc --noEmit` -> PASS
+    - `npm run build` -> PASS
+- Update (UTC 2026-04-24 00:46):
+  - P3.2 selesai:
+    - laporan baru `/laporan/unit-usaha` dengan metrik:
+      - omzet periodik,
+      - total transaksi,
+      - rata-rata ticket,
+      - kontribusi ke total pendapatan,
+      - komposisi channel,
+      - tren omzet 6 bulan.
+  - Verifikasi batch:
+    - `npm run test` -> PASS (32 tests)
     - `npm run lint` -> PASS
     - `npx tsc --noEmit` -> PASS
     - `npm run build` -> PASS

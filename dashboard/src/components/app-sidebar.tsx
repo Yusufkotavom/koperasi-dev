@@ -84,6 +84,7 @@ const baseNavMain = [
     items: [
       { title: "Transaksi User", url: "/laporan/transaksi-per-user" },
       { title: "Dashboard Anggota", url: "/laporan/dashboard-anggota" },
+      { title: "Unit Usaha", url: "/laporan/unit-usaha" },
       { title: "Buku Besar", url: "/laporan/buku-besar" },
       { title: "Neraca", url: "/laporan/neraca" },
       { title: "Rekonsiliasi", url: "/laporan/rekonsiliasi" },

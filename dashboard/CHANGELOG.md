@@ -292,3 +292,34 @@ Testing status:
 - `npm run lint`: lulus.
 - `npx tsc --noEmit`: lulus.
 - `npm run build`: lulus.
+
+## 2026-04-24
+
+### Phase 3 Extension - Laporan Performa Unit Usaha
+
+- Menambahkan laporan performa unit usaha pada route:
+  - `src/app/(dashboard)/laporan/unit-usaha/page.tsx`
+- Menambahkan action agregasi laporan:
+  - `src/actions/unit-usaha-report.ts`
+  - mencakup:
+    - omzet periode,
+    - total transaksi,
+    - rata-rata ticket,
+    - kontribusi unit usaha terhadap total pendapatan,
+    - komposisi channel penjualan,
+    - tren omzet 6 bulan,
+    - tren harian pada periode aktif.
+- Menambahkan menu laporan:
+  - `Unit Usaha` pada `src/components/app-sidebar.tsx`.
+- Menambahkan test coverage:
+  - `src/actions/__tests__/unit-usaha-report.actions.test.ts`
+  - `src/app/(dashboard)/laporan/unit-usaha/__tests__/page.test.tsx`
+- Memperbarui progres Phase 3:
+  - `docs/internal/MASTER-PLAN-KOPERASI-UMUM.md` (`P3.2` ditandai selesai),
+  - `docs/internal/progress/PHASE-3-PROGRESS.md`.
+
+Testing status:
+- `npm run test`: lulus (32 tests).
+- `npm run lint`: lulus.
+- `npx tsc --noEmit`: lulus.
+- `npm run build`: lulus.
